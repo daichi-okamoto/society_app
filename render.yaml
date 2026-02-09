@@ -1,0 +1,57 @@
+databases:
+  - name: society-app-db
+    plan: basic-256mb
+    databaseName: society_app
+    user: society_app
+
+services:
+  - type: web
+    name: society-app-api
+    runtime: ruby
+    rootDir: backend
+    plan: starter
+    buildCommand: bundle install
+    preDeployCommand: bundle exec rails db:migrate
+    startCommand: bundle exec puma -C config/puma.rb
+    healthCheckPath: /healthz
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: society-app-db
+          property: connectionString
+      - key: SECRET_KEY_BASE
+        generateValue: true
+      - key: APP_BASE_URL
+        sync: false
+      - key: APP_HOST
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USERNAME
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: SMTP_AUTH
+        value: plain
+      - key: SMTP_STARTTLS
+        value: "true"
+      - key: R2_ENDPOINT
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false
+      - key: R2_PUBLIC_BASE_URL
+        sync: false
