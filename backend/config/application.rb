@@ -32,5 +32,20 @@ module Backend
     # Devise uses sessions; enable cookies and session middleware.
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use ActionDispatch::Session::CookieStore
+
+    # Handle CORS preflight requests from Cloudflare Pages and local frontend.
+    allowed_origins = ENV.fetch("CORS_ORIGINS", "http://localhost:5173")
+                         .split(",")
+                         .map(&:strip)
+                         .reject(&:empty?)
+    config.middleware.insert_before 0, Rack::Cors do
+      allow do
+        origins(*allowed_origins)
+        resource "*",
+          headers: :any,
+          methods: %i[get post put patch delete options head],
+          credentials: true
+      end
+    end
   end
 end
