@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../../lib/api";
+import LoadingScreen from "../../components/LoadingScreen";
 
 export default function AdminResults() {
   const [tournaments, setTournaments] = useState([]);
@@ -51,7 +52,7 @@ export default function AdminResults() {
     }
   };
 
-  if (loading) return <section>読み込み中...</section>;
+  if (loading) return <LoadingScreen />;
 
   return (
     <section>

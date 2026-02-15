@@ -108,3 +108,10 @@
 - 例外系テスト（未認証/権限/締切超過）
 - ログ/監視の最小設定
 - デプロイ手順の確認
+
+## 未完・未確認リスト（直近）
+- [x] CORS 設定の実装（`backend/config/initializers/cors.rb`）
+- [ ] 主要フローE2Eテスト（Playwright/Cypress などの導入と実装）
+- [ ] ログ/監視の最小設定（例: 例外通知 or 集約ログの導入）
+- [ ] 本番デプロイ実行（Render / Cloudflare Pages）
+- [ ] 本番ENVの設定と疎通確認（Stripe / R2 / SMTP / API）

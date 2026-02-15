@@ -26,6 +26,10 @@ class UsersController < ApplicationController
     {
       id: user.id,
       name: user.name,
+      name_kana: user.name_kana,
+      birth_date: user.birth_date,
+      phone: user.phone,
+      address: user.address,
       email: user.email,
       role: user.role
     }

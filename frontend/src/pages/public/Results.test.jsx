@@ -10,17 +10,29 @@ vi.mock("../../lib/api", () => ({
 
 describe("Results", () => {
   it("renders match results", async () => {
-    api.get.mockResolvedValue({
-      matches: [
-        {
-          id: 1,
-          home_team_id: 1,
-          away_team_id: 2,
-          home_team_name: "FC A",
-          away_team_name: "FC B",
-          result: { home_score: 3, away_score: 1 }
-        }
-      ]
+    api.get.mockImplementation((path) => {
+      if (path === "/tournaments/1") {
+        return Promise.resolve({
+          tournament: {
+            id: 1,
+            name: "J7 渋谷カップ Vol.11",
+            event_date: "2024-04-18"
+          }
+        });
+      }
+      return Promise.resolve({
+        matches: [
+          {
+            id: 1,
+            home_team_id: 1,
+            away_team_id: 2,
+            home_team_name: "渋谷ギャラクシー",
+            away_team_name: "代々木ユナイテッド",
+            kickoff_at: "2024-04-18T10:30:00+09:00",
+            result: { home_score: 3, away_score: 1 }
+          }
+        ]
+      });
     });
 
     const { getByText } = render(
@@ -31,6 +43,10 @@ describe("Results", () => {
       </MemoryRouter>
     );
 
-    await waitFor(() => expect(getByText("FC A vs FC B 3-1")).toBeTruthy());
+    await waitFor(() => expect(getByText("大会結果詳細")).toBeTruthy());
+    expect(getByText("J7 渋谷カップ Vol.11")).toBeTruthy();
+    expect(getByText("試合結果一覧")).toBeTruthy();
+    expect(getByText("渋谷ギャラクシー")).toBeTruthy();
+    expect(getByText("代々木ユナイテッド")).toBeTruthy();
   });
 });

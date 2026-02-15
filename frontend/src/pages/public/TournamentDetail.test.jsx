@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, waitFor } from "@testing-library/react";
+import { fireEvent, render, waitFor } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import TournamentDetail from "./TournamentDetail";
 import { api } from "../../lib/api";
@@ -15,9 +15,6 @@ vi.mock("../../lib/api", () => ({
 describe("TournamentDetail", () => {
   it("renders tournament detail", async () => {
     api.get.mockImplementation((path) => {
-      if (path.endsWith("/entries/me")) {
-        return Promise.resolve({ entry: { status: "pending" } });
-      }
       return Promise.resolve({
         tournament: {
           id: 1,
@@ -40,14 +37,16 @@ describe("TournamentDetail", () => {
       </MemoryRouter>
     );
 
-    await waitFor(() => expect(getByText("大会名")).toBeTruthy());
+    await waitFor(() => expect(getByText("大会A")).toBeTruthy());
     expect(getByText("大会A")).toBeTruthy();
-    expect(getByText("開催日")).toBeTruthy();
-    expect(getByText("2026-05-01")).toBeTruthy();
+    expect(getByText("開催日時")).toBeTruthy();
     expect(getAllByText("会場").length).toBeGreaterThan(0);
-    expect(getByText("試合結果を見る")).toBeTruthy();
-    expect(getByText("画像を見る")).toBeTruthy();
-    expect(getByText("参加申込へ")).toBeTruthy();
-    expect(getByText("申込状況: 申込済み(承認待ち)")).toBeTruthy();
+    expect(getByText("大会概要")).toBeTruthy();
+    expect(getByText("注意事項")).toBeTruthy();
+    expect(getByText("大会にエントリーする")).toBeTruthy();
+
+    fireEvent.click(getByText("ルール"));
+    expect(getByText("試合形式")).toBeTruthy();
+    expect(getByText("競技規則")).toBeTruthy();
   });
 });

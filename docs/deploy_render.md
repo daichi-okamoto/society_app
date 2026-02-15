@@ -28,6 +28,7 @@
 - `R2_SECRET_ACCESS_KEY`
 - `R2_BUCKET`
 - `R2_PUBLIC_BASE_URL`
+- `CORS_ORIGINS`
 
 ## 4. 初回デプロイ後の確認
 1. Deployログで `bundle install` と `db:migrate` 成功を確認

@@ -1,4 +1,5 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link } from "react-router-dom";
+import AnimatedOutlet from "../components/AnimatedOutlet";
 
 export default function AdminLayout() {
   return (
@@ -14,7 +15,9 @@ export default function AdminLayout() {
         </nav>
       </header>
       <main className="app-main">
-        <Outlet />
+        <div className="route-slide-host">
+          <AnimatedOutlet />
+        </div>
       </main>
     </div>
   );

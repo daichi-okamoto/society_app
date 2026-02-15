@@ -1,6 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthActions } from "../../hooks/useAuthActions";
+import AuthScaffold from "../../components/auth/AuthScaffold";
+import AuthGoogleButton from "../../components/auth/AuthGoogleButton";
+import AuthDivider from "../../components/auth/AuthDivider";
 
 export default function Login() {
   const { login } = useAuthActions();
@@ -14,27 +17,56 @@ export default function Login() {
     setError(null);
     try {
       await login({ email, password });
-      navigate("/tournaments");
+      navigate("/app/home");
     } catch (err) {
       setError("ログインに失敗しました");
     }
   };
 
   return (
-    <section>
-      <h1>ログイン</h1>
-      <form onSubmit={onSubmit}>
-        <div>
-          <label htmlFor="login-email">メール</label>
-          <input id="login-email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        </div>
-        <div>
-          <label htmlFor="login-password">パスワード</label>
-          <input id="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        </div>
-        {error && <p>{error}</p>}
-        <button type="submit">ログイン</button>
-      </form>
-    </section>
+    <AuthScaffold title="おかえりなさい" subtitle="J7 Soccer リーグへようこそ" termsLead="ログインすることで">
+        <form className="login-sp-form" onSubmit={onSubmit}>
+          <div className="login-sp-field">
+            <label htmlFor="login-email">メールアドレス</label>
+            <input
+              id="login-email"
+              type="email"
+              placeholder="example@j7soccer.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div className="login-sp-field">
+            <label htmlFor="login-password">パスワード</label>
+            <input
+              id="login-password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <div className="login-sp-help">
+            <button type="button">パスワードを忘れた場合</button>
+          </div>
+
+          {error && <p className="login-sp-error">{error}</p>}
+
+          <button type="submit" className="login-sp-submit">
+            ログイン
+          </button>
+
+          <AuthDivider />
+
+          <AuthGoogleButton label="Googleでログイン" />
+
+          <div className="login-sp-register">
+            <span>アカウントをお持ちでない方</span>
+            <Link to="/register">新規登録はこちら</Link>
+          </div>
+        </form>
+    </AuthScaffold>
   );
 }

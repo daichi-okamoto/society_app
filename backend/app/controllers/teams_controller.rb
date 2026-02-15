@@ -3,7 +3,8 @@ class TeamsController < ApplicationController
 
   def index
     teams = Team.includes(:captain_user).order(created_at: :desc)
-    render json: { teams: teams.map { |t| team_summary(t) } }, status: :ok
+    my_team_ids = TeamMember.where(user_id: current_user.id, status: :active).pluck(:team_id)
+    render json: { teams: teams.map { |t| team_summary(t, my_team_ids.include?(t.id)) } }, status: :ok
   end
 
   def create
@@ -25,6 +26,7 @@ class TeamsController < ApplicationController
   def show
     team = Team.find(params[:id])
     authorize_team_member!(team)
+    return if performed?
 
     render json: { team: team_detail(team) }, status: :ok
   end
@@ -32,6 +34,7 @@ class TeamsController < ApplicationController
   def update
     team = Team.find(params[:id])
     authorize_team_captain!(team)
+    return if performed?
 
     if team.update(name: params[:name])
       render json: { team: team_detail(team) }, status: :ok
@@ -43,6 +46,7 @@ class TeamsController < ApplicationController
   def transfer_captain
     team = Team.find(params[:id])
     authorize_team_captain!(team)
+    return if performed?
 
     new_captain_id = params[:new_captain_user_id]
     unless TeamMember.exists?(team_id: team.id, user_id: new_captain_id, status: :active)
@@ -79,11 +83,12 @@ class TeamsController < ApplicationController
     end
   end
 
-  def team_summary(team)
+  def team_summary(team, is_member)
     {
       id: team.id,
       name: team.name,
       captain_name: team.captain_user.name,
+      is_member: is_member,
       past_results: []
     }
   end

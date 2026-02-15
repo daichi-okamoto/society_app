@@ -23,15 +23,11 @@ describe("Register", () => {
       </MemoryRouter>
     );
 
-    fireEvent.change(getByLabelText("氏名"), { target: { value: "山田" } });
-    fireEvent.change(getByLabelText("ふりがな"), { target: { value: "やまだ" } });
-    fireEvent.change(getByLabelText("生年月日"), { target: { value: "1990-01-01" } });
-    fireEvent.change(getByLabelText("電話"), { target: { value: "090-0000-0000" } });
-    fireEvent.change(getByLabelText("メール"), { target: { value: "a@b.com" } });
-    fireEvent.change(getByLabelText("住所"), { target: { value: "東京" } });
-    fireEvent.change(getByLabelText("パスワード"), { target: { value: "password" } });
-    fireEvent.click(getByText("登録"));
+    fireEvent.change(getByLabelText("メールアドレス"), { target: { value: "a@b.com" } });
+    fireEvent.change(getByLabelText("パスワード"), { target: { value: "password123" } });
+    fireEvent.change(getByLabelText("パスワード（確認）"), { target: { value: "password123" } });
+    fireEvent.click(getByText("アカウントを作成"));
 
-    expect(getByText("登録")).toBeTruthy();
+    expect(getByText("アカウントを作成")).toBeTruthy();
   });
 });

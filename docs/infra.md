@@ -110,3 +110,4 @@ curl -sS https://<APIドメイン>/readyz
 ## 10. 具体手順
 - Render本番デプロイRunbook: `docs/deploy_render.md`
 - Cloudflare Pages本番デプロイRunbook: `docs/deploy_pages.md`
+- Heroku本番デプロイRunbook: `docs/deploy_heroku.md`

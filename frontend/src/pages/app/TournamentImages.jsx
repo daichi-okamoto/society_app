@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../../lib/api";
+import LoadingScreen from "../../components/LoadingScreen";
 
 export default function TournamentImages() {
   const { id } = useParams();
@@ -32,7 +33,7 @@ export default function TournamentImages() {
     };
   }, [id]);
 
-  if (loading) return <section>読み込み中...</section>;
+  if (loading) return <LoadingScreen />;
   if (error) return <section>{error}</section>;
 
   const totalPages = Math.max(1, Math.ceil(images.length / pageSize));

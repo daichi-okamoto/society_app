@@ -96,6 +96,12 @@ class NotificationsController < ApplicationController
   end
 
   def stream
+    # In development, disable long-lived SSE unless explicitly enabled.
+    # This avoids hanging Puma workers and makes Ctrl+C shutdown reliable.
+    if !Rails.env.production? && ENV["ENABLE_NOTIFICATION_SSE"] != "true"
+      return head :no_content
+    end
+
     response.headers["Content-Type"] = "text/event-stream"
     response.headers["Cache-Control"] = "no-cache"
     response.headers["X-Accel-Buffering"] = "no"
@@ -103,7 +109,13 @@ class NotificationsController < ApplicationController
     last_id = request.headers["Last-Event-ID"].to_i
 
     sse = SSE.new(response.stream, event: "notification")
-    loop do
+    # Keep each SSE request short-lived so Puma can shut down cleanly on Ctrl+C in development.
+    # The client can reconnect with Last-Event-ID to continue from the latest event.
+    deadline = Time.current + 25.seconds
+
+    while Time.current < deadline
+      break if response.stream.closed?
+
       # promote scheduled notifications
       Notification.where(sent_at: nil).where("scheduled_at <= ?", Time.current).find_each do |n|
         n.update_columns(sent_at: Time.current, updated_at: Time.current)
@@ -116,9 +128,9 @@ class NotificationsController < ApplicationController
       end
 
       sse.write("", event: "keep-alive")
-      sleep 30
+      sleep 3
     end
-  rescue IOError
+  rescue IOError, ActionController::Live::ClientDisconnected
   ensure
     sse.close if sse
     response.stream.close

@@ -1,26 +1,18 @@
 class TeamJoinRequestsController < ApplicationController
   before_action :authenticate_user!
 
+  def join_by_code
+    team = Team.find_by(join_code: params[:join_code].to_s.strip.upcase)
+    return render json: { error: { code: "not_found" } }, status: :not_found if team.nil?
+
+    create_join_request_for!(team)
+  end
+
   def create
     team = Team.find(params[:team_id])
-    return render json: { error: { code: "validation_error" } }, status: :unprocessable_entity if team.join_code != params[:join_code]
+    return render json: { error: { code: "validation_error" } }, status: :unprocessable_entity if team.join_code != params[:join_code].to_s.strip.upcase
 
-    if TeamMember.exists?(team_id: team.id, user_id: current_user.id)
-      return render json: { error: { code: "conflict" } }, status: :conflict
-    end
-
-    if TeamJoinRequest.exists?(team_id: team.id, user_id: current_user.id, status: :pending)
-      return render json: { error: { code: "conflict" } }, status: :conflict
-    end
-
-    req = TeamJoinRequest.create!(
-      team: team,
-      user: current_user,
-      status: :pending,
-      requested_at: Time.current
-    )
-
-    render json: { join_request: { id: req.id, status: req.status } }, status: :created
+    create_join_request_for!(team)
   end
 
   def index
@@ -61,6 +53,25 @@ class TeamJoinRequestsController < ApplicationController
   end
 
   private
+
+  def create_join_request_for!(team)
+    if TeamMember.exists?(team_id: team.id, user_id: current_user.id)
+      return render json: { error: { code: "conflict" } }, status: :conflict
+    end
+
+    if TeamJoinRequest.exists?(team_id: team.id, user_id: current_user.id, status: :pending)
+      return render json: { error: { code: "conflict" } }, status: :conflict
+    end
+
+    req = TeamJoinRequest.create!(
+      team: team,
+      user: current_user,
+      status: :pending,
+      requested_at: Time.current
+    )
+
+    render json: { join_request: { id: req.id, status: req.status }, team: { id: team.id, name: team.name } }, status: :created
+  end
 
   def authorize_team_captain!(team)
     return if current_user.admin?

@@ -45,6 +45,8 @@ PagesドメインをRailsの許可オリジンに登録しておく。
 
 - 例: `https://<project>.pages.dev`
 - カスタムドメイン利用時はそのドメインも追加
+- Render側ENV `CORS_ORIGINS` にカンマ区切りで設定
+  - 例: `https://<project>.pages.dev,https://example.com`
 
 ## 7. 本番運用
 - `main` へのpushで自動デプロイ

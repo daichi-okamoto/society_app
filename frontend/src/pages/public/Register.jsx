@@ -1,19 +1,30 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthActions } from "../../hooks/useAuthActions";
+import AuthScaffold from "../../components/auth/AuthScaffold";
+import AuthGoogleButton from "../../components/auth/AuthGoogleButton";
+import AuthDivider from "../../components/auth/AuthDivider";
+
+function buildProfileFromEmail(email) {
+  const localPart = (email || "new_user").split("@")[0] || "new_user";
+  const baseName = localPart.replace(/[^a-zA-Z0-9ぁ-んァ-ヶ一-龯]/g, "").slice(0, 20) || "新規ユーザー";
+
+  return {
+    name: baseName,
+    name_kana: "みとうろく",
+    birth_date: "2000-01-01",
+    phone: "0000000000",
+    address: ""
+  };
+}
 
 export default function Register() {
   const { register } = useAuthActions();
   const navigate = useNavigate();
-
   const [form, setForm] = useState({
-    name: "",
-    name_kana: "",
-    birth_date: "",
-    phone: "",
     email: "",
-    address: "",
-    password: ""
+    password: "",
+    passwordConfirm: ""
   });
   const [error, setError] = useState(null);
 
@@ -24,49 +35,88 @@ export default function Register() {
   const onSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+
+    if (form.password.length < 8) {
+      setError("パスワードは8文字以上で入力してください");
+      return;
+    }
+
+    if (form.password !== form.passwordConfirm) {
+      setError("パスワード確認が一致しません");
+      return;
+    }
+
     try {
-      await register(form);
-      navigate("/tournaments");
-    } catch (err) {
+      const profile = buildProfileFromEmail(form.email);
+      await register({
+        ...profile,
+        email: form.email,
+        password: form.password
+      });
+      navigate("/app/home");
+    } catch {
       setError("登録に失敗しました");
     }
   };
 
   return (
-    <section>
-      <h1>新規登録</h1>
-      <form onSubmit={onSubmit}>
-        <div>
-          <label htmlFor="reg-name">氏名</label>
-          <input id="reg-name" name="name" value={form.name} onChange={onChange} />
+    <AuthScaffold
+      title="新しく始める"
+      subtitle="J7 Soccer アカウントを作成"
+      termsLead="登録することで"
+      panelClassName="register-panel"
+      afterForm={
+        <div className="register-login-link">
+          <Link to="/login">すでにアカウントをお持ちの方はこちら</Link>
         </div>
-        <div>
-          <label htmlFor="reg-kana">ふりがな</label>
-          <input id="reg-kana" name="name_kana" value={form.name_kana} onChange={onChange} />
+      }
+    >
+      <form className="login-sp-form register-form" onSubmit={onSubmit}>
+        <div className="login-sp-field">
+          <label htmlFor="reg-email">メールアドレス</label>
+          <input
+            id="reg-email"
+            name="email"
+            type="email"
+            placeholder="example@j7soccer.com"
+            value={form.email}
+            onChange={onChange}
+          />
         </div>
-        <div>
-          <label htmlFor="reg-birth">生年月日</label>
-          <input id="reg-birth" name="birth_date" type="date" value={form.birth_date} onChange={onChange} />
-        </div>
-        <div>
-          <label htmlFor="reg-phone">電話</label>
-          <input id="reg-phone" name="phone" value={form.phone} onChange={onChange} />
-        </div>
-        <div>
-          <label htmlFor="reg-email">メール</label>
-          <input id="reg-email" name="email" value={form.email} onChange={onChange} />
-        </div>
-        <div>
-          <label htmlFor="reg-address">住所</label>
-          <input id="reg-address" name="address" value={form.address} onChange={onChange} />
-        </div>
-        <div>
+
+        <div className="login-sp-field">
           <label htmlFor="reg-password">パスワード</label>
-          <input id="reg-password" name="password" type="password" value={form.password} onChange={onChange} />
+          <input
+            id="reg-password"
+            name="password"
+            type="password"
+            placeholder="8文字以上の英数字"
+            value={form.password}
+            onChange={onChange}
+          />
         </div>
-        {error && <p>{error}</p>}
-        <button type="submit">登録</button>
+
+        <div className="login-sp-field">
+          <label htmlFor="reg-password-confirm">パスワード（確認）</label>
+          <input
+            id="reg-password-confirm"
+            name="passwordConfirm"
+            type="password"
+            placeholder="もう一度入力してください"
+            value={form.passwordConfirm}
+            onChange={onChange}
+          />
+        </div>
+
+        {error && <p className="login-sp-error">{error}</p>}
+
+        <button type="submit" className="login-sp-submit">
+          アカウントを作成
+        </button>
+
+        <AuthDivider />
+        <AuthGoogleButton label="Googleで登録" />
       </form>
-    </section>
+    </AuthScaffold>
   );
 }

@@ -23,7 +23,7 @@ describe("Login", () => {
       </MemoryRouter>
     );
 
-    fireEvent.change(getByLabelText("メール"), { target: { value: "a@b.com" } });
+    fireEvent.change(getByLabelText("メールアドレス"), { target: { value: "a@b.com" } });
     fireEvent.change(getByLabelText("パスワード"), { target: { value: "password" } });
     fireEvent.click(getByText("ログイン", { selector: "button" }));
 

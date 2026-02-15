@@ -18,6 +18,7 @@ Rails.application.routes.draw do
   get  "/teams/:team_id/join-requests", to: "team_join_requests#index"
   post "/teams/:team_id/join-requests", to: "team_join_requests#create"
   patch "/team-join-requests/:id", to: "team_join_requests#update"
+  post "/teams/join-by-code", to: "team_join_requests#join_by_code"
   resources :team_members, only: [:destroy]
   resources :tournaments, only: [:index, :show, :create, :update, :destroy] do
     resources :entries, only: [:create], controller: "tournament_entries"

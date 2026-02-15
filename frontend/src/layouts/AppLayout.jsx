@@ -1,10 +1,12 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
+import AnimatedOutlet from "../components/AnimatedOutlet";
 
 export default function AppLayout() {
   const { user } = useAuth();
+  const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
   const [banner, setBanner] = useState(null);
   const timerRef = useRef(null);
@@ -19,6 +21,11 @@ export default function AppLayout() {
 
   useEffect(() => {
     if (!user) return;
+    const enableSse =
+      import.meta.env.VITE_ENABLE_SSE === "true" ||
+      (import.meta.env.PROD && import.meta.env.VITE_ENABLE_SSE !== "false");
+    if (!enableSse) return;
+
     const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
     const es = new EventSource(`${baseUrl}/notifications/stream`, { withCredentials: true });
 
@@ -44,11 +51,43 @@ export default function AppLayout() {
     };
   }, [user]);
 
+  if (
+    location.pathname === "/app/home" ||
+    location.pathname === "/me" ||
+    location.pathname === "/me/edit" ||
+    location.pathname === "/help" ||
+    location.pathname === "/payments" ||
+    location.pathname === "/tournaments" ||
+    location.pathname === "/notifications" ||
+    location.pathname === "/teams" ||
+    location.pathname === "/teams/new" ||
+    location.pathname === "/policies" ||
+    /^\/teams\/[^/]+\/members$/.test(location.pathname) ||
+    /^\/tournaments\/[^/]+\/entry$/.test(location.pathname) ||
+    /^\/tournaments\/[^/]+\/entry\/confirm$/.test(location.pathname) ||
+    /^\/tournaments\/[^/]+\/entry\/complete$/.test(location.pathname) ||
+    /^\/tournaments\/[^/]+\/entry\/review$/.test(location.pathname)
+  ) {
+    return (
+      <>
+        {banner && (
+          <div className="notify-banner">
+            <strong>{banner.title}</strong> {banner.body}
+          </div>
+        )}
+        <div className="route-slide-host">
+          <AnimatedOutlet />
+        </div>
+      </>
+    );
+  }
+
   return (
     <div className="app-shell">
       <header className="app-header">
         <div className="brand">Society App</div>
         <nav className="nav">
+          <Link to="/app/home">ホーム</Link>
           <Link to="/tournaments">大会</Link>
           <Link to="/teams">チーム</Link>
           <Link to="/me">マイページ</Link>
@@ -64,7 +103,9 @@ export default function AppLayout() {
         </div>
       )}
       <main className="app-main">
-        <Outlet />
+        <div className="route-slide-host">
+          <AnimatedOutlet />
+        </div>
       </main>
     </div>
   );

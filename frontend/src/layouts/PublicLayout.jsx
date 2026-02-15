@@ -1,6 +1,21 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import AnimatedOutlet from "../components/AnimatedOutlet";
 
 export default function PublicLayout() {
+  const location = useLocation();
+  const hideHeader =
+    location.pathname === "/login" ||
+    location.pathname === "/register" ||
+    /^\/tournaments\/[^/]+(?:\/results)?$/.test(location.pathname);
+
+  if (hideHeader) {
+    return (
+      <div className="route-slide-host">
+        <AnimatedOutlet />
+      </div>
+    );
+  }
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -12,7 +27,9 @@ export default function PublicLayout() {
         </nav>
       </header>
       <main className="app-main">
-        <Outlet />
+        <div className="route-slide-host">
+          <AnimatedOutlet />
+        </div>
       </main>
     </div>
   );

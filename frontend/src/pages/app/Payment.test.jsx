@@ -1,24 +1,30 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, fireEvent, waitFor } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import Payment from "./Payment";
-import { api } from "../../lib/api";
-
-vi.mock("../../lib/api", () => ({
-  api: { post: vi.fn().mockResolvedValue({ checkout_url: "https://example.com" }) }
-}));
-
-const assignMock = vi.fn();
-Object.defineProperty(window, "location", {
-  value: { assign: assignMock },
-  writable: true
-});
 
 describe("Payment", () => {
-  it("redirects to checkout", async () => {
-    const { getByText, getByLabelText } = render(<Payment />);
-    fireEvent.change(getByLabelText("申込ID"), { target: { value: "1" } });
-    fireEvent.click(getByText("決済へ進む"));
+  it("shows payment card section when payment method is registered", () => {
+    render(
+        <MemoryRouter>
+        <Payment />
+      </MemoryRouter>
+    );
 
-    await waitFor(() => expect(assignMock).toHaveBeenCalledWith("https://example.com"));
+    expect(screen.getByText("登録済みのお支払い方法")).toBeInTheDocument();
+    expect(screen.getByText("最近の支払い履歴")).toBeInTheDocument();
+    expect(screen.getByText("新しいカードを追加")).toBeInTheDocument();
+  });
+
+  it("shows empty state when payment method is not registered", () => {
+    render(
+        <MemoryRouter>
+        <Payment paymentMethod={null} paymentHistory={[]} />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText("お支払い方法が登録されていません")).toBeInTheDocument();
+    expect(screen.getByText("お支払い方法を追加する")).toBeInTheDocument();
+    expect(screen.getByText("カード情報は暗号化され、安全に保管されます")).toBeInTheDocument();
   });
 });

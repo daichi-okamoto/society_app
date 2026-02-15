@@ -3,6 +3,7 @@ class MatchesController < ApplicationController
 
   def index
     tournament = Tournament.find(params[:tournament_id])
+    ensure_demo_matches!(tournament)
     matches = tournament.matches.includes(:match_result, :home_team, :away_team)
 
     render json: { matches: matches.map { |m| match_json(m) } }, status: :ok
@@ -71,5 +72,44 @@ class MatchesController < ApplicationController
       result_updated_by: match.match_result&.updated_by,
       result_updated_by_name: updater&.name
     }
+  end
+
+  def ensure_demo_matches!(tournament)
+    return unless Rails.env.development?
+    return unless tournament.event_date == Date.current
+    return if tournament.matches.exists?
+
+    teams = Team.order(:id).limit(4).to_a
+    return if teams.length < 2
+
+    kickoff_base = tournament.event_date.to_time.change(hour: 10, min: 0)
+    sample_pairs = [
+      [teams[0], teams[1], "Aコート", kickoff_base, :finished, { home_score: 2, away_score: 0 }],
+      [teams[0], teams[2] || teams[1], "Bコート", kickoff_base + 90.minutes, :scheduled, nil],
+      [teams[0], teams[3] || teams[1], "Aコート", kickoff_base + 180.minutes, :scheduled, nil]
+    ]
+
+    sample_pairs.each do |home, away, field, kickoff_at, status, score|
+      next if home.id == away.id
+
+      match = Match.find_or_initialize_by(tournament_id: tournament.id, kickoff_at: kickoff_at)
+      match.assign_attributes(
+        home_team_id: home.id,
+        away_team_id: away.id,
+        field: field,
+        status: status
+      )
+      match.save!
+
+      if score
+        result = match.match_result || match.build_match_result
+        result.assign_attributes(
+          home_score: score[:home_score],
+          away_score: score[:away_score],
+          updated_by: User.order(:id).pick(:id)
+        )
+        result.save!
+      end
+    end
   end
 end

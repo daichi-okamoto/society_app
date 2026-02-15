@@ -18,11 +18,19 @@ import TeamDetail from "./pages/app/TeamDetail";
 import TeamJoin from "./pages/app/TeamJoin";
 import TeamRequests from "./pages/app/TeamRequests";
 import TeamTransfer from "./pages/app/TeamTransfer";
+import TeamMembers from "./pages/app/TeamMembers";
+import AppHome from "./pages/app/AppHome";
 import Tournaments from "./pages/app/Tournaments";
 import TournamentEntry from "./pages/app/TournamentEntry";
+import TournamentEntryConfirm from "./pages/app/TournamentEntryConfirm";
+import TournamentEntryComplete from "./pages/app/TournamentEntryComplete";
+import TournamentEntryReview from "./pages/app/TournamentEntryReview";
 import Payment from "./pages/app/Payment";
 import TournamentImages from "./pages/app/TournamentImages";
 import NotificationCenter from "./pages/app/NotificationCenter";
+import HelpContact from "./pages/app/HelpContact";
+import LegalPolicies from "./pages/app/LegalPolicies";
+import ProfileEdit from "./pages/app/ProfileEdit";
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminTournaments from "./pages/admin/AdminTournaments";
@@ -51,18 +59,27 @@ export default function App() {
 
       <Route element={<RequireAuth />}>
         <Route element={<AppLayout />}>
+          <Route path="/app/home" element={<AppHome />} />
           <Route path="/me" element={<MyPage />} />
+          <Route path="/me/edit" element={<ProfileEdit />} />
           <Route path="/teams" element={<Teams />} />
           <Route path="/teams/new" element={<TeamNew />} />
           <Route path="/teams/:id" element={<TeamDetail />} />
           <Route path="/teams/:id/join" element={<TeamJoin />} />
           <Route path="/teams/:id/requests" element={<TeamRequests />} />
           <Route path="/teams/:id/transfer" element={<TeamTransfer />} />
+          <Route path="/teams/:id/members" element={<TeamMembers />} />
           <Route path="/tournaments" element={<Tournaments />} />
           <Route path="/tournaments/:id/entry" element={<TournamentEntry />} />
+          <Route path="/tournaments/:id/entry/confirm" element={<TournamentEntryConfirm />} />
+          <Route path="/tournaments/:id/entry/complete" element={<TournamentEntryComplete />} />
+          <Route path="/tournaments/:id/entry/review" element={<TournamentEntryReview />} />
           <Route path="/tournaments/:id/payment" element={<Payment />} />
           <Route path="/tournaments/:id/images" element={<TournamentImages />} />
           <Route path="/notifications" element={<NotificationCenter />} />
+          <Route path="/help" element={<HelpContact />} />
+          <Route path="/payments" element={<Payment />} />
+          <Route path="/policies" element={<LegalPolicies />} />
         </Route>
       </Route>
 

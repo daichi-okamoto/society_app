@@ -1,5 +1,6 @@
 class Tournament < ApplicationRecord
   has_many :tournament_entries, dependent: :destroy
+  has_many :matches, dependent: :destroy
   has_many :tournament_images, dependent: :destroy
 
   validates :name, presence: true

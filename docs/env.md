@@ -5,6 +5,7 @@
 - `APP_BASE_URL` : アプリのベースURL
 - `APP_HOST` : RailsのメールURLホスト
 - `APP_PORT` : RailsのメールURLポート（開発用）
+- `CORS_ORIGINS` : 許可するフロントのオリジン（カンマ区切り）
 
 ## DB（Postgres）
 - `DATABASE_URL`
