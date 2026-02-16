@@ -16,10 +16,16 @@ export function useAuthActions() {
     return data.user;
   };
 
+  const registerAdmin = async (payload) => {
+    const data = await api.post("/auth/admin/register", payload);
+    setUser(data.user);
+    return data.user;
+  };
+
   const logout = async () => {
     await api.post("/auth/logout");
     setUser(null);
   };
 
-  return { login, register, logout };
+  return { login, register, registerAdmin, logout };
 }

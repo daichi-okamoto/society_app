@@ -10,6 +10,8 @@ import Results from "./pages/public/Results";
 import Announcements from "./pages/public/Announcements";
 import Login from "./pages/public/Login";
 import Register from "./pages/public/Register";
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminRegister from "./pages/admin/AdminRegister";
 
 import MyPage from "./pages/app/MyPage";
 import Teams from "./pages/app/Teams";
@@ -55,6 +57,8 @@ export default function App() {
         <Route path="/announcements" element={<Announcements />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/register" element={<AdminRegister />} />
       </Route>
 
       <Route element={<RequireAuth />}>

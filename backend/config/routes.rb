@@ -2,6 +2,7 @@ Rails.application.routes.draw do
   devise_for :users, skip: [:sessions, :registrations, :passwords, :confirmations, :unlock]
 
   post "/auth/register", to: "auth#register"
+  post "/auth/admin/register", to: "auth#admin_register"
   post "/auth/login", to: "auth#login"
   post "/auth/logout", to: "auth#logout"
 

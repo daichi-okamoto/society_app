@@ -5,6 +5,8 @@ export default function PublicLayout() {
   const location = useLocation();
   const hideHeader =
     location.pathname === "/login" ||
+    location.pathname === "/admin/login" ||
+    location.pathname === "/admin/register" ||
     location.pathname === "/register" ||
     /^\/tournaments\/[^/]+(?:\/results)?$/.test(location.pathname);
 

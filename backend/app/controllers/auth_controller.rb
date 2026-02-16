@@ -12,6 +12,21 @@ class AuthController < ApplicationController
     end
   end
 
+  def admin_register
+    unless valid_admin_invite_code?(params[:admin_invite_code].to_s)
+      return render json: { error: { code: "unauthorized_admin_registration" } }, status: :unauthorized
+    end
+
+    user = User.new(register_params.merge(role: :admin))
+
+    if user.save
+      sign_in(user)
+      render json: { user: user_json(user) }, status: :created
+    else
+      render json: { error: { code: "validation_error", details: user.errors } }, status: :unprocessable_entity
+    end
+  end
+
   def login
     user = User.find_by(email: params[:email])
     unless user&.valid_password?(params[:password])
@@ -35,6 +50,18 @@ class AuthController < ApplicationController
 
   def register_params
     params.permit(:name, :name_kana, :birth_date, :phone, :email, :address, :password)
+  end
+
+  def admin_signup_code
+    ENV["ADMIN_SIGNUP_CODE"].presence || (Rails.env.development? || Rails.env.test? ? "dev-admin-signup-code" : nil)
+  end
+
+  def valid_admin_invite_code?(provided_code)
+    expected_code = admin_signup_code
+    return false if expected_code.blank? || provided_code.blank?
+    return false if expected_code.bytesize != provided_code.bytesize
+
+    ActiveSupport::SecurityUtils.secure_compare(provided_code, expected_code)
   end
 
   def user_json(user)

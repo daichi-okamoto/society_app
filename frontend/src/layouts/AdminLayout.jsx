@@ -1,7 +1,18 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import AnimatedOutlet from "../components/AnimatedOutlet";
 
 export default function AdminLayout() {
+  const location = useLocation();
+  const isDashboard = /^\/admin\/?$/.test(location.pathname);
+
+  if (isDashboard) {
+    return (
+      <div className="route-slide-host">
+        <AnimatedOutlet />
+      </div>
+    );
+  }
+
   return (
     <div className="app-shell">
       <header className="app-header">
