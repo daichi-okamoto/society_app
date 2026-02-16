@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { api } from "../../lib/api";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import TournamentOverviewTabContent from "../public/components/TournamentOverviewTabContent";
+import { api } from "../../lib/api";
+import TournamentOverviewTabContent from "./components/TournamentOverviewTabContent";
 
 const COVER_IMAGE =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuA-MSmLmTuGcxKd0viNblk-n6qrQbumimk_bAR3RKqKgOwcKc-LdwDPReDFB_rRD1MwwSTt39C6b11lp9BXIMZLX9IlkmWtnvO4k_sCC1z1GaJjB8OOTzg9fn33yRfvDYUp8N5hid65wbnqP0gxzTZStf_ZqFAliIuh8aYl61iL1PA7GAMFN_NzCjrd6XAaIkw_BCjlqM8dQtkg1YPZt3URvVgIiy1vwv7PG6LZtwHqHrlY8_665uqovQNppZ4sat9CmbSFAXqLNE2O";
@@ -19,35 +19,16 @@ function formatKickoff(dateString) {
   return dt.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit", hour12: false });
 }
 
-export default function TournamentEntryReview() {
-  const { id } = useParams();
+export default function TournamentDetailRegistered({ tournament }) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [tournament, setTournament] = useState(null);
   const [matches, setMatches] = useState([]);
   const [activeTab, setActiveTab] = useState("matches");
 
   useEffect(() => {
     let active = true;
     api
-      .get(`/tournaments/${id}`)
-      .then((data) => {
-        if (!active) return;
-        setTournament(data?.tournament || null);
-      })
-      .catch(() => {
-        if (!active) return;
-        setTournament(null);
-      });
-    return () => {
-      active = false;
-    };
-  }, [id]);
-
-  useEffect(() => {
-    let active = true;
-    api
-      .get(`/tournaments/${id}/matches`)
+      .get(`/tournaments/${tournament.id}/matches`)
       .then((data) => {
         if (!active) return;
         const list = (data?.matches || []).slice().sort((a, b) => {
@@ -63,14 +44,12 @@ export default function TournamentEntryReview() {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [tournament.id]);
 
   const firstUnfinishedIndex = useMemo(() => {
     const index = matches.findIndex((match) => match.status !== "finished");
     return index < 0 ? 0 : index;
   }, [matches]);
-
-  if (!tournament) return null;
 
   return (
     <div className="tdetail-entry-root">
@@ -112,10 +91,10 @@ export default function TournamentEntryReview() {
             </div>
           </div>
 
-          <button type="button" className="tdetail-entry-review-btn">
+          <Link to={user ? `/tournaments/${tournament.id}/entry/review` : "/login"} className="tdetail-entry-review-btn">
             <span className="material-symbols-outlined">info</span>
             <span>エントリー内容を確認する</span>
-          </button>
+          </Link>
         </section>
 
         <section className="tdetail-entry-alert-wrap">
@@ -174,7 +153,7 @@ export default function TournamentEntryReview() {
                         <div className="tdetail-entry-match-row">
                           <div className="team">
                             <div className="logo">
-                              <span className="material-symbols-outlined text-gray-400">shield</span>
+                              <span className="material-symbols-outlined">shield</span>
                             </div>
                             <span>{match.home_team_name || "未定"}</span>
                           </div>
@@ -187,7 +166,7 @@ export default function TournamentEntryReview() {
 
                           <div className="team">
                             <div className="logo">
-                              <span className="material-symbols-outlined text-gray-400">shield</span>
+                              <span className="material-symbols-outlined">shield</span>
                             </div>
                             <span>{match.away_team_name || "未定"}</span>
                           </div>

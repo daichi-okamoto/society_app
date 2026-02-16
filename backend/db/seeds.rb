@@ -117,6 +117,12 @@ tournaments = [
     description: "未来の予定大会デモデータ"
   },
   {
+    name: "エントリー確認用・渋谷ウィンターカップ",
+    event_date: Date.current + 10,
+    venue: "渋谷スポーツセンター",
+    description: "エントリー済み（未開催）画面確認用デモデータ"
+  },
+  {
     name: "J7 渋谷カップ Vol.11",
     event_date: Date.current - 21,
     venue: "代々木フットサルコート",
@@ -146,6 +152,7 @@ end
 
 tournament_today = tournaments.find { |t| t.name == "J7 渋谷カップ Vol.12" }
 tournament_future = tournaments.find { |t| t.name == "平日夜間・新宿ナイトリーグ" }
+tournament_future_entry_demo = tournaments.find { |t| t.name == "エントリー確認用・渋谷ウィンターカップ" }
 tournament_past = tournaments.find { |t| t.name == "J7 渋谷カップ Vol.11" }
 
 entry_today = TournamentEntry.find_or_initialize_by(tournament_id: tournament_today.id, team_id: team_a.id)
@@ -155,6 +162,10 @@ entry_today.save!
 entry_future = TournamentEntry.find_or_initialize_by(tournament_id: tournament_future.id, team_id: team_b.id)
 entry_future.assign_attributes(status: :pending, applied_at: 1.day.ago)
 entry_future.save!
+
+entry_future_demo = TournamentEntry.find_or_initialize_by(tournament_id: tournament_future_entry_demo.id, team_id: team_a.id)
+entry_future_demo.assign_attributes(status: :approved, applied_at: 2.days.ago, decided_at: 1.day.ago, decided_by: admin.id)
+entry_future_demo.save!
 
 entry_past = TournamentEntry.find_or_initialize_by(tournament_id: tournament_past.id, team_id: team_a.id)
 entry_past.assign_attributes(status: :approved, applied_at: 30.days.ago, decided_at: 28.days.ago, decided_by: admin.id)
@@ -219,6 +230,48 @@ result.save!
     live_result.save!
   else
     live_match.match_result&.destroy
+  end
+end
+
+[
+  {
+    home_team_id: team_a.id,
+    away_team_id: team_ebisu.id,
+    kickoff_at: tournament_future_entry_demo.event_date.to_time.change(hour: 10, min: 30),
+    field: "Aコート",
+    status: :finished,
+    result: { home_score: 2, away_score: 1 }
+  },
+  {
+    home_team_id: team_yoyogi.id,
+    away_team_id: team_meguro.id,
+    kickoff_at: tournament_future_entry_demo.event_date.to_time.change(hour: 11, min: 0),
+    field: "Bコート",
+    status: :scheduled
+  }
+].each do |attrs|
+  demo_match = Match.find_or_initialize_by(
+    tournament_id: tournament_future_entry_demo.id,
+    kickoff_at: attrs.fetch(:kickoff_at)
+  )
+  demo_match.assign_attributes(
+    home_team_id: attrs.fetch(:home_team_id),
+    away_team_id: attrs.fetch(:away_team_id),
+    field: attrs.fetch(:field),
+    status: attrs.fetch(:status)
+  )
+  demo_match.save!
+
+  if attrs[:result]
+    demo_result = MatchResult.find_or_initialize_by(match_id: demo_match.id)
+    demo_result.assign_attributes(
+      home_score: attrs[:result][:home_score],
+      away_score: attrs[:result][:away_score],
+      updated_by: admin.id
+    )
+    demo_result.save!
+  else
+    demo_match.match_result&.destroy
   end
 end
 

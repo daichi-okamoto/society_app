@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { api } from "../../lib/api";
 import TournamentDetailUpcoming from "./TournamentDetailUpcoming";
 import TournamentDetailLive from "./TournamentDetailLive";
+import TournamentDetailRegistered from "./TournamentDetailRegistered";
 import LoadingScreen from "../../components/LoadingScreen";
 
 export default function TournamentDetail() {
@@ -68,14 +69,17 @@ export default function TournamentDetail() {
   today.setHours(0, 0, 0, 0);
   const tournamentDate = new Date(`${tournament.event_date}T00:00:00`);
   const isOngoing = tournamentDate.getTime() === today.getTime();
+  const isFuture = tournamentDate.getTime() > today.getTime();
 
   if (isOngoing) {
     return <TournamentDetailLive tournament={tournament} entryStatus={entryStatus} entryTeamId={entryTeamId} />;
   }
 
-  // エントリー済みでなければ、募集側の大会詳細デザインを表示する
-  if (!entryStatus) {
-    return <TournamentDetailUpcoming tournament={tournament} />;
+  if (isFuture) {
+    if (!entryStatus) {
+      return <TournamentDetailUpcoming tournament={tournament} />;
+    }
+    return <TournamentDetailRegistered tournament={tournament} />;
   }
 
   return <TournamentDetailLive tournament={tournament} entryStatus={entryStatus} entryTeamId={entryTeamId} />;

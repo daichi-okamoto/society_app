@@ -52,6 +52,8 @@ function formatMonthDay(date) {
 export default function AppHome() {
   const { user } = useAuth();
   const [tournaments, setTournaments] = useState([]);
+  const [entryStatusByTournament, setEntryStatusByTournament] = useState({});
+  const [entriesReady, setEntriesReady] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -80,6 +82,50 @@ export default function AppHome() {
   }, []);
 
   useEffect(() => {
+    if (!user) {
+      setEntryStatusByTournament({});
+      setEntriesReady(true);
+      return;
+    }
+
+    if (tournaments.length === 0) {
+      setEntryStatusByTournament({});
+      setEntriesReady(true);
+      return;
+    }
+
+    let active = true;
+    setEntriesReady(false);
+
+    Promise.allSettled(
+      tournaments.map((tournament) => api.get(`/tournaments/${tournament.id}/entries/me`))
+    )
+      .then((results) => {
+        if (!active) return;
+        const next = {};
+        results.forEach((result, index) => {
+          if (result.status !== "fulfilled") return;
+          const status = result.value?.entry?.status;
+          if (!status) return;
+          next[tournaments[index].id] = status;
+        });
+        setEntryStatusByTournament(next);
+      })
+      .catch(() => {
+        if (!active) return;
+        setEntryStatusByTournament({});
+      })
+      .finally(() => {
+        if (!active) return;
+        setEntriesReady(true);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [tournaments, user]);
+
+  useEffect(() => {
     let active = true;
     api
       .get("/notifications")
@@ -100,11 +146,19 @@ export default function AppHome() {
   }, []);
 
   const grouped = useMemo(() => splitTournamentsByDate(tournaments), [tournaments]);
-  const featured = grouped.current[0] || grouped.future[0] || null;
-  const recommended = grouped.future.slice(0, 6);
+  const activeStatuses = useMemo(() => new Set(["approved", "pending"]), []);
+  const participating = useMemo(() => {
+    const currentAndFuture = [...grouped.current, ...grouped.future];
+    return currentAndFuture.filter((tournament) => activeStatuses.has(entryStatusByTournament[tournament.id]));
+  }, [grouped.current, grouped.future, entryStatusByTournament, activeStatuses]);
+  const recommended = useMemo(() => {
+    return grouped.future
+      .filter((tournament) => !activeStatuses.has(entryStatusByTournament[tournament.id]))
+      .slice(0, 6);
+  }, [grouped.future, entryStatusByTournament, activeStatuses]);
   const history = grouped.past.slice(0, 6);
 
-  if (loading) return <LoadingScreen />;
+  if (loading || !entriesReady) return <LoadingScreen />;
   if (error) return <section>{error}</section>;
 
   return (
@@ -128,37 +182,58 @@ export default function AppHome() {
             参加中・エントリー中の大会
           </h2>
         </div>
-        {featured ? (
-          <article className="j7-featured-card">
-            <div className="j7-featured-bg" />
-            <div className="j7-featured-inner">
-              <div className="j7-badge-row">
-              <span className="j7-badge j7-badge-primary">{grouped.current.length > 0 ? "開催中" : "エントリー済み"}</span>
-              <span className="j7-badge j7-badge-warning">
-                <span className="material-symbols-outlined">error</span>
-                名簿未提出
-              </span>
-              <span className="j7-at">@ {featured.venue}</span>
-              </div>
-              <h3 className="j7-featured-name">{featured.name}</h3>
-              <div className="j7-featured-meta">
-                <p>
-                  <span className="material-symbols-outlined">calendar_today</span>
-                  <span>{formatDate(featured.event_date)}</span>
-                </p>
-                <p>
-                  <span className="material-symbols-outlined">schedule</span>
-                  <span>10:00 - 14:00</span>
-                </p>
-              </div>
-              <Link to={`/tournaments/${featured.id}`} className="j7-featured-cta">
-                <span>大会詳細・対戦表</span>
-                <span className="material-symbols-outlined">chevron_right</span>
-              </Link>
-            </div>
-          </article>
+        {participating.length > 0 ? (
+          <div className="j7-active-row">
+            {participating.map((tournament) => {
+              const eventDate = new Date(`${tournament.event_date}T00:00:00`);
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const isLiveToday = eventDate.getTime() === today.getTime();
+              const statusText = isLiveToday
+                ? "開催中"
+                : entryStatusByTournament[tournament.id] === "pending"
+                  ? "エントリー中"
+                  : "エントリー済み";
+
+              return (
+                <article key={tournament.id} className="j7-featured-card j7-featured-card-scroll">
+                  <div className="j7-featured-bg" />
+                  <div className="j7-featured-inner">
+                    <div className="j7-badge-row">
+                      <span className={`j7-badge j7-badge-primary ${isLiveToday ? "j7-badge-live" : ""}`}>
+                        {statusText}
+                      </span>
+                      <span className="j7-badge j7-badge-warning">
+                        <span className="material-symbols-outlined">error</span>
+                        名簿未提出
+                      </span>
+                    </div>
+                    <h3 className="j7-featured-name">{tournament.name}</h3>
+                    <div className="j7-featured-meta">
+                      <p>
+                        <span className="material-symbols-outlined">location_on</span>
+                        <span>{tournament.venue}</span>
+                      </p>
+                      <p>
+                        <span className="material-symbols-outlined">calendar_today</span>
+                        <span>{formatDate(tournament.event_date)}</span>
+                      </p>
+                      <p>
+                        <span className="material-symbols-outlined">schedule</span>
+                        <span>10:00 - 14:00</span>
+                      </p>
+                    </div>
+                    <Link to={`/tournaments/${tournament.id}`} className="j7-featured-cta">
+                      <span>大会詳細・対戦表</span>
+                      <span className="material-symbols-outlined">chevron_right</span>
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
         ) : (
-          <p className="j7-empty">参加中の大会はありません。</p>
+          <p className="j7-empty">参加中・エントリー中の大会はありません。</p>
         )}
       </section>
 
