@@ -42,7 +42,15 @@ class TournamentsController < ApplicationController
   end
 
   def tournament_summary(t)
-    { id: t.id, name: t.name, event_date: t.event_date, venue: t.venue }
+    {
+      id: t.id,
+      name: t.name,
+      event_date: t.event_date,
+      venue: t.venue,
+      max_teams: t.max_teams,
+      entry_fee_amount: t.entry_fee_amount,
+      active_entry_teams_count: t.active_entry_teams_count
+    }
   end
 
   def tournament_detail(t)

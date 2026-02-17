@@ -36,6 +36,8 @@ import ProfileEdit from "./pages/app/ProfileEdit";
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminTournaments from "./pages/admin/AdminTournaments";
+import AdminTournamentDetail from "./pages/admin/AdminTournamentDetail";
+import AdminTournamentCreate from "./pages/admin/AdminTournamentCreate";
 import AdminEntries from "./pages/admin/AdminEntries";
 import AdminTeams from "./pages/admin/AdminTeams";
 import AdminMatches from "./pages/admin/AdminMatches";
@@ -91,6 +93,8 @@ export default function App() {
         <Route element={<AdminLayout />}>
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/tournaments" element={<AdminTournaments />} />
+          <Route path="/admin/tournaments/new" element={<AdminTournamentCreate />} />
+          <Route path="/admin/tournaments/:id" element={<AdminTournamentDetail />} />
           <Route path="/admin/entries" element={<AdminEntries />} />
           <Route path="/admin/teams" element={<AdminTeams />} />
           <Route path="/admin/matches" element={<AdminMatches />} />

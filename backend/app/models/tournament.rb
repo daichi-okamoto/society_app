@@ -11,4 +11,9 @@ class Tournament < ApplicationRecord
   validates :entry_fee_amount, numericality: { greater_than_or_equal_to: 0 }
   validates :entry_fee_currency, presence: true
   validates :cancel_deadline_date, presence: true
+
+  def refresh_active_entry_teams_count!
+    count = tournament_entries.where(status: [:pending, :approved]).count
+    update_column(:active_entry_teams_count, count)
+  end
 end

@@ -1,33 +1,18 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { api } from "../../lib/api";
 
-const tournaments = [
-  {
-    id: 1,
-    status: "募集中",
-    statusClass: "is-primary",
-    dateText: "11/24 (土) • 10:00 - 16:00",
-    title: "第5回 東京セブンズカップ",
-    registeredText: "12/16チーム",
-    progress: 75,
-    revenue: "¥120,000",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuArmpCuqVtA8v8TSrNLYNIa8STfBQr0JkidJPLJYHTg6K2qy98F3J0sHQ0WtejsoXu9JWYGCAc_Eodv-dRIIssNeiCJ4uRhCdBwETMSqfNcqp86lm8rt76vTh0lXAQdzu56cLaHk6C2OOQ8NIqMDH0VVI_sF364oBWQk3a2bRgzDTJyAO_VSsaOkft8yeqkNh1Bp0g-l2LfUCHNeAUxJPC9TcPK-HS55ht7pWufV-cXhCT_uE8nAaq4aUdygoSPXjNPlBUpdCwc7tU0",
-    alt: "Soccer field grass texture close up",
-  },
-  {
-    id: 2,
-    status: "開催間近",
-    statusClass: "is-success",
-    dateText: "12/01 (日) • 09:00 - 14:00",
-    title: "U-12 ジュニアフットサル",
-    registeredText: "8/10チーム",
-    progress: 80,
-    revenue: "¥45,000",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuA8qTaFGfVeqVEhcPp-LqZdm8kjvmFfQhFYnpLfRy004cqDeJM1GNlUFFnvHQCp91sfzqpZ7D5ArH5zL8pYYYQ7oDXT80w_n-P3-eWZGXvcSOc39FLS82aE_yqgyofZ61yWdN3RgLAiu4cZozUip9BD31LeC0oREahhR5NzPTqy0pBQkZWNV3zy6ylbiFJ_BHpfi38VIfYHPKs8Xff1PNR2r_YBXGMjaF6jIjwskbEm2BPqTaP_bTvMTp7-cThHzpwRWtAIybOw7UL3",
-    alt: "Indoor futsal court wooden floor",
-  },
+const coverImages = [
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuArmpCuqVtA8v8TSrNLYNIa8STfBQr0JkidJPLJYHTg6K2qy98F3J0sHQ0WtejsoXu9JWYGCAc_Eodv-dRIIssNeiCJ4uRhCdBwETMSqfNcqp86lm8rt76vTh0lXAQdzu56cLaHk6C2OOQ8NIqMDH0VVI_sF364oBWQk3a2bRgzDTJyAO_VSsaOkft8yeqkNh1Bp0g-l2LfUCHNeAUxJPC9TcPK-HS55ht7pWufV-cXhCT_uE8nAaq4aUdygoSPXjNPlBUpdCwc7tU0",
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuA8qTaFGfVeqVEhcPp-LqZdm8kjvmFfQhFYnpLfRy004cqDeJM1GNlUFFnvHQCp91sfzqpZ7D5ArH5zL8pYYYQ7oDXT80w_n-P3-eWZGXvcSOc39FLS82aE_yqgyofZ61yWdN3RgLAiu4cZozUip9BD31LeC0oREahhR5NzPTqy0pBQkZWNV3zy6ylbiFJ_BHpfi38VIfYHPKs8Xff1PNR2r_YBXGMjaF6jIjwskbEm2BPqTaP_bTvMTp7-cThHzpwRWtAIybOw7UL3",
 ];
+
+function formatDateText(eventDate) {
+  if (!eventDate) return "日付未設定";
+  const dt = new Date(`${eventDate}T00:00:00`);
+  const w = ["日", "月", "火", "水", "木", "金", "土"][dt.getDay()];
+  return `${dt.getMonth() + 1}/${dt.getDate()} (${w}) • 10:00 - 16:00`;
+}
 
 const taskItems = [
   {
@@ -57,6 +42,56 @@ const taskItems = [
 ];
 
 export default function AdminDashboard() {
+  const [loading, setLoading] = useState(true);
+  const [tournaments, setTournaments] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    api
+      .get("/tournaments")
+      .then((data) => {
+        if (!active) return;
+        const list = (data?.tournaments || []).slice(0, 6).map((t, idx) => {
+          const maxTeams = Number(t.max_teams || 16);
+          const current = Math.max(0, Math.min(maxTeams, Number(t.active_entry_teams_count || 0)));
+          const progress = Math.round((current / Math.max(1, maxTeams)) * 100);
+          return {
+            id: t.id,
+            status: idx % 2 === 0 ? "募集中" : "開催間近",
+            statusClass: idx % 2 === 0 ? "is-primary" : "is-success",
+            dateText: formatDateText(t.event_date),
+            title: t.name,
+            registeredText: `${current}/${maxTeams}チーム`,
+            progress,
+            revenue: `¥${Number(t.entry_fee_amount || 0).toLocaleString("ja-JP")}`,
+            image: coverImages[idx % coverImages.length],
+            alt: "Tournament cover",
+          };
+        });
+        setTournaments(list);
+      })
+      .catch(() => {
+        if (!active) return;
+        setTournaments([]);
+      })
+      .finally(() => {
+        if (!active) return;
+        setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const stats = useMemo(() => {
+    const totalRevenue = tournaments.reduce((sum, t) => sum + Number(String(t.revenue).replace(/[^\d]/g, "") || 0), 0);
+    return {
+      revenue: `¥${totalRevenue.toLocaleString("ja-JP")}`,
+      teams: tournaments.length,
+    };
+  }, [tournaments]);
+
   return (
     <div className="adash-root">
       <header className="adash-header">
@@ -83,6 +118,7 @@ export default function AdminDashboard() {
           </div>
 
           <div className="adash-tournament-scroll">
+            {!loading && tournaments.length === 0 ? <p className="adash-empty">大会データがありません</p> : null}
             {tournaments.map((tournament) => (
               <article key={tournament.id} className="adash-tournament-card">
                 <div className="adash-tournament-media">
@@ -128,7 +164,7 @@ export default function AdminDashboard() {
               <span className="material-symbols-outlined">payments</span>
               今月の売上
             </span>
-            <strong className="adash-kpi-value">¥342,000</strong>
+            <strong className="adash-kpi-value">{stats.revenue}</strong>
             <span className="adash-kpi-trend">
               <span className="material-symbols-outlined">trending_up</span>
               先月比 +12%
@@ -140,7 +176,7 @@ export default function AdminDashboard() {
               <span className="material-symbols-outlined">groups</span>
               新規チーム
             </span>
-            <strong className="adash-kpi-value">8</strong>
+            <strong className="adash-kpi-value">{stats.teams}</strong>
             <span className="adash-kpi-trend">
               <span className="material-symbols-outlined">trending_up</span>
               先月比 +2

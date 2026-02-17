@@ -4,8 +4,14 @@ import AnimatedOutlet from "../components/AnimatedOutlet";
 export default function AdminLayout() {
   const location = useLocation();
   const isDashboard = /^\/admin\/?$/.test(location.pathname);
+  const isTournaments = /^\/admin\/tournaments\/?$/.test(location.pathname);
+  const isTournamentCreate = /^\/admin\/tournaments\/new\/?$/.test(location.pathname);
+  const isTournamentDetail = /^\/admin\/tournaments\/[^/]+\/?$/.test(location.pathname);
+  const isNotifications = /^\/admin\/notifications\/?$/.test(location.pathname);
+  const isPayments = /^\/admin\/payments\/?$/.test(location.pathname);
+  const isTeams = /^\/admin\/teams\/?$/.test(location.pathname);
 
-  if (isDashboard) {
+  if (isDashboard || isTournaments || isTournamentCreate || isTournamentDetail || isNotifications || isPayments || isTeams) {
     return (
       <div className="route-slide-host">
         <AnimatedOutlet />

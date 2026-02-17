@@ -4,7 +4,20 @@ class TeamsController < ApplicationController
   def index
     teams = Team.includes(:captain_user).order(created_at: :desc)
     my_team_ids = TeamMember.where(user_id: current_user.id, status: :active).pluck(:team_id)
-    render json: { teams: teams.map { |t| team_summary(t, my_team_ids.include?(t.id)) } }, status: :ok
+    team_ids = teams.map(&:id)
+    member_counts = TeamMember.where(team_id: team_ids, status: :active).group(:team_id).count
+    pending_counts = TeamJoinRequest.where(team_id: team_ids, status: :pending).group(:team_id).count
+
+    render json: {
+      teams: teams.map do |team|
+        team_summary(
+          team,
+          my_team_ids.include?(team.id),
+          member_counts.fetch(team.id, 0),
+          pending_counts.fetch(team.id, 0)
+        )
+      end
+    }, status: :ok
   end
 
   def create
@@ -83,11 +96,26 @@ class TeamsController < ApplicationController
     end
   end
 
-  def team_summary(team, is_member)
+  def team_summary(team, is_member, member_count, pending_join_requests_count)
+    status =
+      if pending_join_requests_count.positive?
+        "pending"
+      elsif team.captain_user&.suspended?
+        "suspended"
+      else
+        "approved"
+      end
+
     {
       id: team.id,
       name: team.name,
-      captain_name: team.captain_user.name,
+      captain_name: team.captain_user&.name,
+      captain_address: team.captain_user&.address,
+      captain_status: team.captain_user&.status,
+      member_count: member_count,
+      pending_join_requests_count: pending_join_requests_count,
+      status: status,
+      created_at: team.created_at,
       is_member: is_member,
       past_results: []
     }
