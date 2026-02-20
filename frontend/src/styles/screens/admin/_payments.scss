@@ -1,0 +1,406 @@
+.adpay-root {
+  max-width: 448px;
+  margin: 0 auto;
+  min-height: max(884px, 100dvh);
+  background: #f8f9fa;
+  color: #0f172a;
+  font-family: "LINE Seed JP", system-ui, sans-serif;
+  padding-bottom: 96px;
+}
+
+.adpay-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(248, 249, 250, 0.96);
+  backdrop-filter: blur(7px);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.adpay-header-row {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.adpay-header-row h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  flex: 1;
+}
+
+.adpay-filter-btn {
+  border: 0;
+  background: transparent;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  color: #0f172a;
+  display: grid;
+  place-items: center;
+}
+
+.adpay-search-wrap {
+  position: relative;
+  padding: 0 16px 12px;
+}
+
+.adpay-search-wrap .material-symbols-outlined {
+  position: absolute;
+  left: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  font-size: 20px;
+}
+
+.adpay-search-wrap input {
+  width: 100%;
+  height: 42px;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+  outline: none;
+  font-size: 14px;
+  padding: 0 10px 0 40px;
+}
+
+.adpay-search-wrap input:focus {
+  box-shadow: 0 0 0 2px rgba(23, 37, 84, 0.2);
+}
+
+.adpay-filter-row {
+  padding: 0 16px 12px;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.adpay-filter-row::-webkit-scrollbar {
+  display: none;
+}
+
+.adpay-filter-row button {
+  flex: 0 0 auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #fff;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 16px;
+}
+
+.adpay-filter-row button.active {
+  border-color: #172554;
+  background: #172554;
+  color: #fff;
+  font-weight: 700;
+}
+
+.adpay-main {
+  padding: 8px 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.adpay-summary {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #172554;
+  color: #fff;
+  padding: 20px;
+  box-shadow: 0 12px 28px rgba(23, 37, 84, 0.28);
+}
+
+.adpay-summary .bg-icon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 12px;
+  opacity: 0.1;
+}
+
+.adpay-summary .bg-icon .material-symbols-outlined {
+  font-size: 92px;
+}
+
+.adpay-summary p {
+  margin: 0 0 4px;
+  color: #bfdbfe;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.adpay-summary h2 {
+  margin: 0 0 24px;
+  font-size: 36px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.adpay-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(30, 58, 138, 0.5);
+}
+
+.adpay-summary-grid small {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: #bfdbfe;
+}
+
+.adpay-summary-grid .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+}
+
+.adpay-summary-grid .dot.amber {
+  background: #f59e0b;
+}
+
+.adpay-summary-grid .dot.red {
+  background: #f87171;
+}
+
+.adpay-summary-grid strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.adpay-summary-grid strong span {
+  color: #bfdbfe;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.adpay-list-head {
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.adpay-list-head h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.adpay-list-head button {
+  border: 0;
+  background: transparent;
+  color: #172554;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.adpay-list {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.adpay-item {
+  border: 1px solid #f1f5f9;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  padding: 14px;
+}
+
+.adpay-item.pending,
+.adpay-item.refund {
+  position: relative;
+  overflow: hidden;
+}
+
+.adpay-item.pending::before,
+.adpay-item.refund::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+}
+
+.adpay-item.pending::before {
+  background: #9ca3af;
+}
+
+.adpay-item.refund::before {
+  background: #ef4444;
+}
+
+.adpay-item-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.adpay-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.adpay-status {
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+
+.adpay-status.done {
+  background: #eff6ff;
+  color: #172554;
+}
+
+.adpay-status.pending {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.adpay-status.refund {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.adpay-date {
+  font-size: 10px;
+  color: #64748b;
+}
+
+.adpay-item h4 {
+  margin: 0 0 2px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.adpay-item p {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.adpay-amount {
+  text-align: right;
+  min-width: 92px;
+}
+
+.adpay-amount strong {
+  display: block;
+  font-size: 20px;
+  color: #0f172a;
+}
+
+.adpay-item.refund .adpay-amount strong {
+  color: #dc2626;
+}
+
+.adpay-amount > div {
+  margin-top: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: #64748b;
+  font-size: 10px;
+}
+
+.adpay-amount .material-symbols-outlined {
+  font-size: 10px;
+}
+
+.adpay-item-foot {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.adpay-item-foot button {
+  border: 0;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #172554;
+  background: #eff6ff;
+}
+
+.adpay-item-foot button.danger {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+.adpay-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  max-width: 448px;
+  margin: 0 auto;
+  background: #fff;
+  border-top: 1px solid #e5e7eb;
+  padding: 8px 24px 20px;
+}
+
+.adpay-nav-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.adpay-nav-item {
+  min-width: 48px;
+  text-decoration: none;
+  color: #9ca3af;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.adpay-nav-item .material-symbols-outlined {
+  font-size: 24px;
+}
+
+.adpay-nav-item span:last-child {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.adpay-nav-item.active {
+  color: #172554;
+}
+
+.adpay-nav-item.active .material-symbols-outlined {
+  font-variation-settings: "FILL" 1;
+}
+
+.adpay-nav-item.active span:last-child {
+  font-weight: 700;
+}
+

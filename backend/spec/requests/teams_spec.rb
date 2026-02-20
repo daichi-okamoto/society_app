@@ -33,6 +33,7 @@ RSpec.describe "Teams", type: :request do
       expect(response).to have_http_status(:created)
       expect(json["team"]["name"]).to eq("FC Example")
       expect(json["team"]["join_code"]).to be_present
+      expect(json["team"]["join_code"]).to match(/\ATS-\d{6}\z/)
     end
   end
 

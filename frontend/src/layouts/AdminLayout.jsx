@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import AnimatedOutlet from "../components/AnimatedOutlet";
+import FlashMessage from "../components/FlashMessage";
 
 export default function AdminLayout() {
   const location = useLocation();
@@ -13,9 +14,12 @@ export default function AdminLayout() {
 
   if (isDashboard || isTournaments || isTournamentCreate || isTournamentDetail || isNotifications || isPayments || isTeams) {
     return (
-      <div className="route-slide-host">
-        <AnimatedOutlet />
-      </div>
+      <>
+        <FlashMessage />
+        <div className="route-slide-host">
+          <AnimatedOutlet />
+        </div>
+      </>
     );
   }
 
@@ -31,6 +35,7 @@ export default function AdminLayout() {
           <Link to="/admin/notifications">通知</Link>
         </nav>
       </header>
+      <FlashMessage />
       <main className="app-main">
         <div className="route-slide-host">
           <AnimatedOutlet />

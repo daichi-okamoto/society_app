@@ -7,6 +7,9 @@ import { api } from "../../lib/api";
 vi.mock("../../lib/api", () => ({
   api: { get: vi.fn() }
 }));
+vi.mock("../../context/AuthContext", () => ({
+  useAuth: () => ({ user: { id: 1, role: "player" } })
+}));
 
 describe("Results", () => {
   it("renders match results", async () => {
@@ -16,8 +19,14 @@ describe("Results", () => {
           tournament: {
             id: 1,
             name: "J7 渋谷カップ Vol.11",
-            event_date: "2024-04-18"
+            event_date: "2024-04-18",
+            venue: "渋谷フットサル"
           }
+        });
+      }
+      if (path === "/tournaments/1/entries/me") {
+        return Promise.resolve({
+          entry: { team_id: 1, status: "approved" }
         });
       }
       return Promise.resolve({
@@ -45,8 +54,8 @@ describe("Results", () => {
 
     await waitFor(() => expect(getByText("大会結果詳細")).toBeTruthy());
     expect(getByText("J7 渋谷カップ Vol.11")).toBeTruthy();
-    expect(getByText("試合結果一覧")).toBeTruthy();
-    expect(getByText("渋谷ギャラクシー")).toBeTruthy();
+    expect(getByText("所属チーム試合結果")).toBeTruthy();
+    expect(getByText("渋谷ギャラクシー", { selector: "small" })).toBeTruthy();
     expect(getByText("代々木ユナイテッド")).toBeTruthy();
   });
 });

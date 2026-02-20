@@ -1,0 +1,242 @@
+.entry-complete-root {
+  max-width: 448px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: #fcfcfc;
+  box-shadow: 0 16px 56px rgba(15, 23, 42, 0.15);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.entry-complete-header {
+  padding: 24px 20px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.entry-complete-header h1 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.entry-complete-spacer {
+  width: 40px;
+}
+
+.entry-complete-progress {
+  padding: 24px 24px;
+  background: #fff;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+}
+
+.entry-complete-progress-track {
+  position: absolute;
+  top: 40px;
+  left: 64px;
+  right: 64px;
+  height: 2px;
+  background: #f3f4f6;
+}
+
+.entry-complete-progress-track > div {
+  width: 100%;
+  height: 100%;
+  background: #d97706;
+}
+
+.entry-complete-progress-item {
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.entry-complete-progress-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #f1f5f9;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.entry-complete-progress-item.done .entry-complete-progress-badge {
+  background: #d97706;
+  color: #fff;
+}
+
+.entry-complete-progress-item.done .entry-complete-progress-badge .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.entry-complete-progress-item.active .entry-complete-progress-badge {
+  background: #d97706;
+  color: #fff;
+  box-shadow: 0 0 0 4px #fffbeb;
+}
+
+.entry-complete-progress-item p {
+  margin: 0;
+  font-size: 10px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.entry-complete-progress-item.active p {
+  color: #d97706;
+  font-weight: 700;
+}
+
+.entry-complete-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 48px 24px 208px;
+}
+
+.entry-complete-center {
+  text-align: center;
+}
+
+.entry-complete-icon-wrap {
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 32px;
+  border-radius: 999px;
+  background: #fffbeb;
+  display: grid;
+  place-items: center;
+}
+
+.entry-complete-icon-wrap .material-symbols-outlined {
+  font-size: 56px;
+  color: #d97706;
+  font-variation-settings: "wght" 600;
+}
+
+.entry-complete-title {
+  margin-bottom: 40px;
+}
+
+.entry-complete-title h2 {
+  margin: 0 0 12px;
+  font-size: 28px;
+  line-height: 1.4;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.entry-complete-title p {
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.65;
+}
+
+.entry-complete-card {
+  border: 1px solid #f3f4f6;
+  border-radius: 24px;
+  background: #fff;
+  padding: 24px;
+  text-align: left;
+}
+
+.entry-complete-card hr {
+  border: 0;
+  border-top: 1px solid #f8fafc;
+  margin: 20px 0;
+}
+
+.entry-complete-row label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  letter-spacing: 0.08em;
+}
+
+.entry-complete-row p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.entry-complete-receipt {
+  display: inline-flex;
+  align-items: center;
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.entry-complete-note {
+  margin-top: 36px;
+  padding: 0 16px;
+}
+
+.entry-complete-note p {
+  margin: 0;
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.8;
+}
+
+.entry-complete-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 40px 24px;
+  z-index: 50;
+}
+
+.entry-complete-footer-actions {
+  display: grid;
+  gap: 12px;
+}
+
+.entry-complete-footer-actions .primary,
+.entry-complete-footer-actions .secondary {
+  width: 100%;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.entry-complete-footer-actions .primary {
+  border: 0;
+  background: #d97706;
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(217, 119, 6, 0.3);
+}
+
+.entry-complete-footer-actions .secondary {
+  border: 2px solid rgba(217, 119, 6, 0.2);
+  background: #fff;
+  color: #d97706;
+}
+

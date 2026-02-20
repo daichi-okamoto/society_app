@@ -14,6 +14,7 @@ describe("TeamJoin", () => {
       <MemoryRouter initialEntries={["/teams/1/join"]}>
         <Routes>
           <Route path="/teams/:id/join" element={<TeamJoin />} />
+          <Route path="/teams/:id" element={<p>team detail</p>} />
         </Routes>
       </MemoryRouter>
     );
@@ -21,6 +22,7 @@ describe("TeamJoin", () => {
     fireEvent.change(getByLabelText("参加コード"), { target: { value: "ABC123" } });
     fireEvent.click(getByText("申請"));
 
-    await waitFor(() => expect(getByText("申請しました。代表の承認をお待ちください。")).toBeTruthy());
+    await waitFor(() => expect(api.post).toHaveBeenCalled());
+    await waitFor(() => expect(getByText("team detail")).toBeTruthy());
   });
 });

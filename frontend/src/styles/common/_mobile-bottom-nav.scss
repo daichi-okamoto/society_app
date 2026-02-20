@@ -1,0 +1,160 @@
+/* Keep all bottom menu tabs fixed to the viewport bottom across pages */
+.j7-nav,
+.tm-nav,
+.mp-nav,
+.help-nav,
+.pay-nav,
+.tsrch-nav,
+.ntf-nav,
+.pastres-nav,
+.tdlv-nav,
+.td-bottom-nav {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  width: 100%;
+  max-width: 448px;
+  transform: translateX(-50%);
+  padding: 8px 8px 0;
+  border-top: 1px solid #e5e7eb;
+  background: #fff;
+  backdrop-filter: none;
+  z-index: 40;
+}
+
+.j7-nav-row,
+.tm-nav-row,
+.mp-nav-row,
+.help-nav-row,
+.pay-nav-row,
+.tsrch-nav-row,
+.ntf-nav-row,
+.pastres-nav-row,
+.tdlv-nav-row {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.j7-nav-item,
+.tm-nav-item,
+.mp-nav-item,
+.help-nav-item,
+.pay-nav-item,
+.tsrch-nav-item,
+.ntf-nav-item,
+.pastres-nav-item,
+.tdlv-nav-row a,
+.td-bottom-nav a {
+  width: 64px;
+  color: #64748b;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.j7-nav-item .material-symbols-outlined,
+.tm-nav-item .material-symbols-outlined,
+.mp-nav-item .material-symbols-outlined,
+.help-nav-item .material-symbols-outlined,
+.pay-nav-item .material-symbols-outlined,
+.tsrch-nav-item .material-symbols-outlined,
+.ntf-nav-item .material-symbols-outlined,
+.pastres-nav-item .material-symbols-outlined,
+.tdlv-nav-row a .material-symbols-outlined,
+.td-bottom-nav a .material-symbols-outlined {
+  font-size: 24px;
+}
+
+.j7-nav-item span:last-child,
+.tm-nav-item span:last-child,
+.mp-nav-item span:last-child,
+.help-nav-item span:last-child,
+.pay-nav-item span:last-child,
+.tsrch-nav-item span:last-child,
+.ntf-nav-item span:last-child,
+.pastres-nav-item span:last-child,
+.tdlv-nav-row a span:last-child,
+.td-bottom-nav a span:last-child {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.j7-nav-item.active,
+.tm-nav-item.active,
+.mp-nav-item.active,
+.help-nav-item.active,
+.pay-nav-item.active,
+.tsrch-nav-item.active,
+.ntf-nav-item.active,
+.pastres-nav-item.active,
+.tdlv-nav-row a.active,
+.td-bottom-nav a.active {
+  color: #d97706;
+}
+
+.j7-nav-item.active .material-symbols-outlined,
+.tm-nav-item.active .material-symbols-outlined,
+.mp-nav-item.active .material-symbols-outlined,
+.help-nav-item.active .material-symbols-outlined,
+.pay-nav-item.active .material-symbols-outlined,
+.tsrch-nav-item.active .material-symbols-outlined,
+.ntf-nav-item.active .material-symbols-outlined,
+.pastres-nav-item.active .material-symbols-outlined,
+.tdlv-nav-row a.active .material-symbols-outlined,
+.td-bottom-nav a.active .material-symbols-outlined {
+  font-variation-settings: "FILL" 1;
+}
+
+.j7-nav-center,
+.tm-nav-center,
+.mp-nav-center,
+.help-nav-center,
+.pay-nav-center,
+.tsrch-nav-center,
+.ntf-nav-center,
+.pastres-nav-center,
+.tdlv-nav-center {
+  position: relative;
+  top: -20px;
+}
+
+.j7-nav-center button,
+.tm-nav-center button,
+.mp-nav-center button,
+.help-nav-center button,
+.pay-nav-center button,
+.tsrch-nav-center button,
+.ntf-nav-center button,
+.pastres-nav-center button,
+.tdlv-nav-center button {
+  width: 56px;
+  height: 56px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+}
+
+.j7-nav-center button .material-symbols-outlined,
+.tm-nav-center button .material-symbols-outlined,
+.mp-nav-center button .material-symbols-outlined,
+.help-nav-center button .material-symbols-outlined,
+.pay-nav-center button .material-symbols-outlined,
+.tsrch-nav-center button .material-symbols-outlined,
+.ntf-nav-center button .material-symbols-outlined,
+.pastres-nav-center button .material-symbols-outlined,
+.tdlv-nav-center button .material-symbols-outlined {
+  width: 28px;
+  height: 28px;
+  font-size: 0;
+  color: transparent;
+  background: center / contain no-repeat url("/ts-brand-logo-1.svg");
+}

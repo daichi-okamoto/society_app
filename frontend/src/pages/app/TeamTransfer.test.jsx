@@ -22,6 +22,7 @@ describe("TeamTransfer", () => {
       <MemoryRouter initialEntries={["/teams/1/transfer"]}>
         <Routes>
           <Route path="/teams/:id/transfer" element={<TeamTransfer />} />
+          <Route path="/teams/:id" element={<p>team detail</p>} />
         </Routes>
       </MemoryRouter>
     );
@@ -31,5 +32,6 @@ describe("TeamTransfer", () => {
     fireEvent.click(getByText("移譲"));
 
     expect(api.post).toHaveBeenCalled();
+    await waitFor(() => expect(getByText("team detail")).toBeTruthy());
   });
 });

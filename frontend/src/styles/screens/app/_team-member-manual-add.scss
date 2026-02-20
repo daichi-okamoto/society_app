@@ -1,0 +1,339 @@
+.tmadd-root {
+  min-height: 100dvh;
+  background: #f8fafc;
+  color: #1e293b;
+  font-family: "Lexend", "Noto Sans JP", "LINE Seed JP", sans-serif;
+}
+
+.tmadd-shell {
+  max-width: 448px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: #f8fafc;
+  border-left: 1px solid #f1f5f9;
+  border-right: 1px solid #f1f5f9;
+  box-shadow: 0 16px 56px rgba(15, 23, 42, 0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.tmadd-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(248, 250, 252, 0.84);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid #e2e8f0;
+  padding: 14px 20px;
+}
+
+.tmadd-head-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tmadd-head-left button {
+  border: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: transparent;
+  color: #64748b;
+  display: grid;
+  place-items: center;
+}
+
+.tmadd-head-left h1 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.tmadd-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 20px 120px;
+  display: grid;
+  gap: 18px;
+}
+
+.tmadd-note {
+  border: 1px solid rgba(217, 119, 6, 0.25);
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  gap: 10px;
+}
+
+.tmadd-note .material-symbols-outlined {
+  color: #d97706;
+  font-size: 20px;
+  margin-top: 1px;
+}
+
+.tmadd-note p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.tmadd-form {
+  display: grid;
+  gap: 14px;
+}
+
+.tmadd-form label,
+.tmadd-position legend {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.tmadd-form label span {
+  color: #ef4444;
+  margin-left: 4px;
+}
+
+.tmadd-form label small,
+.tmadd-position legend small {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.tmadd-form input,
+.tmadd-form select {
+  margin-top: 6px;
+  width: 100%;
+  height: 48px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: #fff;
+  color: #1e293b;
+  font-size: 14px;
+  padding: 0 14px;
+  outline: none;
+}
+
+.tmadd-form input::placeholder {
+  color: #9ca3af;
+}
+
+.tmadd-form input:focus,
+.tmadd-form select:focus {
+  border-color: #d97706;
+  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.18);
+}
+
+.tmadd-postal-row {
+  margin-top: 6px;
+  display: flex;
+  gap: 8px;
+}
+
+.tmadd-postal-input {
+  position: relative;
+  flex: 1;
+}
+
+.tmadd-postal-input i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  font-size: 14px;
+  font-style: normal;
+}
+
+.tmadd-postal-input input {
+  margin-top: 0;
+  padding-left: 28px;
+}
+
+.tmadd-postal-row > button {
+  flex-shrink: 0;
+  border: 1px solid #d97706;
+  border-radius: 12px;
+  background: #fff;
+  color: #d97706;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0 14px;
+}
+
+.tmadd-postal-row > button:active {
+  background: #d97706;
+  color: #fff;
+}
+
+.tmadd-select-wrap {
+  margin-top: 6px;
+  position: relative;
+}
+
+.tmadd-select-wrap select {
+  margin-top: 0;
+  appearance: none;
+  padding-right: 40px;
+}
+
+.tmadd-select-wrap .material-symbols-outlined {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+}
+
+.tmadd-form hr {
+  border: 0;
+  border-top: 1px solid #f1f5f9;
+  margin: 2px 0;
+}
+
+.tmadd-position {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.tmadd-position legend {
+  margin-bottom: 10px;
+}
+
+.tmadd-position {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tmadd-position label {
+  margin: 0;
+}
+
+.tmadd-position label input {
+  display: none;
+}
+
+.tmadd-position label span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 46px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.tmadd-position label.active span {
+  border-color: #d97706;
+  background: #d97706;
+  color: #fff;
+}
+
+.tmadd-error {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tmadd-submit-wrap {
+  padding-top: 8px;
+}
+
+.tmadd-submit-wrap button {
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  height: 56px;
+  background: #d97706;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  box-shadow: 0 12px 26px rgba(217, 119, 6, 0.3);
+}
+
+.tmadd-submit-wrap button:disabled {
+  opacity: 0.65;
+}
+
+.tmadd-nav {
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  border-top: 1px solid #e5e7eb;
+  background: #fff;
+  padding: 8px 8px calc(env(safe-area-inset-bottom, 20px) + 4px);
+}
+
+.tmadd-nav-row {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.tmadd-nav-item {
+  width: 64px;
+  text-decoration: none;
+  color: #64748b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.tmadd-nav-item .material-symbols-outlined {
+  font-size: 24px;
+}
+
+.tmadd-nav-item span:last-child {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.tmadd-nav-item.active {
+  color: #d97706;
+}
+
+.tmadd-nav-item.active .material-symbols-outlined {
+  font-variation-settings: "FILL" 1;
+}
+
+.tmadd-nav-center {
+  position: relative;
+  top: -20px;
+}
+
+.tmadd-nav-center button {
+  width: 56px;
+  height: 56px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #fff;
+  color: #1e293b;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tmadd-nav-center button .material-symbols-outlined {
+  width: 28px;
+  height: 28px;
+  font-size: 0;
+  color: transparent;
+  background: center / contain no-repeat url("/ts-brand-logo-1.svg");
+}

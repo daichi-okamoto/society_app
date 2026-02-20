@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import AnimatedOutlet from "../components/AnimatedOutlet";
+import FlashMessage from "../components/FlashMessage";
 
 export default function PublicLayout() {
   const location = useLocation();
@@ -13,6 +14,7 @@ export default function PublicLayout() {
   if (hideHeader) {
     return (
       <div className="route-slide-host">
+        <FlashMessage />
         <AnimatedOutlet />
       </div>
     );
@@ -30,6 +32,7 @@ export default function PublicLayout() {
       </header>
       <main className="app-main">
         <div className="route-slide-host">
+          <FlashMessage />
           <AnimatedOutlet />
         </div>
       </main>

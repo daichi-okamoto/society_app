@@ -1,0 +1,470 @@
+.adtour-root {
+  --tour-primary: #1e3a8a;
+  max-width: 448px;
+  margin: 0 auto;
+  min-height: max(884px, 100dvh);
+  background: #f8f9fa;
+  color: #0f172a;
+  font-family: "LINE Seed JP", system-ui, sans-serif;
+  padding-bottom: 96px;
+}
+
+.adtour-head {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(248, 249, 250, 0.96);
+  backdrop-filter: blur(7px);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.adtour-head-top {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.adtour-head-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.adtour-back-btn {
+  border: 0;
+  background: transparent;
+  width: 36px;
+  height: 36px;
+  margin-left: -8px;
+  border-radius: 999px;
+  color: #0f172a;
+  display: grid;
+  place-items: center;
+}
+
+.adtour-head-left h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.adtour-create-btn {
+  border: 0;
+  border-radius: 999px;
+  background: #172554;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+
+.adtour-create-btn .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.adtour-search-wrap {
+  padding: 0 16px 12px;
+  position: relative;
+}
+
+.adtour-search-wrap .material-symbols-outlined {
+  position: absolute;
+  left: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  font-size: 20px;
+}
+
+.adtour-search-wrap input {
+  width: 100%;
+  height: 42px;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+  outline: none;
+  font-size: 14px;
+  padding: 0 12px 0 40px;
+}
+
+.adtour-search-wrap input:focus {
+  box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2);
+}
+
+.adtour-filter-row {
+  padding: 0 16px 12px;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.adtour-filter-row::-webkit-scrollbar {
+  display: none;
+}
+
+.adtour-filter-row button {
+  flex: 0 0 auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #fff;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 16px;
+}
+
+.adtour-filter-row button.active {
+  background: var(--tour-primary);
+  border-color: var(--tour-primary);
+  color: #fff;
+  font-weight: 700;
+}
+
+.adtour-main {
+  padding: 8px 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.adtour-empty {
+  margin: 0;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.adtour-card {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.adtour-card.finished {
+  background: #f8fafc;
+  opacity: 0.92;
+}
+
+.adtour-hero {
+  position: relative;
+  height: 128px;
+}
+
+.adtour-hero img,
+.adtour-solid-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.adtour-solid-bg {
+  background: #1e293b;
+}
+
+.adtour-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(23, 37, 84, 0.9), rgba(23, 37, 84, 0));
+  mix-blend-mode: multiply;
+}
+
+.adtour-badge-wrap {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+}
+
+.adtour-badge {
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #172554;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.15);
+}
+
+.adtour-badge.is-amber {
+  background: #f59e0b;
+  color: #fff;
+}
+
+.adtour-hero-copy {
+  position: absolute;
+  left: 16px;
+  bottom: 10px;
+  color: #fff;
+}
+
+.adtour-hero-copy p {
+  margin: 0 0 2px;
+  font-size: 12px;
+  opacity: 0.92;
+}
+
+.adtour-hero-copy h3 {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.adtour-card-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.adtour-progress-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.adtour-progress-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.adtour-progress-top > span {
+  color: #64748b;
+}
+
+.adtour-progress-top b {
+  font-size: 22px;
+  line-height: 1;
+  color: var(--tour-primary);
+}
+
+.adtour-progress-top small {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.adtour-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #f1f5f9;
+}
+
+.adtour-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.adtour-live-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.adtour-live-grid p {
+  margin: 0 0 4px;
+  font-size: 10px;
+  color: #64748b;
+}
+
+.adtour-live-grid strong {
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.adtour-live-grid strong.is-live-text {
+  color: #059669;
+}
+
+.adtour-card-foot {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 12px;
+  align-items: center;
+}
+
+.adtour-card-foot p {
+  margin: 0 0 2px;
+  color: #64748b;
+  font-size: 10px;
+}
+
+.adtour-card-foot strong {
+  margin: 0;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.adtour-link-btn,
+.adtour-live-cta {
+  border: 0;
+  background: transparent;
+  color: var(--tour-primary);
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.adtour-link-btn .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.adtour-live-cta {
+  color: #fff;
+  background: var(--tour-primary);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+.adtour-finished-body {
+  padding: 14px;
+}
+
+.adtour-finished-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.adtour-finished-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.adtour-finished-chip {
+  border-radius: 4px;
+  background: #e5e7eb;
+  color: #6b7280;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+}
+
+.adtour-finished-meta span:last-child {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.adtour-finished-top h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.adtour-finished-revenue {
+  text-align: right;
+}
+
+.adtour-finished-revenue p {
+  margin: 0 0 2px;
+  font-size: 10px;
+  color: #64748b;
+}
+
+.adtour-finished-revenue strong {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.adtour-finished-foot {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.adtour-finished-foot > span {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.adtour-finished-foot button {
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.adtour-finished-foot .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.adtour-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  max-width: 448px;
+  margin: 0 auto;
+  background: #fff;
+  border-top: 1px solid #e5e7eb;
+}
+
+.adtour-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.adtour-nav-item {
+  min-width: 48px;
+  text-decoration: none;
+  color: #9ca3af;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.adtour-nav-item .material-symbols-outlined {
+  font-size: 24px;
+}
+
+.adtour-nav-item span:last-child {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.adtour-nav-item.active {
+  color: var(--tour-primary);
+}
+
+.adtour-nav-item.active .material-symbols-outlined {
+  font-variation-settings: "FILL" 1;
+}
+
+.adtour-nav-item.active span:last-child {
+  font-weight: 700;
+}
+

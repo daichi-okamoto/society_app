@@ -90,8 +90,9 @@ class TeamsController < ApplicationController
   end
 
   def generate_join_code
+    # Format: TS-123456
     loop do
-      code = SecureRandom.alphanumeric(6).upcase
+      code = format("TS-%06d", SecureRandom.random_number(1_000_000))
       return code unless Team.exists?(join_code: code)
     end
   end
@@ -127,7 +128,18 @@ class TeamsController < ApplicationController
       name: team.name,
       join_code: team.join_code,
       captain_user_id: team.captain_user_id,
-      members: team.team_members.active.map { |m| { user_id: m.user_id, name: m.user.name, role: m.role } }
+      members: team.team_members.active.includes(:user).map do |member|
+        {
+          id: member.id,
+          user_id: member.user_id,
+          name: member.user&.name,
+          name_kana: member.user&.name_kana,
+          phone: member.user&.phone,
+          email: member.user&.email,
+          role: member.role,
+          address: member.user&.address
+        }
+      end
     }
   end
 end

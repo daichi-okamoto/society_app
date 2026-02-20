@@ -2,47 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
-
-const MEMBERS = [
-  {
-    id: 1,
-    name: "田中 健太",
-    roleLabel: "キャプテン",
-    roleBadge: "CP",
-    pos: "MF",
-    number: 10,
-    featured: true,
-    avatar:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCX9N6okYrlSA1JKbjKPe2_OujI5m-zAzfcWY6dOzQXUlqN9fIRSxO_fow1KBmxaYSudTZ_ag5J0YGHfE5NyDAiKo88kZu02LEKIs7vX7-YpAIhujKiuIZaTgsNOir5-rx2E2WiM2ozCYYAcfeiFYyxfOngcE6_Tx7HCaieXyeyOVbYf1Pfz8ry5aegO7v_iIommHbn2LUuXWkF4IgkzymE5RF7WbOhknTU51mDkLaYr64wO2o7IWVRuAoo9mNi55XVan_RHplgzHaw"
-  },
-  {
-    id: 2,
-    name: "佐藤 大輔",
-    roleBadge: "副",
-    pos: "FW",
-    number: 9,
-    avatar:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuAAeKupJcOmpiZThZ7bbSDYhNUK0NgjtIU6sFirZJX3m2mpo1pT64o0IJ2IIOVsgoRuoEitPWWCWqSJuiUDAAzL9i9HjWwisZeVzoDKIjX4AewNdQWqBcHfnNS1bQnGrNmR1UueA7dsewPYUsq_oD5eoy5WPZtTsItIjSgARcxF7l3dB7JI-Sd5DpoulpE_xPGhCaXwP-i6RWSAubbcrdxkBpB-FoQeqqYheO9-Q8t1M3K7r30E96u4D1OsOg2c4Dolsp_miQjFKb2f"
-  },
-  {
-    id: 3,
-    name: "鈴木 翔太",
-    pos: "GK",
-    number: 1,
-    gk: true,
-    avatar:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuC6Rr28EcnfDdbyqtvjUxbDp1nHdd1ReUTUzZRaUItBCfTeBDQpZ5SP5wpvgwEkBTWjJTXhDk1jqddqNvENpeQ3mrPa3fArWaX9AEVpCnHdsWUEQ1xbLH2scVFeaYRPLgegOofhuErS_tRvsTNWvg0OZhyoe4gStyU4gLW7TaVvY_m8YjA2HRsTUHC_Bxd0CzgfN_bNzdGP9Df7EzD83L9HMirbpAuFS6AV2-BcAync8L4PvW_mcIv7fn66iMlIF1EASKo8RN4z3eUN"
-  },
-  { id: 4, name: "山田 太郎", pos: "DF", number: 4, initial: "person" },
-  { id: 5, name: "高橋 宏", pos: "MF", number: 7, initial: "高", tone: "indigo" },
-  { id: 6, name: "伊藤 健二", pos: "FW", number: 11, initial: "伊", tone: "emerald" },
-  { id: 7, name: "渡辺 蓮", pos: "DF", number: 3, initial: "渡", tone: "rose" },
-  { id: 8, name: "中村 颯", pos: "MF", number: 8, initial: "中", tone: "slate" },
-  { id: 9, name: "小林 海", pos: "FW", number: 14, initial: "小", tone: "amber" },
-  { id: 10, name: "加藤 誠", pos: "DF", number: 5, initial: "加", tone: "sky" },
-  { id: 11, name: "松本 亮", pos: "MF", number: 6, initial: "松", tone: "violet" },
-  { id: 12, name: "吉田 駿", pos: "DF", number: 2, initial: "吉", tone: "lime" }
-];
+import {
+  applyOverridesToMember,
+  loadManualMembersForList,
+  loadMemberOverrides,
+  removeManualMemberRecord,
+} from "../../lib/teamMembersStorage";
 
 function toneClass(tone) {
   if (tone === "indigo") return "tone-indigo";
@@ -55,11 +20,43 @@ function toneClass(tone) {
   return "tone-slate";
 }
 
+function toMemberRow(member, overrides) {
+  const patched = applyOverridesToMember(
+    {
+      id: member.id,
+      name: member.name,
+      pos: "",
+      number: 0,
+    },
+    overrides
+  );
+
+  return {
+    id: member.id,
+    user_id: member.user_id,
+    team_member_id: member.id,
+    name: member.name || "メンバー",
+    furigana: "",
+    roleLabel: member.role === "captain" ? "キャプテン" : undefined,
+    roleBadge: member.role === "captain" ? "CP" : undefined,
+    pos: patched.pos || "--",
+    number: Number(patched.number) || 0,
+    featured: member.role === "captain",
+    source: "invited",
+    tone: "slate",
+    initial: (member.name || "メ").slice(0, 1),
+    avatar:
+      member.avatar_url ||
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || "Member")}&background=e2e8f0&color=334155&size=128`,
+  };
+}
+
 export default function TeamMembers() {
   const navigate = useNavigate();
   const { id: teamId } = useParams();
   const { user } = useAuth();
-  const [members, setMembers] = useState(MEMBERS);
+  const [members, setMembers] = useState([]);
+  const [teamName, setTeamName] = useState("チーム");
   const [keyword, setKeyword] = useState("");
   const [sortType, setSortType] = useState("kana_asc");
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
@@ -68,25 +65,46 @@ export default function TeamMembers() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [canDeleteMembers, setCanDeleteMembers] = useState(false);
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  async function loadTeamMembers() {
+    if (!teamId) return;
+
+    const data = await api.get(`/teams/${teamId}`);
+    const detail = data?.team || null;
+    const overrides = loadMemberOverrides(teamId);
+    const apiMembers = Array.isArray(detail?.members)
+      ? detail.members.map((member) => toMemberRow(member, overrides))
+      : [];
+    const manualMembers = loadManualMembersForList(teamId).map((m) => ({
+      ...m,
+      team_member_id: null,
+      roleLabel: undefined,
+      roleBadge: undefined,
+      featured: false,
+      source: "manual",
+      pos: m.pos || "MF",
+      number: Number(m.number) || 0,
+    }));
+
+    setTeamName(detail?.name || "チーム");
+    setCanDeleteMembers(Number(detail?.captain_user_id) === Number(user?.id));
+    setMembers([...apiMembers, ...manualMembers]);
+  }
 
   useEffect(() => {
     let active = true;
-    if (!teamId || !user?.id) {
-      setCanDeleteMembers(false);
-      return () => {
-        active = false;
-      };
-    }
 
-    api
-      .get(`/teams/${teamId}`)
-      .then((data) => {
-        if (!active) return;
-        setCanDeleteMembers(Number(data?.team?.captain_user_id) === Number(user.id));
-      })
+    setLoading(true);
+    loadTeamMembers()
       .catch(() => {
         if (!active) return;
-        setCanDeleteMembers(false);
+        setMessage("メンバー情報の取得に失敗しました。");
+        setMembers([]);
+      })
+      .finally(() => {
+        if (!active) return;
+        setLoading(false);
       });
 
     return () => {
@@ -98,16 +116,16 @@ export default function TeamMembers() {
     const q = keyword.trim().toLowerCase();
     const filtered = members.filter((m) => {
       if (!q) return true;
-      return m.name.toLowerCase().includes(q) || m.pos.toLowerCase().includes(q);
+      return (m.name || "").toLowerCase().includes(q) || (m.pos || "").toLowerCase().includes(q);
     });
 
     return filtered.sort((a, b) => {
-      if (sortType === "kana_asc") return a.name.localeCompare(b.name, "ja");
-      if (sortType === "kana_desc") return b.name.localeCompare(a.name, "ja");
-      if (sortType === "number_asc") return a.number - b.number;
-      if (sortType === "number_desc") return b.number - a.number;
-      if (sortType === "position") return a.pos.localeCompare(b.pos, "en");
-      return a.name.localeCompare(b.name, "ja");
+      if (sortType === "kana_asc") return (a.name || "").localeCompare(b.name || "", "ja");
+      if (sortType === "kana_desc") return (b.name || "").localeCompare(a.name || "", "ja");
+      if (sortType === "number_asc") return (a.number || 0) - (b.number || 0);
+      if (sortType === "number_desc") return (b.number || 0) - (a.number || 0);
+      if (sortType === "position") return (a.pos || "").localeCompare(b.pos || "", "en");
+      return (a.name || "").localeCompare(b.name || "", "ja");
     });
   }, [keyword, members, sortType]);
 
@@ -119,17 +137,34 @@ export default function TeamMembers() {
     { key: "position", label: "ポジション順" },
   ];
 
-  const setRole = (id, role) => {
+  async function setRole(memberKey, role) {
+    const target = members.find((m) => `${m.source}-${m.id}` === memberKey);
+    if (!target) return;
+
+    if (role === "captain") {
+      if (!canDeleteMembers) {
+        setMessage("権限変更ができるのは代表者のみです。");
+        return;
+      }
+      if (!target.user_id) {
+        setMessage("手動追加メンバーには代表権限を付与できません。");
+        return;
+      }
+      try {
+        await api.post(`/teams/${teamId}/transfer_captain`, { new_captain_user_id: target.user_id });
+        await loadTeamMembers();
+        setMessage("代表権限を更新しました。");
+      } catch {
+        setMessage("権限更新に失敗しました。");
+      }
+      setPermissionMenuId(null);
+      setActiveMenuId(null);
+      return;
+    }
+
     setMembers((prev) =>
       prev.map((m) => {
-        if (role === "captain") {
-          if (m.id === id) {
-            return { ...m, roleLabel: "キャプテン", roleBadge: "CP", featured: true };
-          }
-          return { ...m, roleLabel: undefined, roleBadge: undefined, featured: false };
-        }
-
-        if (m.id !== id) return m;
+        if (`${m.source}-${m.id}` !== memberKey) return m;
         if (role === "vice") {
           return { ...m, roleLabel: undefined, roleBadge: "副", featured: false };
         }
@@ -138,17 +173,49 @@ export default function TeamMembers() {
     );
     setPermissionMenuId(null);
     setActiveMenuId(null);
-  };
+  }
 
-  const removeMember = (id) => {
-    setMembers((prev) => prev.filter((m) => m.id !== id));
-    setPermissionMenuId(null);
-    setActiveMenuId(null);
-    setDeleteTarget(null);
-  };
+  async function removeMember(id) {
+    const target = members.find((m) => String(m.id) === String(id));
+    if (!target) return;
+    if (Number(target.user_id) === Number(user?.id)) {
+      setMessage("自分自身は削除できません。");
+      setPermissionMenuId(null);
+      setActiveMenuId(null);
+      setDeleteTarget(null);
+      return;
+    }
+
+    try {
+      if (target.source === "manual") {
+        removeManualMemberRecord(teamId, id);
+      } else if (target.team_member_id) {
+        if (!canDeleteMembers) {
+          setMessage("メンバーを削除できるのはチームの代表者のみです。");
+          return;
+        }
+        await api.del(`/team_members/${target.team_member_id}`);
+      }
+
+      await loadTeamMembers();
+      setMessage("メンバーを削除しました。");
+    } catch {
+      setMessage("メンバー削除に失敗しました。");
+    } finally {
+      setPermissionMenuId(null);
+      setActiveMenuId(null);
+      setDeleteTarget(null);
+    }
+  }
 
   const openDeleteDialog = (member) => {
-    if (!canDeleteMembers) {
+    if (Number(member?.user_id) === Number(user?.id)) {
+      setMessage("自分自身は削除できません。");
+      setPermissionMenuId(null);
+      setActiveMenuId(null);
+      return;
+    }
+    if (!canDeleteMembers && member.source !== "manual") {
       setMessage("メンバーを削除できるのはチームの代表者のみです。");
       setPermissionMenuId(null);
       setActiveMenuId(null);
@@ -168,7 +235,7 @@ export default function TeamMembers() {
           </button>
           <h1>メンバー一覧</h1>
         </div>
-        <div className="team-pill">FC 東京セブン</div>
+        <div className="team-pill">{teamName}</div>
       </header>
 
       <section className="tml-toolbar">
@@ -182,7 +249,7 @@ export default function TeamMembers() {
           />
         </div>
 
-        <button type="button" className="add-btn">
+        <button type="button" className="add-btn" onClick={() => navigate(`/teams/${teamId}/members/manual-add`)}>
           <span className="material-symbols-outlined">person_add</span>
           <span>メンバーを追加する</span>
         </button>
@@ -211,9 +278,7 @@ export default function TeamMembers() {
                 }}
               >
                 <span>{opt.label}</span>
-                {sortType === opt.key ? (
-                  <span className="material-symbols-outlined">check</span>
-                ) : null}
+                {sortType === opt.key ? <span className="material-symbols-outlined">check</span> : null}
               </button>
             ))}
           </div>
@@ -221,8 +286,13 @@ export default function TeamMembers() {
         {message ? <p className="tml-inline-message">{message}</p> : null}
 
         <div className="tml-list">
-          {rows.map((m, index) => (
-            <article key={m.id} className={`tml-card ${m.featured ? "featured" : ""}`}>
+          {!loading && rows.length === 0 ? <p className="tml-inline-message">メンバーがいません。</p> : null}
+          {rows.map((m, index) => {
+            const memberKey = `${m.source}-${m.id}`;
+            const isSelf = Number(m.user_id) === Number(user?.id);
+            const shouldOpenUp = rows.length > 3 && index >= rows.length - 2;
+            return (
+            <article key={`${m.source}-${m.id}`} className={`tml-card ${m.featured ? "featured" : ""}`}>
               <div className="left">
                 <div className="avatar-wrap">
                   {m.avatar ? (
@@ -243,7 +313,7 @@ export default function TeamMembers() {
                   </div>
                   <div className="sub-row">
                     <span className={`pos ${m.gk ? "gk" : ""}`}>{m.pos}</span>
-                    <span>No. {m.number}</span>
+                    <span>No. {m.number || "-"}</span>
                   </div>
                 </div>
               </div>
@@ -255,48 +325,56 @@ export default function TeamMembers() {
                   aria-label={`${m.name}の操作メニュー`}
                   onClick={() => {
                     setMessage("");
-                    setActiveMenuId((prev) => (prev === m.id ? null : m.id));
+                    setActiveMenuId((prev) => (prev === memberKey ? null : memberKey));
                     setPermissionMenuId(null);
                   }}
                 >
                   <span className="material-symbols-outlined">more_horiz</span>
                 </button>
-                {activeMenuId === m.id ? (
-                  <div className={`tml-action-menu ${index >= rows.length - 2 ? "up" : ""}`}>
+                {activeMenuId === memberKey ? (
+                  <div className={`tml-action-menu ${shouldOpenUp ? "up" : ""}`}>
                     <button
                       type="button"
                       className="edit"
                       onClick={() => {
-                        setMessage(`「${m.name}」の編集機能は準備中です。`);
+                        if (isSelf) {
+                          navigate("/me/edit");
+                        } else {
+                          navigate(`/teams/${teamId}/members/${encodeURIComponent(String(m.id))}/edit`, {
+                            state: { member: m },
+                          });
+                        }
                         setActiveMenuId(null);
                       }}
                     >
                       <span className="material-symbols-outlined">edit</span>
                       編集
                     </button>
-                    <button type="button" className="danger" onClick={() => openDeleteDialog(m)}>
-                      <span className="material-symbols-outlined">delete</span>
-                      削除
-                    </button>
+                    {!isSelf ? (
+                      <button type="button" className="danger" onClick={() => openDeleteDialog(m)}>
+                        <span className="material-symbols-outlined">delete</span>
+                        削除
+                      </button>
+                    ) : null}
                     <button
                       type="button"
                       className="permission"
-                      onClick={() => setPermissionMenuId((prev) => (prev === m.id ? null : m.id))}
+                      onClick={() => setPermissionMenuId((prev) => (prev === memberKey ? null : memberKey))}
                     >
                       <span className="material-symbols-outlined">admin_panel_settings</span>
                       権限
                     </button>
-                    {permissionMenuId === m.id ? (
+                    {permissionMenuId === memberKey ? (
                       <div className="tml-permission-menu">
-                        <button type="button" onClick={() => setRole(m.id, "captain")}>
+                        <button type="button" onClick={() => setRole(memberKey, "captain")}>
                           <span className="material-symbols-outlined">workspace_premium</span>
                           キャプテン
                         </button>
-                        <button type="button" onClick={() => setRole(m.id, "vice")}>
+                        <button type="button" onClick={() => setRole(memberKey, "vice")}>
                           <span className="material-symbols-outlined">verified</span>
                           副キャプテン
                         </button>
-                        <button type="button" onClick={() => setRole(m.id, "member")}>
+                        <button type="button" onClick={() => setRole(memberKey, "member")}>
                           <span className="material-symbols-outlined">person</span>
                           メンバー
                         </button>
@@ -306,7 +384,8 @@ export default function TeamMembers() {
                 ) : null}
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       </main>
 
@@ -356,7 +435,7 @@ export default function TeamMembers() {
                 )}
               </div>
               <p className="name">{deleteTarget.name}</p>
-              <p className="number">背番号: {deleteTarget.number}</p>
+              <p className="number">背番号: {deleteTarget.number || "-"}</p>
             </div>
 
             <div className="warning-box">一度削除すると元に戻せません。</div>

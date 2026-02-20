@@ -49,6 +49,13 @@ function formatMonthDay(date) {
   return `${d.getMonth() + 1}.${d.getDate().toString().padStart(2, "0")}`;
 }
 
+function pastParticipation(status) {
+  if (status === "approved" || status === "pending") {
+    return { label: "参加大会", className: "joined" };
+  }
+  return { label: "未参加", className: "not-joined" };
+}
+
 export default function AppHome() {
   const { user } = useAuth();
   const [tournaments, setTournaments] = useState([]);
@@ -279,7 +286,9 @@ export default function AppHome() {
           <p className="j7-empty">過去大会はありません。</p>
         ) : (
           <div className="j7-history-list">
-            {history.map((tournament, index) => (
+            {history.map((tournament, index) => {
+              const participation = pastParticipation(entryStatusByTournament[tournament.id]);
+              return (
               <Link key={tournament.id} to={`/tournaments/${tournament.id}/results`} className="j7-history-link">
                 <div className="j7-history-left">
                   <div className="j7-history-icon">
@@ -290,15 +299,22 @@ export default function AppHome() {
                   </div>
                   <div className="j7-history-text">
                     <h4>{tournament.name}</h4>
-                    <div>
-                      <span>{index === 0 ? "準優勝" : "ベスト4"}</span>
-                      <small>{index === 0 ? "4勝1敗1分" : "3勝2敗"}</small>
+                    <div className="j7-history-status-row">
+                      <span className={`j7-history-status ${participation.className}`}>
+                        {participation.label}
+                      </span>
                     </div>
+                    {participation.className === "joined" ? (
+                      <div className="j7-history-cta-row">
+                        <small>詳細結果を表示</small>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
                 <span className="material-symbols-outlined j7-right">chevron_right</span>
               </Link>
-            ))}
+            );
+            })}
           </div>
         )}
       </section>

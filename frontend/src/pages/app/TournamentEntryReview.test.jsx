@@ -3,16 +3,48 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import TournamentEntryReview from "./TournamentEntryReview";
 
-vi.mock("../../lib/api", () => ({
-  api: {
-    get: vi.fn().mockResolvedValue({
+const getMock = vi.fn((path) => {
+  if (path === "/tournaments/4") {
+    return Promise.resolve({
       tournament: {
-        name: "渋谷ナイトカップ",
+        id: 4,
+        name: "J7 渋谷カップ Vol.12",
         event_date: "2026-02-20",
         venue: "代々木公園フットサルコート",
+        entry_fee_amount: 22000,
       },
-    }),
+    });
+  }
+
+  if (path === "/tournaments/4/entries/me") {
+    return Promise.resolve({ entry: { id: 123, team_id: 10, status: "approved" } });
+  }
+
+  if (path === "/teams") {
+    return Promise.resolve({ teams: [{ id: 10, name: "FC 東京セブン", is_member: true }] });
+  }
+
+  if (path === "/teams/10") {
+    return Promise.resolve({ team: { id: 10, name: "FC 東京セブン" } });
+  }
+
+  return Promise.resolve({});
+});
+
+vi.mock("../../lib/api", () => ({
+  api: {
+    get: (...args) => getMock(...args),
   },
+}));
+
+vi.mock("../../context/AuthContext", () => ({
+  useAuth: () => ({
+    user: {
+      id: 1,
+      name: "山田 太郎",
+      phone: "090-1234-5678",
+    },
+  }),
 }));
 
 function renderPage() {
@@ -31,46 +63,14 @@ describe("TournamentEntryReview", () => {
     vi.clearAllMocks();
   });
 
-  it("shows paid status for card payment", async () => {
-    window.sessionStorage.setItem(
-      "entry-result:4",
-      JSON.stringify({
-        receiptNumber: "#20240501-001",
-        team_id: 2,
-        team_name: "FC SHINJUKU STARS",
-        category: "enjoy",
-        representative_name: "田中 健太郎",
-        representative_phone: "090-1234-5678",
-        payment_method: "card",
-      })
-    );
-
+  it("shows entry confirmation details", async () => {
     renderPage();
 
-    expect(await screen.findByText("決済完了")).toBeInTheDocument();
-    expect(screen.getByText("クレジットカード")).toBeInTheDocument();
-  });
-
-  it("shows onsite status and note for cash payment", async () => {
-    window.sessionStorage.setItem(
-      "entry-result:4",
-      JSON.stringify({
-        receiptNumber: "#20240501-001",
-        team_id: 2,
-        team_name: "FC SHINJUKU STARS",
-        category: "enjoy",
-        representative_name: "田中 健太郎",
-        representative_phone: "090-1234-5678",
-        payment_method: "cash",
-      })
-    );
-
-    renderPage();
-
-    expect(await screen.findByText("当日現地にてお支払い")).toBeInTheDocument();
-    expect(screen.getByText("当日払い")).toBeInTheDocument();
-    expect(
-      screen.getByText("※当日払いは現金のみとなります。お釣りのないようご協力をお願いいたします。")
-    ).toBeInTheDocument();
+    expect(await screen.findByText("エントリー内容の確認")).toBeInTheDocument();
+    expect(await screen.findByText("J7 渋谷カップ Vol.12")).toBeInTheDocument();
+    expect(await screen.findByText("FC 東京セブン")).toBeInTheDocument();
+    expect(await screen.findByText("山田 太郎")).toBeInTheDocument();
+    expect(await screen.findByText("¥22,000")).toBeInTheDocument();
+    expect(await screen.findByText("名簿を提出・編集する")).toBeInTheDocument();
   });
 });

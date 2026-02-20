@@ -20,7 +20,10 @@ export default function AdminLogin() {
         setError("管理者アカウントでログインしてください");
         return;
       }
-      navigate("/admin", { replace: true });
+      navigate("/admin", {
+        replace: true,
+        state: { flash: { type: "success", message: "管理画面にログインしました。" } },
+      });
     } catch {
       setError("ログインに失敗しました");
     }

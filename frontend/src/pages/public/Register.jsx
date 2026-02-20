@@ -53,7 +53,7 @@ export default function Register() {
         email: form.email,
         password: form.password
       });
-      navigate("/app/home");
+      navigate("/app/home", { state: { flash: { type: "success", message: "アカウントを作成しました。" } } });
     } catch {
       setError("登録に失敗しました");
     }

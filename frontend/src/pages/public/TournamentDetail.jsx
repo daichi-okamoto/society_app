@@ -79,7 +79,7 @@ export default function TournamentDetail() {
     if (!entryStatus) {
       return <TournamentDetailUpcoming tournament={tournament} />;
     }
-    return <TournamentDetailRegistered tournament={tournament} />;
+    return <TournamentDetailRegistered tournament={tournament} entryTeamId={entryTeamId} />;
   }
 
   return <TournamentDetailLive tournament={tournament} entryStatus={entryStatus} entryTeamId={entryTeamId} />;

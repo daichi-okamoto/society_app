@@ -1,0 +1,261 @@
+.adntf-root {
+  max-width: 448px;
+  margin: 0 auto;
+  min-height: max(884px, 100dvh);
+  background: #f8f9fa;
+  color: #0f172a;
+  font-family: "LINE Seed JP", system-ui, sans-serif;
+  padding-bottom: 96px;
+}
+
+.adntf-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(248, 249, 250, 0.96);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.adntf-header-row {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.adntf-header-row h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.adntf-settings-btn {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #0f172a;
+  display: grid;
+  place-items: center;
+}
+
+.adntf-settings-btn .material-symbols-outlined {
+  font-size: 26px;
+}
+
+.adntf-tabs {
+  padding: 0 16px;
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.adntf-tabs button {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  height: 42px;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.adntf-tabs button.active {
+  color: #1e3a8a;
+  font-weight: 700;
+  border-bottom: 2px solid #1e3a8a;
+}
+
+.adntf-main {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.adntf-create-btn {
+  height: 48px;
+  border-radius: 12px;
+  text-decoration: none;
+  background: #1e3a8a;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 6px 16px rgba(30, 58, 138, 0.22);
+}
+
+.adntf-create-btn .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.adntf-info {
+  margin: 0;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.adntf-info.is-error {
+  color: #b91c1c;
+}
+
+.adntf-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.adntf-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  padding: 14px;
+}
+
+.adntf-card.is-important {
+  border-left: 4px solid #1e3a8a;
+}
+
+.adntf-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.adntf-top-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.adntf-important {
+  border-radius: 999px;
+  padding: 2px 8px;
+  background: rgba(30, 58, 138, 0.12);
+  color: #1e3a8a;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.adntf-date {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.adntf-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.adntf-status .material-symbols-outlined {
+  font-size: 14px;
+}
+
+.adntf-status.sent {
+  color: #059669;
+}
+
+.adntf-status.draft {
+  color: #64748b;
+}
+
+.adntf-card h3 {
+  margin: 0 0 4px;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adntf-card p {
+  margin: 0 0 8px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.adntf-scope {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.adntf-scope .material-symbols-outlined {
+  font-size: 14px;
+}
+
+.adntf-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  max-width: 448px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  padding: 8px 24px 20px;
+}
+
+.adntf-nav-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.adntf-nav-item {
+  min-width: 48px;
+  text-decoration: none;
+  color: #9ca3af;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.adntf-nav-item .material-symbols-outlined {
+  font-size: 24px;
+}
+
+.adntf-nav-item span:last-child {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.adntf-nav-item.active {
+  color: #1e3a8a;
+}
+
+.adntf-nav-item.active .material-symbols-outlined {
+  font-variation-settings: "FILL" 1;
+}
+
+.adntf-nav-item.active span:last-child {
+  font-weight: 700;
+}
+
+/* Admin Tournament List (latest design) */

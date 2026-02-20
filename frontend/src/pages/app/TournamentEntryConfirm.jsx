@@ -71,7 +71,10 @@ export default function TournamentEntryConfirm() {
       window.sessionStorage.setItem(`entry-result:${id}`, JSON.stringify(result));
       window.sessionStorage.removeItem(`entry-draft:${id}`);
       navigate(`/tournaments/${id}/entry/complete`, {
-        state: result,
+        state: {
+          ...result,
+          flash: { type: "success", message: "大会エントリーが完了しました。" },
+        },
       });
     } catch {
       setError("申し込みに失敗しました。時間をおいて再度お試しください。");

@@ -1,0 +1,382 @@
+.adcreate-root {
+  max-width: 448px;
+  margin: 0 auto;
+  min-height: max(884px, 100dvh);
+  background: #f8f9fa;
+  color: #0f172a;
+  font-family: "LINE Seed JP", system-ui, sans-serif;
+  padding-bottom: 128px;
+}
+
+.adcreate-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(248, 249, 250, 0.96);
+  backdrop-filter: blur(7px);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.adcreate-header-row {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.adcreate-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.adcreate-left h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.adcreate-icon-btn {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #64748b;
+  display: grid;
+  place-items: center;
+}
+
+.adcreate-main {
+  padding: 24px 16px 0;
+}
+
+.adcreate-form {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.adcreate-section h2 {
+  margin: 0 0 12px;
+  color: #1e3a8a;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.adcreate-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.adcreate-card label {
+  display: block;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.adcreate-card .req {
+  color: #ef4444;
+}
+
+.adcreate-card input,
+.adcreate-card select,
+.adcreate-card textarea {
+  width: 100%;
+  margin-top: 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #0f172a;
+  outline: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 12px;
+}
+
+.adcreate-card input:focus,
+.adcreate-card select:focus,
+.adcreate-card textarea:focus {
+  border-color: #1e3a8a;
+  box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.18);
+}
+
+.adcreate-card textarea {
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.adcreate-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.suffix-wrap,
+.prefix-wrap {
+  position: relative;
+}
+
+.suffix-wrap span {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  font-size: 13px;
+}
+
+.prefix-wrap span {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  font-size: 13px;
+}
+
+.prefix-wrap input {
+  padding-left: 26px;
+}
+
+.suffix-wrap input {
+  padding-right: 34px;
+}
+
+.adcreate-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.adcreate-group-head label {
+  font-size: 14px;
+}
+
+.adcreate-group-head button {
+  border: 0;
+  border-radius: 6px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+}
+
+.adcreate-group-head .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.adcreate-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.adcreate-group-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  padding: 14px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.adcreate-group-card .close-btn {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  border: 0;
+  background: transparent;
+  color: #64748b;
+}
+
+.adcreate-stars-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.adcreate-stars-head label {
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.adcreate-stars-head span {
+  font-size: 12px;
+  color: #1e3a8a;
+  font-weight: 600;
+}
+
+.adcreate-stars .star-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.adcreate-stars .star-row button {
+  border: 0;
+  background: transparent;
+  color: #cbd5e1;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+}
+
+.adcreate-stars .star-row .material-symbols-outlined {
+  font-size: 28px;
+}
+
+.adcreate-stars .star-row .material-symbols-outlined.filled {
+  color: #1e3a8a;
+  font-variation-settings: "FILL" 1;
+}
+
+.adcreate-stars p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 10px;
+}
+
+.adcreate-rules > label {
+  margin-bottom: 8px;
+}
+
+.adcreate-rule-list {
+  display: grid;
+  gap: 8px;
+}
+
+.adcreate-rule-list .rule-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.adcreate-rule-list .rule-item input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  padding: 0;
+}
+
+.adcreate-rule-list .rule-item span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.adcreate-error {
+  margin: -8px 0 0;
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.adcreate-actions button {
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  background: #1e3a8a;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 14px 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 12px 24px rgba(30, 58, 138, 0.2);
+}
+
+.adcreate-actions button:disabled {
+  opacity: 0.6;
+}
+
+.adcreate-actions p {
+  margin: 10px 0 0;
+  text-align: center;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.adcreate-actions a {
+  color: #1e3a8a;
+  margin-left: 2px;
+}
+
+.adcreate-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  max-width: 448px;
+  margin: 0 auto;
+  background: #fff;
+  border-top: 1px solid #e5e7eb;
+  padding: 8px 24px 20px;
+}
+
+.adcreate-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.adcreate-nav-item {
+  min-width: 48px;
+  text-decoration: none;
+  color: #9ca3af;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.adcreate-nav-item .material-symbols-outlined {
+  font-size: 24px;
+}
+
+.adcreate-nav-item span:last-child {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.adcreate-nav-item.active {
+  color: #1e3a8a;
+}
+
+.adcreate-nav-item.active .material-symbols-outlined {
+  font-variation-settings: "FILL" 1;
+}
+
+.adcreate-nav-item.active span:last-child {
+  font-weight: 700;
+}
+

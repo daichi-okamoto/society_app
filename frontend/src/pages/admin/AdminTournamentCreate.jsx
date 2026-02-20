@@ -130,9 +130,15 @@ export default function AdminTournamentCreate() {
       const res = await api.post("/tournaments", payload);
       const createdId = res?.tournament?.id;
       if (createdId) {
-        navigate(`/admin/tournaments/${createdId}`, { replace: true });
+        navigate(`/admin/tournaments/${createdId}`, {
+          replace: true,
+          state: { flash: { type: "success", message: "大会を作成しました。" } },
+        });
       } else {
-        navigate("/admin/tournaments", { replace: true });
+        navigate("/admin/tournaments", {
+          replace: true,
+          state: { flash: { type: "success", message: "大会を作成しました。" } },
+        });
       }
     } catch (e) {
       if (e?.status === 422) {

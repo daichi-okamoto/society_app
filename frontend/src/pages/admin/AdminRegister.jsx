@@ -60,7 +60,10 @@ export default function AdminRegister() {
         password: form.password,
         admin_invite_code: form.adminInviteCode
       });
-      navigate("/admin", { replace: true });
+      navigate("/admin", {
+        replace: true,
+        state: { flash: { type: "success", message: "管理者アカウントを登録しました。" } },
+      });
     } catch (err) {
       if (err?.status === 401) {
         setError("管理者招待コードが正しくありません");

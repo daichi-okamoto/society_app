@@ -1,0 +1,226 @@
+.adlogin-root {
+  min-height: max(884px, 100dvh);
+  background: #f8f9fa;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+}
+
+.adlogin-panel {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.adlogin-head {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.adlogin-logo {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 24px;
+  border-radius: 16px;
+  background: #1e3a8a;
+  color: #ffffff;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 12px 28px rgba(30, 58, 138, 0.28);
+}
+
+.adlogin-head h1 {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1.15;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.adlogin-head p {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.adlogin-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.adlogin-field label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.adlogin-input-wrap {
+  position: relative;
+}
+
+.adlogin-input-wrap > .material-symbols-outlined {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  font-size: 20px;
+}
+
+.adlogin-input-wrap input {
+  width: 100%;
+  height: 56px;
+  padding: 0 40px 0 40px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 16px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  outline: none;
+}
+
+.adlogin-input-wrap input::placeholder {
+  color: rgba(100, 116, 139, 0.6);
+}
+
+.adlogin-input-wrap input:focus {
+  border-color: #1e3a8a;
+  box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2);
+}
+
+.adlogin-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  color: #64748b;
+  display: grid;
+  place-items: center;
+}
+
+.adlogin-toggle .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.adlogin-error {
+  margin: -4px 0 0;
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.adlogin-submit {
+  margin-top: 8px;
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  height: 56px;
+  background: #1e3a8a;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+  box-shadow: 0 8px 22px rgba(30, 58, 138, 0.25);
+}
+
+.adlogin-divider {
+  margin: 24px 0;
+  width: 100%;
+  position: relative;
+  text-align: center;
+}
+
+.adlogin-divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.adlogin-divider span {
+  position: relative;
+  z-index: 1;
+  padding: 0 12px;
+  background: #f8f9fa;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.adlogin-google-btn {
+  width: 100%;
+  height: 56px;
+  border: 1px solid #dadce0;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #3c4043;
+  font-size: 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.adlogin-google-btn img {
+  width: 20px;
+  height: 20px;
+}
+
+.adlogin-foot-links {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.adlogin-foot-links button {
+  border: 0;
+  background: transparent;
+  color: #1e3a8a;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 0;
+}
+
+.adlogin-foot-links p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.adlogin-foot-links a {
+  color: #1e3a8a;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.adlogin-copyright {
+  margin-top: 32px;
+  color: #64748b;
+  font-size: 12px;
+  text-align: center;
+}
+

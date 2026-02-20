@@ -17,7 +17,7 @@ export default function Login() {
     setError(null);
     try {
       await login({ email, password });
-      navigate("/app/home");
+      navigate("/app/home", { state: { flash: { type: "success", message: "ログインしました。" } } });
     } catch (err) {
       setError("ログインに失敗しました");
     }

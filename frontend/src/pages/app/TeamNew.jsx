@@ -59,7 +59,9 @@ export default function TeamNew() {
 
     try {
       const data = await api.post("/teams", { name: name.trim() });
-      navigate(`/teams/${data.team.id}`);
+      navigate(`/teams/${data.team.id}`, {
+        state: { flash: { type: "success", message: "チームを作成しました。" } },
+      });
     } catch {
       setError("チーム作成に失敗しました");
     } finally {

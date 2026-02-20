@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../../lib/api";
 import LoadingScreen from "../../components/LoadingScreen";
 
 export default function TeamTransfer() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [team, setTeam] = useState(null);
   const [selected, setSelected] = useState("");
-  const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -22,10 +22,11 @@ export default function TeamTransfer() {
   const onSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    setMessage(null);
     try {
       await api.post(`/teams/${id}/transfer_captain`, { new_captain_user_id: selected });
-      setMessage("代表を移譲しました");
+      navigate(`/teams/${id}`, {
+        state: { flash: { type: "success", message: "代表を移譲しました。" } },
+      });
     } catch {
       setError("移譲に失敗しました");
     }
@@ -49,7 +50,6 @@ export default function TeamTransfer() {
             ))}
           </select>
         </div>
-        {message && <p>{message}</p>}
         {error && <p>{error}</p>}
         <button type="submit" disabled={!selected}>移譲</button>
       </form>

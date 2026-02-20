@@ -1,15 +1,63 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
+import LoadingScreen from "../../components/LoadingScreen";
+
+const ACTIVE_ENTRY_STATUSES = new Set(["approved", "pending"]);
 
 export default function MyPage() {
   const navigate = useNavigate();
   const { user, setUser } = useAuth();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [teams, setTeams] = useState([]);
+  const [appearanceCount, setAppearanceCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  const displayName = user?.name || "田中 太郎";
-  const teamName = user?.team_name || "FC 渋谷";
+  useEffect(() => {
+    let active = true;
+
+    async function loadPageData() {
+      try {
+        const [teamsData, tournamentsData] = await Promise.all([api.get("/teams"), api.get("/tournaments")]);
+        if (!active) return;
+
+        const memberTeams = (teamsData?.teams || []).filter((team) => team?.is_member);
+        setTeams(memberTeams);
+
+        const tournaments = tournamentsData?.tournaments || [];
+        const entryResults = await Promise.allSettled(
+          tournaments.map((tournament) => api.get(`/tournaments/${tournament.id}/entries/me`))
+        );
+        if (!active) return;
+
+        const joinedCount = entryResults.reduce((count, result) => {
+          if (result.status !== "fulfilled") return count;
+          const status = result.value?.entry?.status;
+          return ACTIVE_ENTRY_STATUSES.has(status) ? count + 1 : count;
+        }, 0);
+        setAppearanceCount(joinedCount);
+      } catch {
+        if (!active) return;
+        setTeams([]);
+        setAppearanceCount(0);
+      } finally {
+        if (!active) return;
+        setLoading(false);
+      }
+    }
+
+    loadPageData();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const displayName = user?.name || "ユーザー";
+  const teamName = useMemo(() => {
+    if (teams.length > 0) return teams[0].name;
+    return "未所属";
+  }, [teams]);
   const avatarUrl =
     user?.avatar_url ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=fef3c7&color=b45309&size=256`;
@@ -23,7 +71,14 @@ export default function MyPage() {
       // ignore and continue local sign out
     }
     setUser(null);
-    navigate("/login", { replace: true });
+    navigate("/login", {
+      replace: true,
+      state: { flash: { type: "info", message: "ログアウトしました。" } },
+    });
+  }
+
+  if (loading) {
+    return <LoadingScreen />;
   }
 
   return (
@@ -54,7 +109,7 @@ export default function MyPage() {
               <span>出場大会数</span>
             </div>
             <div className="right">
-              <strong>12</strong>
+              <strong>{appearanceCount}</strong>
               <small>大会</small>
             </div>
           </div>

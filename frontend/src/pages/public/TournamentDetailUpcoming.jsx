@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import TournamentOverviewTabContent from "./components/TournamentOverviewTabContent";
@@ -16,9 +16,61 @@ export default function TournamentDetailUpcoming({ tournament }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const [sheetOffset, setSheetOffset] = useState(0);
+  const [isDraggingSheet, setIsDraggingSheet] = useState(false);
+  const [maxSheetOffset, setMaxSheetOffset] = useState(108);
+  const dragRef = useRef({ startY: 0, startOffset: 0 });
+  const tabsRef = useRef(null);
+
+  useEffect(() => {
+    const recalc = () => {
+      if (!tabsRef.current) return;
+      const rect = tabsRef.current.getBoundingClientRect();
+      const next = Math.max(108, Math.min(180, Math.round(rect.top - 8)));
+      setMaxSheetOffset(next);
+      setSheetOffset((prev) => Math.min(prev, next));
+    };
+
+    recalc();
+    window.addEventListener("resize", recalc);
+    return () => window.removeEventListener("resize", recalc);
+  }, []);
+
+  useEffect(() => {
+    const onPointerMove = (event) => {
+      if (!isDraggingSheet) return;
+      const delta = dragRef.current.startY - event.clientY;
+      const next = Math.max(0, Math.min(maxSheetOffset, dragRef.current.startOffset + delta));
+      setSheetOffset(next);
+    };
+
+    const onPointerUp = () => {
+      if (!isDraggingSheet) return;
+      setIsDraggingSheet(false);
+      setSheetOffset((prev) => (prev >= maxSheetOffset * 0.45 ? maxSheetOffset : 0));
+    };
+
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointercancel", onPointerUp);
+
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
+    };
+  }, [isDraggingSheet, maxSheetOffset]);
+
+  function startSheetDrag(event) {
+    dragRef.current = { startY: event.clientY, startOffset: sheetOffset };
+    setIsDraggingSheet(true);
+  }
 
   return (
-    <div className="tdetail-root">
+    <div
+      className={`tdetail-root ${isDraggingSheet ? "dragging" : ""} ${sheetOffset > maxSheetOffset * 0.5 ? "expanded" : ""}`}
+      style={{ "--sheet-offset": `${sheetOffset}px` }}
+    >
       <div className="tdetail-hero">
         <img src={COVER_IMAGE} alt="Tournament Cover" />
         <div className="tdetail-hero-overlay" />
@@ -28,16 +80,27 @@ export default function TournamentDetailUpcoming({ tournament }) {
         <div className="tdetail-hero-copy">
           <span className="tdetail-status">募集中</span>
           <h1>{tournament.name}</h1>
+          <div className="tdetail-hero-venue">
+            <span className="material-symbols-outlined">location_on</span>
+            <span>{tournament.venue}</span>
+          </div>
         </div>
       </div>
 
       <main className="tdetail-main">
-        <section className="tdetail-info">
-          <div className="tdetail-location">
-            <span className="material-symbols-outlined">location_on</span>
-            <span>{tournament.venue}</span>
-          </div>
+        <div className="tdetail-handle-wrap">
+          <button
+            type="button"
+            className="tdetail-handle-btn"
+            aria-label="シートを移動"
+            onPointerDown={startSheetDrag}
+            onClick={() => setSheetOffset((prev) => (prev > 0 ? 0 : maxSheetOffset))}
+          >
+            <span className="tdetail-handle" />
+          </button>
+        </div>
 
+        <section className="tdetail-info">
           <div className="tdetail-kpis">
             <article>
               <span className="material-symbols-outlined">calendar_month</span>
@@ -60,7 +123,7 @@ export default function TournamentDetailUpcoming({ tournament }) {
         </section>
 
         <section>
-          <div className="tdetail-tabs">
+          <div className="tdetail-tabs" ref={tabsRef}>
             <button type="button" className={activeTab === "overview" ? "active" : ""} onClick={() => setActiveTab("overview")}>
               概要
             </button>

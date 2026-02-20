@@ -1,0 +1,261 @@
+.tnew-root {
+  max-width: 448px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: #f8fafc;
+  box-shadow: 0 16px 56px rgba(15, 23, 42, 0.15);
+  border-left: 1px solid #f1f5f9;
+  border-right: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.tnew-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(248, 250, 252, 0.8);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #e5e7eb;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tnew-header .left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tnew-header h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.tnew-header button {
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tnew-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  padding-bottom: 112px;
+}
+
+.tnew-form {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.tnew-logo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.tnew-logo-wrap {
+  width: 96px;
+  height: 96px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  border: 2px dashed #d1d5db;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #9ca3af;
+  position: relative;
+  overflow: hidden;
+}
+
+.tnew-logo-wrap .material-symbols-outlined {
+  font-size: 30px;
+}
+
+.tnew-logo-wrap small {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.tnew-logo-wrap img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tnew-logo-edit {
+  position: absolute;
+  right: calc(50% - 52px);
+  bottom: 38px;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: #d97706;
+  color: #fff;
+  border: 2px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(217, 119, 6, 0.35);
+}
+
+.tnew-logo-edit .material-symbols-outlined {
+  font-size: 14px;
+}
+
+.tnew-logo-section p {
+  margin: 12px 0 0;
+  text-align: center;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.tnew-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.tnew-fields .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tnew-fields label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.tnew-fields label span {
+  color: #ef4444;
+  margin-left: 4px;
+}
+
+.tnew-fields input,
+.tnew-fields textarea,
+.tnew-fields select {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  color: #1e293b;
+  font-size: 14px;
+  outline: none;
+}
+
+.tnew-fields input,
+.tnew-fields select {
+  padding: 14px 16px;
+}
+
+.tnew-fields textarea {
+  resize: none;
+  min-height: 112px;
+  padding: 14px 16px;
+}
+
+.tnew-fields input:focus,
+.tnew-fields textarea:focus,
+.tnew-fields select:focus {
+  border-color: #d97706;
+  box-shadow: 0 0 0 1px #d97706;
+}
+
+.tnew-fields .select-wrap {
+  position: relative;
+}
+
+.tnew-fields .select-wrap select {
+  appearance: none;
+  padding-left: 44px;
+  padding-right: 40px;
+}
+
+.tnew-fields .select-wrap .icon-left,
+.tnew-fields .select-wrap .icon-right {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 20px;
+  pointer-events: none;
+}
+
+.tnew-fields .select-wrap .icon-left {
+  left: 14px;
+}
+
+.tnew-fields .select-wrap .icon-right {
+  right: 12px;
+}
+
+.tnew-submit-area {
+  padding-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tnew-submit-area .check-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.tnew-submit-area .check-row input {
+  margin-top: 2px;
+  width: 18px;
+  height: 18px;
+  accent-color: #d97706;
+}
+
+.tnew-submit-area .check-row span {
+  color: #1e293b;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.tnew-error {
+  margin: 0;
+  color: #dc2626;
+  font-size: 12px;
+}
+
+.tnew-submit-area button {
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  background: #d97706;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 16px;
+  box-shadow: 0 14px 30px rgba(217, 119, 6, 0.28);
+}
+
+.tnew-submit-area button:disabled {
+  opacity: 0.7;
+}
+

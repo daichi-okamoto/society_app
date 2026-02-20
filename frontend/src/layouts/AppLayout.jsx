@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import AnimatedOutlet from "../components/AnimatedOutlet";
+import FlashMessage from "../components/FlashMessage";
 
 export default function AppLayout() {
   const { user } = useAuth();
@@ -63,10 +64,14 @@ export default function AppLayout() {
     location.pathname === "/teams/new" ||
     location.pathname === "/policies" ||
     /^\/teams\/[^/]+\/members$/.test(location.pathname) ||
+    /^\/teams\/[^/]+\/members\/manual-add$/.test(location.pathname) ||
+    /^\/teams\/[^/]+\/members\/[^/]+\/edit$/.test(location.pathname) ||
+    /^\/teams\/[^/]+\/edit$/.test(location.pathname) ||
     /^\/tournaments\/[^/]+\/entry$/.test(location.pathname) ||
     /^\/tournaments\/[^/]+\/entry\/confirm$/.test(location.pathname) ||
     /^\/tournaments\/[^/]+\/entry\/complete$/.test(location.pathname) ||
-    /^\/tournaments\/[^/]+\/entry\/review$/.test(location.pathname)
+    /^\/tournaments\/[^/]+\/entry\/review$/.test(location.pathname) ||
+    /^\/tournaments\/[^/]+\/entry\/review\/roster$/.test(location.pathname)
   ) {
     return (
       <>
@@ -75,6 +80,7 @@ export default function AppLayout() {
             <strong>{banner.title}</strong> {banner.body}
           </div>
         )}
+        <FlashMessage />
         <div className="route-slide-host">
           <AnimatedOutlet />
         </div>
@@ -102,6 +108,7 @@ export default function AppLayout() {
           <strong>{banner.title}</strong> {banner.body}
         </div>
       )}
+      <FlashMessage />
       <main className="app-main">
         <div className="route-slide-host">
           <AnimatedOutlet />
