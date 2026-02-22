@@ -12,7 +12,14 @@ async function request(path, { method = "GET", body, headers } = {}) {
   });
 
   const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
+  let data = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { raw: text };
+    }
+  }
 
   if (!res.ok) {
     const err = new Error("API error");

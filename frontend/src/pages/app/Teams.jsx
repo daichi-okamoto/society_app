@@ -171,6 +171,11 @@ function toMemberListItem(member, overrides = {}) {
 export default function Teams() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [activeTeamId, setActiveTeamId] = useState(() => {
+    if (typeof window === "undefined") return null;
+    const value = Number(window.sessionStorage.getItem("active_team_id") || 0);
+    return Number.isFinite(value) && value > 0 ? value : null;
+  });
   const [teams, setTeams] = useState([]);
   const [tournaments, setTournaments] = useState([]);
   const [teamDetail, setTeamDetail] = useState(null);
@@ -192,15 +197,30 @@ export default function Teams() {
 
   useEffect(() => {
     let active = true;
-    Promise.all([api.get("/teams"), api.get("/tournaments")])
-      .then(([teamsData, tournamentsData]) => {
+    Promise.allSettled([api.get("/teams"), api.get("/tournaments")])
+      .then(([teamsResult, tournamentsResult]) => {
         if (!active) return;
-        setTeams(teamsData?.teams || []);
-        setTournaments(tournamentsData?.tournaments || []);
-      })
-      .catch(() => {
-        if (!active) return;
-        setError("チーム一覧の取得に失敗しました");
+
+        if (teamsResult.status !== "fulfilled") {
+          const status = teamsResult.reason?.status;
+          if (status === 401) {
+            navigate("/login", {
+              replace: true,
+              state: { flash: { type: "error", message: "ログイン状態を確認してください。" } },
+            });
+            return;
+          }
+          setError("チーム一覧の取得に失敗しました");
+          return;
+        }
+
+        setTeams(teamsResult.value?.teams || []);
+        if (tournamentsResult.status === "fulfilled") {
+          setTournaments(tournamentsResult.value?.tournaments || []);
+        } else {
+          // チーム未所属導線を止めないため、大会取得失敗は空配列へフォールバック
+          setTournaments([]);
+        }
       })
       .finally(() => {
         if (!active) return;
@@ -210,15 +230,20 @@ export default function Teams() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [navigate]);
 
   const memberTeams = useMemo(() => teams.filter((t) => t.is_member), [teams]);
-  const currentTeam = memberTeams[0] || null;
+  const currentTeam = useMemo(() => {
+    if (memberTeams.length === 0) return null;
+    const matched = memberTeams.find((team) => Number(team.id) === Number(activeTeamId));
+    return matched || memberTeams[0] || null;
+  }, [memberTeams, activeTeamId]);
 
   useEffect(() => {
     if (!currentTeam?.id || typeof window === "undefined") return;
     try {
       window.sessionStorage.setItem("active_team_id", String(currentTeam.id));
+      setActiveTeamId(Number(currentTeam.id));
     } catch {
       // ignore storage errors
     }

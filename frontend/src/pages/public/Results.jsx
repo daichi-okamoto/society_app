@@ -226,7 +226,15 @@ export default function Results() {
       .get(`/tournaments/${id}/entries/me`)
       .then((data) => {
         if (!active) return;
-        setEntryTeamId(data?.entry?.team_id || null);
+        const teamId = data?.entry?.team_id || null;
+        setEntryTeamId(teamId);
+        if (typeof window !== "undefined" && teamId) {
+          try {
+            window.sessionStorage.setItem("active_team_id", String(teamId));
+          } catch {
+            // ignore storage errors
+          }
+        }
       })
       .catch(() => {
         if (!active) return;
