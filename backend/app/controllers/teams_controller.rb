@@ -2,11 +2,17 @@ class TeamsController < ApplicationController
   before_action :authenticate_user!, only: [:index, :create, :show, :update]
 
   def index
-    teams = Team.includes(:captain_user).order(created_at: :desc)
+    filtered = filtered_teams
+    teams = apply_sort(filtered)
     my_team_ids = TeamMember.where(user_id: current_user.id, status: :active).pluck(:team_id)
-    team_ids = teams.map(&:id)
+    total_count = filtered.distinct.count(:id)
+    teams = apply_pagination(teams)
+    team_ids = teams.pluck(:id)
     member_counts = TeamMember.where(team_id: team_ids, status: :active).group(:team_id).count
     pending_counts = TeamJoinRequest.where(team_id: team_ids, status: :pending).group(:team_id).count
+    limit_value = normalized_limit
+    offset_value = normalized_offset
+    has_more = limit_value.present? ? (offset_value + teams.size < total_count) : false
 
     render json: {
       teams: teams.map do |team|
@@ -16,7 +22,17 @@ class TeamsController < ApplicationController
           member_counts.fetch(team.id, 0),
           pending_counts.fetch(team.id, 0)
         )
-      end
+      end,
+      meta: {
+        total_count: total_count,
+        limit: limit_value,
+        offset: offset_value,
+        has_more: has_more
+      },
+      summary: {
+        total_teams: Team.count,
+        pending_teams: Team.pending.count
+      }
     }, status: :ok
   end
 
@@ -25,7 +41,8 @@ class TeamsController < ApplicationController
       name: params[:name],
       join_code: generate_join_code,
       captain_user_id: current_user.id,
-      created_by: current_user.id
+      created_by: current_user.id,
+      approval_status: :pending
     )
 
     if team.save
@@ -42,6 +59,25 @@ class TeamsController < ApplicationController
     return if performed?
 
     render json: { team: team_detail(team) }, status: :ok
+  end
+
+  def moderate
+    team = Team.find(params[:id])
+    require_admin!
+    return if performed?
+
+    decision = params[:decision].to_s
+    case decision
+    when "approve"
+      team.update!(approval_status: :approved)
+      approve_team_requests!(team)
+      render json: { team: team_detail(team) }, status: :ok
+    when "suspend"
+      team.captain_user&.update!(status: :suspended)
+      render json: { team: team_detail(team) }, status: :ok
+    else
+      render json: { error: { code: "validation_error", details: { decision: ["is invalid"] } } }, status: :unprocessable_entity
+    end
   end
 
   def update
@@ -97,14 +133,69 @@ class TeamsController < ApplicationController
     end
   end
 
+  def filtered_teams
+    scope = Team.left_joins(:captain_user).includes(:captain_user)
+    q = params[:q].to_s.strip
+    if q.present?
+      escaped = ActiveRecord::Base.sanitize_sql_like(q)
+      like = "%#{escaped}%"
+      scope = scope.where(
+        "teams.name ILIKE :q OR users.name ILIKE :q OR users.address ILIKE :q",
+        q: like
+      )
+    end
+
+    case params[:status].to_s
+    when "pending"
+      scope = scope.where(approval_status: Team.approval_statuses[:pending])
+    when "suspended"
+      scope = scope.where(users: { status: User.statuses[:suspended] })
+    when "approved"
+      scope = scope.where(approval_status: Team.approval_statuses[:approved])
+      scope = scope.where(users: { status: User.statuses[:active] })
+    end
+
+    scope
+  end
+
+  def apply_sort(scope)
+    case params[:sort].to_s
+    when "created_asc"
+      scope.order(created_at: :asc)
+    when "members_desc"
+      scope
+        .left_joins(:team_members)
+        .where("team_members.status = ? OR team_members.id IS NULL", TeamMember.statuses[:active])
+        .group("teams.id")
+        .order(Arel.sql("COUNT(team_members.id) DESC, teams.created_at DESC"))
+    else
+      scope.order(created_at: :desc)
+    end
+  end
+
+  def apply_pagination(scope)
+    limit_value = normalized_limit
+    return scope unless limit_value.present?
+
+    scope.limit(limit_value).offset(normalized_offset)
+  end
+
+  def normalized_limit
+    return nil if params[:limit].blank?
+
+    [[params[:limit].to_i, 1].max, 100].min
+  end
+
+  def normalized_offset
+    [params[:offset].to_i, 0].max
+  end
+
   def team_summary(team, is_member, member_count, pending_join_requests_count)
     status =
-      if pending_join_requests_count.positive?
-        "pending"
-      elsif team.captain_user&.suspended?
+      if team.captain_user&.suspended?
         "suspended"
       else
-        "approved"
+        team.approval_status
       end
 
     {
@@ -123,12 +214,33 @@ class TeamsController < ApplicationController
   end
 
   def team_detail(team)
+    pending_join_requests_count = team.team_join_requests.pending.count
+    member_scope = team.team_members.active.includes(:user)
+    captain_member = member_scope.find { |m| m.role == "captain" } || member_scope.first
+    status =
+      if team.captain_user&.suspended?
+        "suspended"
+      else
+        team.approval_status
+      end
+
     {
       id: team.id,
       name: team.name,
       join_code: team.join_code,
       captain_user_id: team.captain_user_id,
-      members: team.team_members.active.includes(:user).map do |member|
+      status: status,
+      created_at: team.created_at,
+      pending_join_requests_count: pending_join_requests_count,
+      member_count: member_scope.size,
+      captain: {
+        id: captain_member&.user_id,
+        name: captain_member&.user&.name || team.captain_user&.name,
+        email: captain_member&.user&.email || team.captain_user&.email,
+        phone: captain_member&.user&.phone || team.captain_user&.phone,
+        address: captain_member&.user&.address || team.captain_user&.address
+      },
+      members: member_scope.map do |member|
         {
           id: member.id,
           user_id: member.user_id,
@@ -141,5 +253,23 @@ class TeamsController < ApplicationController
         }
       end
     }
+  end
+
+  def approve_team_requests!(team)
+    TeamJoinRequest.transaction do
+      team.team_join_requests.pending.find_each do |req|
+        req.update!(status: :approved, decided_at: Time.current, decided_by: current_user.id)
+        next if TeamMember.exists?(team_id: team.id, user_id: req.user_id)
+
+        TeamMember.create!(
+          team_id: team.id,
+          user_id: req.user_id,
+          role: :member,
+          status: :active,
+          joined_at: Time.current
+        )
+      end
+      team.captain_user&.update!(status: :active)
+    end
   end
 end

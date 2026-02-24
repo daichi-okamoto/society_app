@@ -1,0 +1,373 @@
+.adpending-root,
+.adpdetail-root {
+  max-width: 448px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: #f8fafc;
+  padding-bottom: 116px;
+  font-family: "LINE Seed JP", system-ui, sans-serif;
+}
+
+.adpending-header,
+.adpdetail-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+  padding: 14px 20px;
+}
+
+.adpending-header-row,
+.adpdetail-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.adpending-header-row h1,
+.adpdetail-header-row h1 {
+  margin: 0;
+  font-size: 18px;
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.adpending-back,
+.adpdetail-back {
+  text-decoration: none;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.adpending-back .material-symbols-outlined,
+.adpdetail-back .material-symbols-outlined {
+  font-size: 28px;
+}
+
+.adpending-main,
+.adpdetail-main {
+  padding: 18px 20px;
+}
+
+.adpending-empty,
+.adpdetail-empty {
+  margin: 8px 0;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.adpending-list {
+  display: grid;
+  gap: 12px;
+}
+
+.adpending-card {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 14px;
+  color: #0f172a;
+}
+
+.adpending-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #dbeafe;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  color: #1e3a8a;
+}
+
+.adpending-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.adpending-chip {
+  display: inline-flex;
+  border-radius: 8px;
+  background: #ffedd5;
+  border: 1px solid #fed7aa;
+  color: #c2410c;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  margin-bottom: 6px;
+}
+
+.adpending-copy h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.adpending-copy p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.adpending-card > .material-symbols-outlined {
+  color: #cbd5e1;
+}
+
+.adpdetail-edit {
+  border: 0;
+  background: transparent;
+  color: #1e3a8a;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.adpdetail-hero {
+  text-align: center;
+}
+
+.adpdetail-avatar {
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 16px;
+  border-radius: 24px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  display: grid;
+  place-items: center;
+}
+
+.adpdetail-avatar .material-symbols-outlined {
+  font-size: 48px;
+  color: rgba(30, 58, 138, 0.2);
+}
+
+.adpdetail-chip {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+  background: #ffedd5;
+}
+
+.adpdetail-hero h2 {
+  margin: 10px 0 2px;
+  font-size: 34px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.adpdetail-hero p {
+  margin: 0;
+  font-size: 11px;
+  color: #9ca3af;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.adpdetail-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.adpdetail-actions button {
+  border-radius: 12px;
+  padding: 14px 10px;
+  font-weight: 800;
+  border: 1px solid transparent;
+}
+
+.adpdetail-actions .approve {
+  background: #0f172a;
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.1);
+}
+
+.adpdetail-actions .suspend {
+  background: #fff;
+  color: #ef4444;
+  border-color: #e2e8f0;
+}
+
+.adpdetail-card {
+  margin-top: 16px;
+  background: #fff;
+  border: 1px solid #f1f5f9;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+}
+
+.adpdetail-card-head {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f8fafc;
+  background: rgba(248, 250, 252, 0.3);
+}
+
+.adpdetail-card-head h3 {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  font-weight: 800;
+}
+
+.adpdetail-card-head .material-symbols-outlined {
+  color: #1e3a8a;
+  font-size: 16px;
+}
+
+.adpdetail-card-body {
+  padding: 14px 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.adpdetail-card-body div,
+.adpdetail-meta > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.adpdetail-card-body span,
+.adpdetail-meta b {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.adpdetail-card-body strong,
+.adpdetail-meta strong {
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.adpdetail-meta {
+  padding: 14px 16px;
+}
+
+.adpdetail-meta > div + div {
+  border-top: 1px solid #f8fafc;
+  margin-top: 12px;
+  padding-top: 12px;
+}
+
+.adpdetail-meta .material-symbols-outlined {
+  color: #1e3a8a;
+  font-size: 18px;
+  margin-right: 8px;
+}
+
+.adpdetail-members {
+  margin-top: 16px;
+}
+
+.adpdetail-members-head h3 {
+  margin: 0 0 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.adpdetail-members-head small {
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 10px;
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.adpdetail-member-list {
+  border: 1px solid #f1f5f9;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.adpdetail-member-item {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.adpdetail-member-item + .adpdetail-member-item {
+  border-top: 1px solid #f8fafc;
+}
+
+.adpdetail-member-item .left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.adpdetail-member-item .icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: #f8fafc;
+  display: grid;
+  place-items: center;
+  color: #94a3b8;
+}
+
+.adpdetail-member-item p {
+  margin: 0 0 2px;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.adpdetail-member-item span {
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.adpdetail-member-item .tag {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.adpdetail-member-item .tag.captain {
+  background: rgba(30, 58, 138, 0.05);
+  color: #1e3a8a;
+}
+
+.adpdetail-member-list > button {
+  width: 100%;
+  border: 0;
+  background: #fff;
+  border-top: 1px solid #f8fafc;
+  color: #1e3a8a;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 14px;
+}

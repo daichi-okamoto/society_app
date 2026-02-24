@@ -100,6 +100,11 @@
   box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.2);
 }
 
+.adlogin-input-wrap input.is-invalid {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.12);
+}
+
 .adlogin-toggle {
   position: absolute;
   right: 6px;
@@ -123,6 +128,13 @@
   margin: -4px 0 0;
   color: #b91c1c;
   font-size: 12px;
+  font-weight: 600;
+}
+
+.adlogin-field-error {
+  margin: 6px 0 0 2px;
+  color: #b91c1c;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -223,4 +235,3 @@
   font-size: 12px;
   text-align: center;
 }
-

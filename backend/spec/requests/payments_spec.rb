@@ -43,6 +43,7 @@ RSpec.describe "Payments", type: :request do
     login_as(captain)
     post "/teams", params: { name: "FC Example" }
     team_id = json["team"]["id"]
+    Team.find(team_id).update!(approval_status: :approved)
 
     6.times do |i|
       user = User.create!(

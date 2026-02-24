@@ -105,6 +105,18 @@
   box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
 }
 
+.login-sp-field input.is-invalid {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+}
+
+.login-sp-field-error {
+  margin: 0 0 2px 2px;
+  font-size: 11px;
+  color: #b91c1c;
+  font-weight: 600;
+}
+
 .login-sp-help {
   text-align: right;
 }
@@ -254,4 +266,3 @@
   right: -80px;
   bottom: -80px;
 }
-

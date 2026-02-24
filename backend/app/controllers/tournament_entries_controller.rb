@@ -13,6 +13,10 @@ class TournamentEntriesController < ApplicationController
       return render json: { error: { code: "validation_error" } }, status: :unprocessable_entity
     end
 
+    unless team.approved?
+      return render json: { error: { code: "team_not_approved" } }, status: :forbidden
+    end
+
     entry = TournamentEntry.new(
       tournament: tournament,
       team: team,

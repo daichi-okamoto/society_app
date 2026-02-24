@@ -76,8 +76,13 @@ export default function TournamentEntryConfirm() {
           flash: { type: "success", message: "大会エントリーが完了しました。" },
         },
       });
-    } catch {
-      setError("申し込みに失敗しました。時間をおいて再度お試しください。");
+    } catch (err) {
+      const code = err?.data?.error?.code;
+      if (code === "team_not_approved") {
+        setError("このチームは未承認のため大会エントリーできません。チーム承認後に再度お試しください。");
+      } else {
+        setError("申し込みに失敗しました。時間をおいて再度お試しください。");
+      }
     } finally {
       setSubmitting(false);
     }

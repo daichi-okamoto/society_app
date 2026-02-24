@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthActions } from "../../hooks/useAuthActions";
+import { parseValidationError } from "../../lib/apiErrors";
 
 function buildProfileFromEmail(email) {
   const localPart = (email || "admin").split("@")[0] || "admin";
@@ -27,15 +28,23 @@ export default function AdminRegister() {
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const onChange = (event) => {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    setFieldErrors((prev) => {
+      if (!prev[name]) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
   };
 
   const onSubmit = async (event) => {
     event.preventDefault();
     setError("");
+    setFieldErrors({});
 
     if (form.password.length < 8) {
       setError("パスワードは8文字以上で入力してください");
@@ -67,9 +76,18 @@ export default function AdminRegister() {
     } catch (err) {
       if (err?.status === 401) {
         setError("管理者招待コードが正しくありません");
+        setFieldErrors({ adminInviteCode: "管理者招待コード：正しくありません" });
         return;
       }
-      setError("管理者登録に失敗しました");
+      if (err?.status === 422) {
+        const { fieldErrors: parsed, summary } = parseValidationError(err, {
+          fieldMap: { password_confirmation: "passwordConfirm", admin_invite_code: "adminInviteCode" },
+        });
+        setFieldErrors(parsed);
+        setError(summary);
+        return;
+      }
+      setError("管理者登録に失敗しました。しばらくしてから再度お試しください");
     }
   };
 
@@ -95,8 +113,10 @@ export default function AdminRegister() {
                 value={form.email}
                 onChange={onChange}
                 placeholder="admin@example.com"
+                className={fieldErrors.email ? "is-invalid" : ""}
               />
             </div>
+            {fieldErrors.email ? <p className="adlogin-field-error">{fieldErrors.email}</p> : null}
           </div>
 
           <div className="adlogin-field">
@@ -111,6 +131,7 @@ export default function AdminRegister() {
                 value={form.password}
                 onChange={onChange}
                 placeholder="8文字以上の英数字"
+                className={fieldErrors.password ? "is-invalid" : ""}
               />
               <button
                 type="button"
@@ -121,6 +142,7 @@ export default function AdminRegister() {
                 <span className="material-symbols-outlined">{showPassword ? "visibility" : "visibility_off"}</span>
               </button>
             </div>
+            {fieldErrors.password ? <p className="adlogin-field-error">{fieldErrors.password}</p> : null}
           </div>
 
           <div className="adlogin-field">
@@ -135,6 +157,7 @@ export default function AdminRegister() {
                 value={form.passwordConfirm}
                 onChange={onChange}
                 placeholder="もう一度入力してください"
+                className={fieldErrors.passwordConfirm ? "is-invalid" : ""}
               />
               <button
                 type="button"
@@ -145,6 +168,9 @@ export default function AdminRegister() {
                 <span className="material-symbols-outlined">{showPasswordConfirm ? "visibility" : "visibility_off"}</span>
               </button>
             </div>
+            {fieldErrors.passwordConfirm ? (
+              <p className="adlogin-field-error">{fieldErrors.passwordConfirm}</p>
+            ) : null}
           </div>
 
           <div className="adlogin-field">
@@ -159,8 +185,12 @@ export default function AdminRegister() {
                 value={form.adminInviteCode}
                 onChange={onChange}
                 placeholder="招待コードを入力"
+                className={fieldErrors.adminInviteCode ? "is-invalid" : ""}
               />
             </div>
+            {fieldErrors.adminInviteCode ? (
+              <p className="adlogin-field-error">{fieldErrors.adminInviteCode}</p>
+            ) : null}
           </div>
 
           {error ? <p className="adlogin-error">{error}</p> : null}

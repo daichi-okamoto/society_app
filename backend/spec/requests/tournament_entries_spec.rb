@@ -17,6 +17,7 @@ RSpec.describe "TournamentEntries", type: :request do
     login_as(captain)
     post "/teams", params: { name: "FC Example" }
     team_id = json["team"]["id"]
+    Team.find(team_id).update!(approval_status: :approved)
 
     # ensure team has 7 members
     6.times do |i|
@@ -62,5 +63,63 @@ RSpec.describe "TournamentEntries", type: :request do
 
     expect(response).to have_http_status(:created)
     expect(json["entry"]["status"]).to eq("pending")
+  end
+
+  it "rejects application when team is not approved" do
+    captain = User.create!(
+      name: "キャプテン",
+      name_kana: "キャプテン",
+      birth_date: "1990-01-01",
+      phone: "090-1000-0000",
+      email: "cap-pending@example.com",
+      address: "東京都",
+      password: "password"
+    )
+
+    login_as(captain)
+    post "/teams", params: { name: "FC Pending" }
+    team_id = json["team"]["id"]
+
+    6.times do |i|
+      user = User.create!(
+        name: "メンバーP#{i}",
+        name_kana: "メンバーP#{i}",
+        birth_date: "1990-01-01",
+        phone: "090-3000-000#{i}",
+        email: "mem-pending-#{i}@example.com",
+        address: "東京都",
+        password: "password"
+      )
+      TeamMember.create!(team_id: team_id, user_id: user.id, role: :member, status: :active, joined_at: Time.current)
+    end
+
+    admin = User.create!(
+      name: "運営",
+      name_kana: "ウンエイ",
+      birth_date: "1990-01-01",
+      phone: "090-0000-9998",
+      email: "admin-pending@example.com",
+      address: "東京都",
+      password: "password",
+      role: :admin
+    )
+    login_as(admin)
+    post "/tournaments", params: {
+      name: "大会名",
+      event_date: "2026-05-10",
+      venue: "会場",
+      match_half_minutes: 12,
+      max_teams: 15,
+      entry_fee_amount: 20000,
+      entry_fee_currency: "JPY",
+      cancel_deadline_date: "2026-05-09"
+    }
+    tournament_id = json["tournament"]["id"]
+
+    login_as(captain)
+    post "/tournaments/#{tournament_id}/entries", params: { team_id: team_id }
+
+    expect(response).to have_http_status(:forbidden)
+    expect(json.dig("error", "code")).to eq("team_not_approved")
   end
 end

@@ -4,6 +4,7 @@ import { useAuthActions } from "../../hooks/useAuthActions";
 import AuthScaffold from "../../components/auth/AuthScaffold";
 import AuthGoogleButton from "../../components/auth/AuthGoogleButton";
 import AuthDivider from "../../components/auth/AuthDivider";
+import { parseValidationError } from "../../lib/apiErrors";
 
 function buildProfileFromEmail(email) {
   const localPart = (email || "new_user").split("@")[0] || "new_user";
@@ -27,14 +28,23 @@ export default function Register() {
     passwordConfirm: ""
   });
   const [error, setError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const onChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    setFieldErrors((prev) => {
+      if (!prev[name]) return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
   };
 
   const onSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setFieldErrors({});
 
     if (form.password.length < 8) {
       setError("パスワードは8文字以上で入力してください");
@@ -54,8 +64,14 @@ export default function Register() {
         password: form.password
       });
       navigate("/app/home", { state: { flash: { type: "success", message: "アカウントを作成しました。" } } });
-    } catch {
-      setError("登録に失敗しました");
+    } catch (err) {
+      if (err?.status === 422) {
+        const { fieldErrors: parsed, summary } = parseValidationError(err);
+        setFieldErrors(parsed);
+        setError(summary);
+        return;
+      }
+      setError("登録に失敗しました。しばらくしてから再度お試しください");
     }
   };
 
@@ -81,7 +97,9 @@ export default function Register() {
             placeholder="example@j7soccer.com"
             value={form.email}
             onChange={onChange}
+            className={fieldErrors.email ? "is-invalid" : ""}
           />
+          {fieldErrors.email ? <p className="login-sp-field-error">{fieldErrors.email}</p> : null}
         </div>
 
         <div className="login-sp-field">
@@ -93,7 +111,9 @@ export default function Register() {
             placeholder="8文字以上の英数字"
             value={form.password}
             onChange={onChange}
+            className={fieldErrors.password ? "is-invalid" : ""}
           />
+          {fieldErrors.password ? <p className="login-sp-field-error">{fieldErrors.password}</p> : null}
         </div>
 
         <div className="login-sp-field">
@@ -105,7 +125,9 @@ export default function Register() {
             placeholder="もう一度入力してください"
             value={form.passwordConfirm}
             onChange={onChange}
+            className={fieldErrors.passwordConfirm ? "is-invalid" : ""}
           />
+          {fieldErrors.passwordConfirm ? <p className="login-sp-field-error">{fieldErrors.passwordConfirm}</p> : null}
         </div>
 
         {error && <p className="login-sp-error">{error}</p>}

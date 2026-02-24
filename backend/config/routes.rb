@@ -12,6 +12,7 @@ Rails.application.routes.draw do
   resources :teams, only: [:index, :create, :show, :update] do
     resources :join_requests, only: [:create, :index], controller: "team_join_requests"
     post "transfer_captain", on: :member
+    patch "moderate", on: :member
   end
   resources :team_join_requests, only: [:update]
 

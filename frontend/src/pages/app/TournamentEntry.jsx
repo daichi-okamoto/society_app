@@ -82,8 +82,13 @@ export default function TournamentEntry() {
       return;
     }
 
-    setError(null);
     const selectedTeam = teamOptions.find((team) => String(team.id) === String(teamId));
+    if (selectedTeam?.status && selectedTeam.status !== "approved") {
+      setError("このチームは未承認のため大会エントリーできません。承認後にお試しください。");
+      return;
+    }
+
+    setError(null);
     const draft = {
       team_id: Number(teamId),
       team_name: selectedTeam?.name || "",
@@ -148,6 +153,9 @@ export default function TournamentEntry() {
               </select>
               <span className="material-symbols-outlined">expand_more</span>
             </div>
+            {teamId && teamOptions.find((team) => String(team.id) === String(teamId))?.status === "pending" ? (
+              <p className="entry-inline-note">選択中のチームは承認待ちです。承認後にエントリーできます。</p>
+            ) : null}
             {loadError ? <p className="entry-inline-note">{loadError}</p> : null}
           </div>
 
