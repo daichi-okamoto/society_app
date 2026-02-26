@@ -2,12 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
-import {
-  applyOverridesToMember,
-  loadManualMembersForList,
-  loadMemberOverrides,
-  removeManualMemberRecord,
-} from "../../lib/teamMembersStorage";
+import { applyOverridesToMember, loadMemberOverrides } from "../../lib/teamMembersStorage";
 
 function toneClass(tone) {
   if (tone === "indigo") return "tone-indigo";
@@ -76,16 +71,31 @@ export default function TeamMembers() {
     const apiMembers = Array.isArray(detail?.members)
       ? detail.members.map((member) => toMemberRow(member, overrides))
       : [];
-    const manualMembers = loadManualMembersForList(teamId).map((m) => ({
-      ...m,
-      team_member_id: null,
-      roleLabel: undefined,
-      roleBadge: undefined,
-      featured: false,
-      source: "manual",
-      pos: m.pos || "MF",
-      number: Number(m.number) || 0,
-    }));
+    const manualMembers = Array.isArray(detail?.manual_members)
+      ? detail.manual_members.map((m) => ({
+          id: m.id,
+          user_id: null,
+          team_member_id: null,
+          name: m.name || "メンバー",
+          furigana: m.name_kana || "",
+          roleLabel: undefined,
+          roleBadge: undefined,
+          pos: m.position || "MF",
+          number: Number(m.jersey_number || 0),
+          featured: false,
+          source: "manual",
+          tone: "amber",
+          initial: (m.name || "メ").slice(0, 1),
+          avatar:
+            m.avatar_data_url ||
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(m.name || "Guest")}&background=fef3c7&color=b45309&size=128`,
+          phone: m.phone || "",
+          postal_code: m.postal_code || "",
+          prefecture: m.prefecture || "",
+          city_block: m.city_block || "",
+          building: m.building || "",
+        }))
+      : [];
 
     setTeamName(detail?.name || "チーム");
     setCanDeleteMembers(Number(detail?.captain_user_id) === Number(user?.id));
@@ -188,7 +198,7 @@ export default function TeamMembers() {
 
     try {
       if (target.source === "manual") {
-        removeManualMemberRecord(teamId, id);
+        await api.del(`/teams/${teamId}/manual_members/${target.id}`);
       } else if (target.team_member_id) {
         if (!canDeleteMembers) {
           setMessage("メンバーを削除できるのはチームの代表者のみです。");

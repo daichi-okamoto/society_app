@@ -3,6 +3,17 @@ import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
 import LoadingScreen from "../../components/LoadingScreen";
+import { isActiveEntryStatus, participationBadge } from "../../lib/entryStatus";
+
+function resolveHomeErrorMessage(err) {
+  if (err?.code === "network_error") {
+    return "ホーム情報の取得に失敗しました（APIサーバー未起動の可能性があります）";
+  }
+  if (err?.status === 401) {
+    return "ログイン状態を確認してください";
+  }
+  return "ホーム情報の取得に失敗しました";
+}
 
 function splitTournamentsByDate(tournaments) {
   const today = new Date();
@@ -49,11 +60,10 @@ function formatMonthDay(date) {
   return `${d.getMonth() + 1}.${d.getDate().toString().padStart(2, "0")}`;
 }
 
-function pastParticipation(status) {
-  if (status === "approved" || status === "pending") {
-    return { label: "参加大会", className: "joined" };
-  }
-  return { label: "未参加", className: "not-joined" };
+function buildEntriesBulkPath(tournamentIds) {
+  const params = new URLSearchParams();
+  params.set("tournament_ids", tournamentIds.join(","));
+  return `/tournament_entries/me_bulk?${params.toString()}`;
 }
 
 export default function AppHome() {
@@ -74,9 +84,9 @@ export default function AppHome() {
         const tournamentList = tournamentsData?.tournaments || [];
         setTournaments(tournamentList);
       })
-      .catch(() => {
+      .catch((err) => {
         if (!active) return;
-        setError("ホーム情報の取得に失敗しました");
+        setError(resolveHomeErrorMessage(err));
       })
       .finally(() => {
         if (!active) return;
@@ -104,17 +114,16 @@ export default function AppHome() {
     let active = true;
     setEntriesReady(false);
 
-    Promise.allSettled(
-      tournaments.map((tournament) => api.get(`/tournaments/${tournament.id}/entries/me`))
-    )
-      .then((results) => {
+    const tournamentIds = tournaments.map((tournament) => tournament.id);
+    api
+      .get(buildEntriesBulkPath(tournamentIds))
+      .then((data) => {
         if (!active) return;
         const next = {};
-        results.forEach((result, index) => {
-          if (result.status !== "fulfilled") return;
-          const status = result.value?.entry?.status;
-          if (!status) return;
-          next[tournaments[index].id] = status;
+        const entriesByTournament = data?.entries_by_tournament || {};
+        Object.entries(entriesByTournament).forEach(([tournamentId, entry]) => {
+          if (!entry?.status) return;
+          next[Number(tournamentId)] = entry.status;
         });
         setEntryStatusByTournament(next);
       })
@@ -153,16 +162,15 @@ export default function AppHome() {
   }, []);
 
   const grouped = useMemo(() => splitTournamentsByDate(tournaments), [tournaments]);
-  const activeStatuses = useMemo(() => new Set(["approved", "pending"]), []);
   const participating = useMemo(() => {
     const currentAndFuture = [...grouped.current, ...grouped.future];
-    return currentAndFuture.filter((tournament) => activeStatuses.has(entryStatusByTournament[tournament.id]));
-  }, [grouped.current, grouped.future, entryStatusByTournament, activeStatuses]);
+    return currentAndFuture.filter((tournament) => isActiveEntryStatus(entryStatusByTournament[tournament.id]));
+  }, [grouped.current, grouped.future, entryStatusByTournament]);
   const recommended = useMemo(() => {
     return grouped.future
-      .filter((tournament) => !activeStatuses.has(entryStatusByTournament[tournament.id]))
+      .filter((tournament) => !isActiveEntryStatus(entryStatusByTournament[tournament.id]))
       .slice(0, 6);
-  }, [grouped.future, entryStatusByTournament, activeStatuses]);
+  }, [grouped.future, entryStatusByTournament]);
   const history = grouped.past.slice(0, 6);
 
   if (loading || !entriesReady) return <LoadingScreen />;
@@ -287,7 +295,7 @@ export default function AppHome() {
         ) : (
           <div className="j7-history-list">
             {history.map((tournament, index) => {
-              const participation = pastParticipation(entryStatusByTournament[tournament.id]);
+              const participation = participationBadge(entryStatusByTournament[tournament.id]);
               return (
               <Link key={tournament.id} to={`/tournaments/${tournament.id}/results`} className="j7-history-link">
                 <div className="j7-history-left">

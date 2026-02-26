@@ -3,6 +3,7 @@ import { render, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import Teams from "./Teams";
 import { api } from "../../lib/api";
+import { AuthProvider } from "../../context/AuthContext";
 
 vi.mock("../../lib/api", () => ({
   api: { get: vi.fn() }
@@ -18,7 +19,9 @@ describe("Teams", () => {
     });
     const { getByText } = render(
       <MemoryRouter>
-        <Teams />
+        <AuthProvider>
+          <Teams />
+        </AuthProvider>
       </MemoryRouter>
     );
     await waitFor(() => expect(getByText("チーム管理")).toBeTruthy());
@@ -33,7 +36,9 @@ describe("Teams", () => {
     });
     const { getByText } = render(
       <MemoryRouter>
-        <Teams />
+        <AuthProvider>
+          <Teams />
+        </AuthProvider>
       </MemoryRouter>
     );
     await waitFor(() => expect(getByText(/チームに参加して/)).toBeTruthy());

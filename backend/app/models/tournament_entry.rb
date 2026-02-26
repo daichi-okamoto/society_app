@@ -2,6 +2,7 @@ class TournamentEntry < ApplicationRecord
   belongs_to :tournament
   belongs_to :team
   belongs_to :decided_by_user, class_name: "User", foreign_key: :decided_by, optional: true
+  has_one :entry_roster, dependent: :destroy
 
   enum status: { pending: 0, approved: 1, rejected: 2, cancelled: 3 }, _default: "pending"
 

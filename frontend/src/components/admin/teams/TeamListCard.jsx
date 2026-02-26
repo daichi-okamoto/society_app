@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { cardMeta, initials } from "./teamCardUtils";
 
 export default function TeamListCard({ team }) {
@@ -5,7 +6,7 @@ export default function TeamListCard({ team }) {
   const disabled = team.status === "suspended";
 
   return (
-    <article className={`adteam-card ${disabled ? "is-disabled" : ""}`}>
+    <Link to={`/admin/teams/${team.id}`} className={`adteam-card ${disabled ? "is-disabled" : ""}`}>
       <div className="adteam-card-top">
         <span className={`adteam-chip ${meta.chipClass}`}>{meta.chip}</span>
         <span>{meta.sub}</span>
@@ -42,6 +43,6 @@ export default function TeamListCard({ team }) {
           </div>
         </div>
       )}
-    </article>
+    </Link>
   );
 }

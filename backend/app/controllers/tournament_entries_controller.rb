@@ -95,7 +95,45 @@ class TournamentEntriesController < ApplicationController
     end
   end
 
+  def me_bulk
+    tournament_ids = parse_tournament_ids(params[:tournament_ids])
+    return render json: { entries_by_tournament: {} }, status: :ok if tournament_ids.empty?
+
+    team_ids = TeamMember.where(user_id: current_user.id, status: :active).pluck(:team_id)
+    entries = TournamentEntry
+      .where(tournament_id: tournament_ids, team_id: team_ids)
+      .order(created_at: :desc)
+
+    entries_by_tournament = {}
+    entries.each do |entry|
+      key = entry.tournament_id.to_s
+      next if entries_by_tournament.key?(key)
+
+      entries_by_tournament[key] = {
+        id: entry.id,
+        team_id: entry.team_id,
+        status: entry.status
+      }
+    end
+
+    render json: { entries_by_tournament: entries_by_tournament }, status: :ok
+  end
+
   private
+
+  def parse_tournament_ids(raw_ids)
+    ids =
+      case raw_ids
+      when String
+        raw_ids.split(",")
+      when Array
+        raw_ids
+      else
+        []
+      end
+
+    ids.map { |v| v.to_i }.select { |v| v.positive? }.uniq
+  end
 
   def entry_json(entry)
     {

@@ -3,43 +3,12 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { api } from "../../lib/api";
 import LoadingScreen from "../../components/LoadingScreen";
 
-const MANUAL_KEY_PREFIX = "roster-manual:";
-const SUBMIT_KEY_PREFIX = "roster-submit:";
-
-function manualKey(tournamentId) {
-  return `${MANUAL_KEY_PREFIX}${tournamentId}`;
-}
-
-function submitKey(tournamentId) {
-  return `${SUBMIT_KEY_PREFIX}${tournamentId}`;
-}
-
-function loadManualPlayers(tournamentId) {
-  if (!tournamentId || typeof window === "undefined") return [];
-  try {
-    const raw = window.sessionStorage.getItem(manualKey(tournamentId));
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveManualPlayers(tournamentId, players) {
-  if (!tournamentId || typeof window === "undefined") return;
-  try {
-    window.sessionStorage.setItem(manualKey(tournamentId), JSON.stringify(players));
-  } catch {
-    // ignore
-  }
-}
-
-function normalizeApiMember(member) {
+function normalizeInvitedMember(member) {
   const missingAddress = !String(member?.address || "").trim();
   return {
-    id: `api-${member.id}`,
-    source: "api",
-    rawId: member.id,
+    id: `team_member-${member.id}`,
+    sourceKind: "team_member",
+    team_member_id: member.id,
     name: member?.name || "未設定",
     kana: member?.name_kana || "",
     phone: member?.phone || "",
@@ -52,11 +21,41 @@ function normalizeApiMember(member) {
   };
 }
 
-function normalizeManualPlayer(player, index) {
+function normalizeTeamManualMember(member) {
+  const address = `${member?.prefecture || ""}${member?.city_block || ""}${member?.building || ""}`.trim();
+  const missingAddress = !address;
   return {
-    id: `manual-${player.id || index}`,
-    source: "manual",
-    rawId: player.id || index,
+    id: `team_manual-${member.id}`,
+    sourceKind: "guest",
+    team_member_id: null,
+    name: member?.name || "未設定",
+    kana: member?.name_kana || "",
+    phone: member?.phone || "",
+    email: "",
+    address,
+    status: missingAddress ? "missing_address" : "ready",
+    avatar:
+      member?.avatar_data_url ||
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(member?.name || "Member")}&background=fef3c7&color=b45309&size=128`,
+  };
+}
+
+function createGuestState(player) {
+  return {
+    id: player?.id || `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    name: player?.name || "",
+    kana: player?.name_kana || "",
+    phone: player?.phone || "",
+    email: player?.email || "",
+    address: player?.address || "",
+  };
+}
+
+function normalizeGuestFromState(player) {
+  return {
+    id: `manual-${player.id}`,
+    sourceKind: "guest",
+    team_member_id: null,
     name: player.name || "未設定",
     kana: player.kana || "",
     phone: player.phone || "",
@@ -64,8 +63,22 @@ function normalizeManualPlayer(player, index) {
     address: player.address || "",
     status: "ready",
     avatar:
-      player.avatar ||
       `https://ui-avatars.com/api/?name=${encodeURIComponent(player.name || "Guest")}&background=fef3c7&color=b45309&size=128`,
+  };
+}
+
+function normalizeRosterPlayer(player) {
+  return {
+    id: player.id,
+    source: player.source,
+    team_member_id: player.team_member_id,
+    name: player.name || "未設定",
+    name_kana: player.name_kana || "",
+    phone: player.phone || "",
+    email: player.email || "",
+    address: player.address || "",
+    position: player.position || "",
+    jersey_number: player.jersey_number || null,
   };
 }
 
@@ -73,16 +86,18 @@ export default function TournamentEntryRoster() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const teamQuery = searchParams.get("team_id") || "";
 
   const [tournament, setTournament] = useState(null);
   const [teamMembers, setTeamMembers] = useState([]);
-  const [manualPlayers, setManualPlayers] = useState(() => loadManualPlayers(id));
-  const [submittedPayload, setSubmittedPayload] = useState(null);
+  const [manualPlayers, setManualPlayers] = useState([]);
+  const [rosterData, setRosterData] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
   const [showAll, setShowAll] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [resolvedTeamId, setResolvedTeamId] = useState(null);
   const [form, setForm] = useState({
     name: "",
     kana: "",
@@ -91,24 +106,6 @@ export default function TournamentEntryRoster() {
     address: "",
   });
   const isEditMode = searchParams.get("edit") === "1";
-
-  useEffect(() => {
-    saveManualPlayers(id, manualPlayers);
-  }, [id, manualPlayers]);
-
-  useEffect(() => {
-    if (!id || typeof window === "undefined") {
-      setSubmittedPayload(null);
-      return;
-    }
-    try {
-      const raw = window.sessionStorage.getItem(submitKey(id));
-      const parsed = raw ? JSON.parse(raw) : null;
-      setSubmittedPayload(parsed && Array.isArray(parsed.players) ? parsed : null);
-    } catch {
-      setSubmittedPayload(null);
-    }
-  }, [id]);
 
   useEffect(() => {
     let active = true;
@@ -120,46 +117,94 @@ export default function TournamentEntryRoster() {
       try {
         const tournamentRes = await api.get(`/tournaments/${id}`);
         if (!active) return;
-        const currentTournament = tournamentRes?.tournament || null;
-        setTournament(currentTournament);
+        setTournament(tournamentRes?.tournament || null);
 
         const teamsRes = await api.get("/teams").catch(() => ({ teams: [] }));
         if (!active) return;
+
+        const memberTeams = (teamsRes?.teams || []).filter((team) => team.is_member);
         const memberTeamIds = new Set(
-          (teamsRes?.teams || [])
-            .filter((team) => team.is_member)
-            .map((team) => Number(team.id))
-            .filter((value) => Number.isFinite(value))
+          memberTeams.map((team) => Number(team.id)).filter((value) => Number.isFinite(value))
         );
 
         const entryRes = await api.get(`/tournaments/${id}/entries/me`).catch(() => ({ entry: null }));
         if (!active) return;
 
-        const requestedTeamId = Number(searchParams.get("team_id") || 0) || null;
+        const requestedTeamId = Number(teamQuery || 0) || null;
         const entryTeamId = Number(entryRes?.entry?.team_id || 0) || null;
         const activeTeamId =
           typeof window !== "undefined"
             ? Number(window.sessionStorage.getItem("active_team_id") || 0) || null
             : null;
+
         const teamId =
           activeTeamId && memberTeamIds.has(activeTeamId)
             ? activeTeamId
             : requestedTeamId && memberTeamIds.has(requestedTeamId)
               ? requestedTeamId
-            : entryTeamId && memberTeamIds.has(entryTeamId)
-              ? entryTeamId
-              : null;
+              : entryTeamId && memberTeamIds.has(entryTeamId)
+                ? entryTeamId
+                : null;
+
+        setResolvedTeamId(teamId ? Number(teamId) : null);
 
         if (!teamId) {
           setTeamMembers([]);
+          setRosterData(null);
+          setManualPlayers([]);
           setError("この大会のエントリーチーム情報が見つかりませんでした");
           return;
         }
 
-        const teamRes = await api.get(`/teams/${teamId}`);
+        const [teamRes, rosterRes] = await Promise.all([
+          api.get(`/teams/${teamId}`),
+          api.get(`/tournaments/${id}/entry_roster?team_id=${teamId}`).catch((e) => {
+            if (e?.status === 404) return { roster: null };
+            throw e;
+          }),
+        ]);
         if (!active) return;
-        const apiMembers = (teamRes?.team?.members || []).map(normalizeApiMember);
-        setTeamMembers(apiMembers);
+
+        const invitedMembers = Array.isArray(teamRes?.team?.members)
+          ? teamRes.team.members.map(normalizeInvitedMember)
+          : [];
+        const manualTeamMembers = Array.isArray(teamRes?.team?.manual_members)
+          ? teamRes.team.manual_members.map(normalizeTeamManualMember)
+          : [];
+
+        setTeamMembers([...invitedMembers, ...manualTeamMembers]);
+
+        const nextRoster = rosterRes?.roster
+          ? {
+              ...rosterRes.roster,
+              players: Array.isArray(rosterRes.roster.players)
+                ? rosterRes.roster.players.map(normalizeRosterPlayer)
+                : [],
+            }
+          : null;
+
+        setRosterData(nextRoster);
+
+        if (isEditMode && Array.isArray(nextRoster?.players) && nextRoster.players.length > 0) {
+          const guests = nextRoster.players.filter((player) => player.source === "guest").map(createGuestState);
+          setManualPlayers(guests);
+
+          const invitedIdSet = new Set(invitedMembers.map((member) => member.id));
+          const restoredSelection = [];
+          nextRoster.players.forEach((player) => {
+            if (player.source === "team_member" && player.team_member_id) {
+              const memberKey = `team_member-${player.team_member_id}`;
+              if (invitedIdSet.has(memberKey)) restoredSelection.push(memberKey);
+            } else if (player.source === "guest") {
+              const guestKey = `manual-${player.id}`;
+              restoredSelection.push(guestKey);
+            }
+          });
+          setSelectedIds(Array.from(new Set(restoredSelection)));
+        } else {
+          setManualPlayers([]);
+          setSelectedIds([]);
+        }
       } catch {
         if (!active) return;
         setError("名簿情報の取得に失敗しました");
@@ -174,10 +219,10 @@ export default function TournamentEntryRoster() {
     return () => {
       active = false;
     };
-  }, [id, searchParams]);
+  }, [id, teamQuery, isEditMode]);
 
   const rosterManualMembers = useMemo(
-    () => manualPlayers.map((player, index) => normalizeManualPlayer(player, index)),
+    () => manualPlayers.map((player) => normalizeGuestFromState(player)),
     [manualPlayers]
   );
 
@@ -205,20 +250,25 @@ export default function TournamentEntryRoster() {
     () => selectableMembers.filter((member) => selectedIds.includes(member.id)),
     [selectableMembers, selectedIds]
   );
+
   const submittedIdSet = useMemo(() => {
     const ids = new Set();
-    if (!Array.isArray(submittedPayload?.players)) return ids;
-    submittedPayload.players.forEach((player) => {
-      if (player?.id) ids.add(String(player.id));
+    if (!Array.isArray(rosterData?.players)) return ids;
+    rosterData.players.forEach((player) => {
+      if (player?.source === "team_member" && player?.team_member_id) {
+        ids.add(`team_member-${player.team_member_id}`);
+      }
     });
     return ids;
-  }, [submittedPayload]);
+  }, [rosterData]);
+
   const submittedPlayers = useMemo(() => {
-    if (!Array.isArray(submittedPayload?.players)) return [];
-    return submittedPayload.players;
-  }, [submittedPayload]);
+    if (!Array.isArray(rosterData?.players)) return [];
+    return rosterData.players;
+  }, [rosterData]);
+
   const submittedAtLabel = useMemo(() => {
-    const at = submittedPayload?.submitted_at;
+    const at = rosterData?.submitted_at;
     if (!at) return "提出日時不明";
     const dt = new Date(at);
     if (Number.isNaN(dt.getTime())) return "提出日時不明";
@@ -230,29 +280,13 @@ export default function TournamentEntryRoster() {
       minute: "2-digit",
       hour12: false,
     });
-  }, [submittedPayload?.submitted_at]);
+  }, [rosterData?.submitted_at]);
+
   const previewSubmitted = submittedPlayers.slice(0, 2);
   const remainSubmittedCount = Math.max(0, submittedPlayers.length - previewSubmitted.length);
-  const showSubmittedView = Boolean(submittedPayload && !isEditMode);
+  const showSubmittedView = Boolean(rosterData && !isEditMode);
 
   const canSubmit = selectedMembers.length > 0 && !submitting;
-
-  useEffect(() => {
-    if (!isEditMode) return;
-    if (!Array.isArray(submittedPayload?.players) || submittedPayload.players.length === 0) return;
-    if (selectableMembers.length === 0) return;
-
-    const existingIds = new Set(selectableMembers.map((member) => String(member.id)));
-    const restored = submittedPayload.players
-      .map((player) => String(player?.id || ""))
-      .filter((idValue) => idValue && existingIds.has(idValue));
-
-    if (restored.length === 0) return;
-    setSelectedIds((prev) => {
-      if (prev.length > 0) return prev;
-      return Array.from(new Set(restored));
-    });
-  }, [isEditMode, selectableMembers, submittedPayload]);
 
   function toggleSelected(memberId) {
     setSelectedIds((prev) =>
@@ -282,12 +316,12 @@ export default function TournamentEntryRoster() {
     const address = form.address.trim();
 
     if (!name || !kana || !phone || !address) {
-      setError("手動追加は名前・ふりがな・電話番号・住所の入力が必要です");
+      setError("ゲスト追加は名前・ふりがな・電話番号・住所の入力が必要です");
       return;
     }
 
     const newPlayer = {
-      id: Date.now(),
+      id: `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       name,
       kana,
       phone,
@@ -302,30 +336,40 @@ export default function TournamentEntryRoster() {
     setShowAll(true);
   }
 
-  function submitRoster() {
+  async function submitRoster() {
     if (!canSubmit) return;
     setSubmitting(true);
 
     try {
-      if (typeof window !== "undefined") {
-        const payload = {
-          tournament_id: Number(id),
-          submitted_at: new Date().toISOString(),
-          players: selectedMembers.map((member) => ({
-            id: member.id,
-            source: member.source,
+      const payload = {
+        players: selectedMembers.map((member) => {
+          if (member.sourceKind === "team_member") {
+            return {
+              source: "team_member",
+              team_member_id: member.team_member_id,
+              name: member.name,
+              name_kana: member.kana,
+              phone: member.phone,
+              email: member.email,
+              address: member.address,
+            };
+          }
+
+          return {
+            source: "guest",
             name: member.name,
-            kana: member.kana,
+            name_kana: member.kana,
             phone: member.phone,
             email: member.email,
             address: member.address,
-          })),
-        };
-        window.sessionStorage.setItem(submitKey(id), JSON.stringify(payload));
-        setSubmittedPayload(payload);
-      }
+          };
+        }),
+      };
 
-      const teamQuery = searchParams.get("team_id");
+      const query = resolvedTeamId ? `?team_id=${resolvedTeamId}` : "";
+      const result = await api.post(`/tournaments/${id}/entry_roster${query}`, payload);
+      setRosterData(result?.roster || null);
+
       navigate(`/tournaments/${id}/entry/review/roster${teamQuery ? `?team_id=${teamQuery}` : ""}`, {
         state: { flash: { type: "success", message: "選手名簿の提出が完了しました" } },
       });
@@ -338,7 +382,6 @@ export default function TournamentEntryRoster() {
   if (loading) return <LoadingScreen />;
 
   if (showSubmittedView) {
-    const teamQuery = searchParams.get("team_id");
     const editLink = `/tournaments/${id}/entry/review/roster?edit=1${teamQuery ? `&team_id=${teamQuery}` : ""}`;
 
     return (
@@ -368,7 +411,7 @@ export default function TournamentEntryRoster() {
                   <img
                     key={`${player.id || player.name || idx}`}
                     src={
-                      player.source === "api"
+                      player.source === "team_member"
                         ? `https://ui-avatars.com/api/?name=${encodeURIComponent(player.name || "Member")}&background=e2e8f0&color=334155&size=64`
                         : `https://ui-avatars.com/api/?name=${encodeURIComponent(player.name || "Guest")}&background=fef3c7&color=b45309&size=64`
                     }
@@ -398,11 +441,11 @@ export default function TournamentEntryRoster() {
                       </div>
                       <div>
                         <h4>{player?.name || "未設定"}</h4>
-                        <p>{player?.kana || "ふりがな未設定"}</p>
+                        <p>{player?.name_kana || "ふりがな未設定"}</p>
                       </div>
                     </div>
-                    <span className={`chip ${player?.source === "api" ? "member" : "guest"}`}>
-                      {player?.source === "api" ? "チームメンバー" : "ゲスト"}
+                    <span className={`chip ${player?.source === "team_member" ? "member" : "guest"}`}>
+                      {player?.source === "team_member" ? "チームメンバー" : "ゲスト"}
                     </span>
                   </div>
                   <div className="meta">
@@ -499,10 +542,12 @@ export default function TournamentEntryRoster() {
           <div className="roster-submit-section-head solo">
             <div className="left">
               <span className="bar" />
-              <h3>手動で選手を追加</h3>
-              <small>(ゲスト選手など)</small>
+              <h3>ゲスト選手を追加</h3>
+              <small>(この大会のみ)</small>
             </div>
           </div>
+
+          <p className="roster-submit-help">ここで追加した選手は、この大会の名簿のみに保存されます。チームメンバー一覧には追加されません。</p>
 
           <div className="roster-submit-manual-form">
             <div className="grid-two">
@@ -533,13 +578,13 @@ export default function TournamentEntryRoster() {
 
             <button type="button" className="add-manual-btn" onClick={addManualPlayer}>
               <span className="material-symbols-outlined">add_circle</span>
-              <span>選手を追加する</span>
+              <span>ゲスト選手を追加する</span>
             </button>
           </div>
 
           {rosterManualMembers.length > 0 ? (
             <div className="roster-submit-manual-added">
-              <p className="label">手動追加済み選手 ({rosterManualMembers.length}名)</p>
+              <p className="label">大会限定ゲスト ({rosterManualMembers.length}名)</p>
               <div className="selected-chip-wrap">
                 {rosterManualMembers.map((member) => (
                   <div key={`manual-added-${member.id}`} className="selected-chip">

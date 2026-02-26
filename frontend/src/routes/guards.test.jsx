@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { RequireAuth, RequireAdmin } from "./guards";
-import { AuthProvider, useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 
 vi.mock("../context/AuthContext", async () => {
   const actual = await vi.importActual("../context/AuthContext");
@@ -19,9 +19,10 @@ function renderWith(route, element) {
     <MemoryRouter initialEntries={[route]}>
       <Routes>
         <Route element={element}>
-          <Route path="/protected" element={<Protected />} />
+        <Route path="/protected" element={<Protected />} />
         </Route>
         <Route path="/login" element={<div>login</div>} />
+        <Route path="/admin/login" element={<div>admin-login</div>} />
         <Route path="/" element={<div>home</div>} />
       </Routes>
     </MemoryRouter>
@@ -44,6 +45,6 @@ describe("guards", () => {
   it("redirects non-admin to home", () => {
     useAuth.mockReturnValue({ user: { role: "participant" }, loading: false });
     const { getByText } = renderWith("/protected", <RequireAdmin />);
-    expect(getByText("home")).toBeTruthy();
+    expect(getByText("admin-login")).toBeTruthy();
   });
 });

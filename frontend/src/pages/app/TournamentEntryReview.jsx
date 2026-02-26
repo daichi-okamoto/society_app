@@ -4,12 +4,6 @@ import { api } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
 import LoadingScreen from "../../components/LoadingScreen";
 
-const SUBMIT_KEY_PREFIX = "roster-submit:";
-
-function submitKey(tournamentId) {
-  return `${SUBMIT_KEY_PREFIX}${tournamentId}`;
-}
-
 function formatReceiptNumber(entryId) {
   const numeric = Number(entryId || 0);
   if (!Number.isFinite(numeric) || numeric <= 0) return "#00000000";
@@ -44,6 +38,7 @@ export default function TournamentEntryReview() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
+  const teamQuery = searchParams.get("team_id") || "";
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -52,20 +47,6 @@ export default function TournamentEntryReview() {
   const [team, setTeam] = useState(null);
   const [resolvedTeamId, setResolvedTeamId] = useState(null);
   const [rosterSubmitted, setRosterSubmitted] = useState(false);
-
-  useEffect(() => {
-    if (!id || typeof window === "undefined") {
-      setRosterSubmitted(false);
-      return;
-    }
-    try {
-      const raw = window.sessionStorage.getItem(submitKey(id));
-      const parsed = raw ? JSON.parse(raw) : null;
-      setRosterSubmitted(Boolean(parsed?.players?.length));
-    } catch {
-      setRosterSubmitted(false);
-    }
-  }, [id]);
 
   useEffect(() => {
     let active = true;
@@ -85,7 +66,7 @@ export default function TournamentEntryReview() {
         const memberTeams = (teamsRes?.teams || []).filter((item) => item?.is_member);
         const memberTeamIds = new Set(memberTeams.map((item) => Number(item.id)).filter((v) => Number.isFinite(v)));
 
-        const requestedTeamId = Number(searchParams.get("team_id") || 0) || null;
+        const requestedTeamId = Number(teamQuery || 0) || null;
         const entryTeamId = Number(entryRes?.entry?.team_id || 0) || null;
         const activeTeamId =
           typeof window !== "undefined"
@@ -109,12 +90,22 @@ export default function TournamentEntryReview() {
           const teamRes = await api.get(`/teams/${teamId}`).catch(() => ({ team: null }));
           if (!active) return;
           setTeam(teamRes?.team || null);
+
+          const rosterPath = `/tournaments/${id}/entry_roster?team_id=${teamId}`;
+          const rosterRes = await api.get(rosterPath).catch((e) => {
+            if (e?.status === 404) return { roster: null };
+            throw e;
+          });
+          if (!active) return;
+          setRosterSubmitted(Boolean(rosterRes?.roster?.players?.length));
         } else {
           setTeam(null);
+          setRosterSubmitted(false);
         }
       } catch {
         if (!active) return;
         setError("エントリー内容の取得に失敗しました");
+        setRosterSubmitted(false);
       } finally {
         if (!active) return;
         setLoading(false);
@@ -126,7 +117,7 @@ export default function TournamentEntryReview() {
     return () => {
       active = false;
     };
-  }, [id, searchParams]);
+  }, [id, teamQuery]);
 
   const receiptNumber = useMemo(() => formatReceiptNumber(entry?.id), [entry?.id]);
   const payment = useMemo(() => paymentLabelFromStatus(entry?.status), [entry?.status]);

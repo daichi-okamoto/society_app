@@ -11,6 +11,7 @@ Rails.application.routes.draw do
 
   resources :teams, only: [:index, :create, :show, :update] do
     resources :join_requests, only: [:create, :index], controller: "team_join_requests"
+    resources :manual_members, only: [:create, :update, :destroy], controller: "team_manual_members"
     post "transfer_captain", on: :member
     patch "moderate", on: :member
   end
@@ -28,6 +29,9 @@ Rails.application.routes.draw do
     resources :images, only: [:index, :create], controller: "tournament_images"
   end
   get "/tournaments/:tournament_id/entries/me", to: "tournament_entries#me"
+  get "/tournament_entries/me_bulk", to: "tournament_entries#me_bulk"
+  get "/tournaments/:tournament_id/entry_roster", to: "entry_rosters#show"
+  post "/tournaments/:tournament_id/entry_roster", to: "entry_rosters#upsert"
   resources :tournament_entries, only: [:index, :update] do
     post "cancel", on: :member
   end

@@ -4,14 +4,18 @@ import { api } from "../../lib/api";
 import LoadingScreen from "../../components/LoadingScreen";
 import { useAuth } from "../../context/AuthContext";
 import { normalizeTeamHandle, readTeamProfileDraft } from "../../lib/teamProfileDraft";
-import {
-  applyOverridesToMember,
-  loadManualMembersForList,
-  loadMemberOverrides,
-  removeManualMemberRecord,
-} from "../../lib/teamMembersStorage";
+import { applyOverridesToMember, loadMemberOverrides } from "../../lib/teamMembersStorage";
+import { isActiveEntryStatus } from "../../lib/entryStatus";
 
-const ACTIVE_ENTRY_STATUSES = new Set(["approved", "pending"]);
+function resolveTeamsErrorMessage(err) {
+  if (err?.code === "network_error") {
+    return "チーム一覧の取得に失敗しました（APIサーバー未起動の可能性があります）";
+  }
+  if (err?.status === 401) {
+    return "ログイン状態を確認してください";
+  }
+  return "チーム一覧の取得に失敗しました";
+}
 
 function parseDate(value) {
   if (!value) return null;
@@ -181,7 +185,6 @@ export default function Teams() {
   const [teamDetail, setTeamDetail] = useState(null);
   const [entryStatusByTournament, setEntryStatusByTournament] = useState({});
   const [pastMetricsByTournament, setPastMetricsByTournament] = useState({});
-  const [manualRevision, setManualRevision] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [joinCode, setJoinCode] = useState("");
@@ -210,7 +213,7 @@ export default function Teams() {
             });
             return;
           }
-          setError("チーム一覧の取得に失敗しました");
+          setError(resolveTeamsErrorMessage(teamsResult.reason));
           return;
         }
 
@@ -310,8 +313,7 @@ export default function Teams() {
   }, [currentTeam?.id, tournaments]);
 
   const teamDraft = useMemo(() => readTeamProfileDraft(currentTeam?.id), [currentTeam?.id]);
-  const overrides = useMemo(() => loadMemberOverrides(currentTeam?.id), [currentTeam?.id, manualRevision]);
-  const manualMembers = useMemo(() => loadManualMembersForList(currentTeam?.id), [currentTeam?.id, manualRevision]);
+  const overrides = useMemo(() => loadMemberOverrides(currentTeam?.id), [currentTeam?.id]);
 
   const apiMembers = useMemo(() => {
     const raw = Array.isArray(teamDetail?.members) ? teamDetail.members : [];
@@ -319,24 +321,28 @@ export default function Teams() {
   }, [teamDetail?.members, overrides]);
 
   const mergedMembers = useMemo(() => {
-    const manual = manualMembers.map((member) => ({
+    const manual = (teamDetail?.manual_members || []).map((member) => ({
       ...member,
       key: `manual-${member.id}`,
-      pos: member.pos || "MF",
-      number: Number(member.number) || 0,
-      positionLabel: `${member.pos || "MF"} / #${Number(member.number) > 0 ? member.number : "-"}`,
+      pos: member.position || "MF",
+      number: Number(member.jersey_number) || 0,
+      positionLabel: `${member.position || "MF"} / #${Number(member.jersey_number) > 0 ? member.jersey_number : "-"}`,
       isCaptain: false,
       role: "member",
       team_member_id: null,
       user_id: null,
+      source: "manual",
+      avatar:
+        member.avatar_data_url ||
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || "Guest")}&background=fef3c7&color=b45309&size=128`,
     }));
 
     return [...apiMembers, ...manual];
-  }, [apiMembers, manualMembers]);
+  }, [apiMembers, teamDetail?.manual_members]);
 
   const participatingTournaments = useMemo(() => {
     return tournaments
-      .filter((tournament) => ACTIVE_ENTRY_STATUSES.has(entryStatusByTournament[tournament.id]))
+      .filter((tournament) => isActiveEntryStatus(entryStatusByTournament[tournament.id]))
       .map((tournament) => ({ ...tournament, entryStatus: entryStatusByTournament[tournament.id] }));
   }, [tournaments, entryStatusByTournament]);
 
@@ -502,6 +508,11 @@ export default function Teams() {
           source: member.source,
           avatar: member.avatar,
           role: member.role,
+          phone: member.phone,
+          postal_code: member.postal_code,
+          prefecture: member.prefecture,
+          city_block: member.city_block,
+          building: member.building,
         },
       },
     });
@@ -519,8 +530,8 @@ export default function Teams() {
 
     try {
       if (member.source === "manual") {
-        removeManualMemberRecord(currentTeam.id, member.id);
-        setManualRevision((prev) => prev + 1);
+        await api.del(`/teams/${currentTeam.id}/manual_members/${member.id}`);
+        await refreshTeamDetail(currentTeam.id);
       } else if (member.team_member_id) {
         await api.del(`/team_members/${member.team_member_id}`);
         await refreshTeamDetail(currentTeam.id);

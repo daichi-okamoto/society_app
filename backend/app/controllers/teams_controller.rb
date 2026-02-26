@@ -9,6 +9,7 @@ class TeamsController < ApplicationController
     teams = apply_pagination(teams)
     team_ids = teams.pluck(:id)
     member_counts = TeamMember.where(team_id: team_ids, status: :active).group(:team_id).count
+    manual_member_counts = TeamManualMember.where(team_id: team_ids).group(:team_id).count
     pending_counts = TeamJoinRequest.where(team_id: team_ids, status: :pending).group(:team_id).count
     limit_value = normalized_limit
     offset_value = normalized_offset
@@ -16,10 +17,10 @@ class TeamsController < ApplicationController
 
     render json: {
       teams: teams.map do |team|
-        team_summary(
+          team_summary(
           team,
           my_team_ids.include?(team.id),
-          member_counts.fetch(team.id, 0),
+          member_counts.fetch(team.id, 0) + manual_member_counts.fetch(team.id, 0),
           pending_counts.fetch(team.id, 0)
         )
       end,
@@ -216,6 +217,7 @@ class TeamsController < ApplicationController
   def team_detail(team)
     pending_join_requests_count = team.team_join_requests.pending.count
     member_scope = team.team_members.active.includes(:user)
+    manual_member_scope = team.team_manual_members.order(created_at: :desc)
     captain_member = member_scope.find { |m| m.role == "captain" } || member_scope.first
     status =
       if team.captain_user&.suspended?
@@ -232,7 +234,7 @@ class TeamsController < ApplicationController
       status: status,
       created_at: team.created_at,
       pending_join_requests_count: pending_join_requests_count,
-      member_count: member_scope.size,
+      member_count: member_scope.size + manual_member_scope.size,
       captain: {
         id: captain_member&.user_id,
         name: captain_member&.user&.name || team.captain_user&.name,
@@ -250,6 +252,25 @@ class TeamsController < ApplicationController
           email: member.user&.email,
           role: member.role,
           address: member.user&.address
+        }
+      end,
+      manual_members: manual_member_scope.map do |member|
+        {
+          id: member.id,
+          name: member.name,
+          name_kana: member.name_kana,
+          phone: member.phone,
+          email: nil,
+          role: "member",
+          address: [member.prefecture, member.city_block, member.building].compact.join(""),
+          postal_code: member.postal_code,
+          prefecture: member.prefecture,
+          city_block: member.city_block,
+          building: member.building,
+          position: member.position,
+          jersey_number: member.jersey_number,
+          avatar_data_url: member.avatar_data_url,
+          source: "manual"
         }
       end
     }

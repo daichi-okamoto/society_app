@@ -1,24 +1,48 @@
-# README
+# Backend (Rails API)
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+## Prerequisites
+- Ruby: `3.2.x`
+- Bundler: `2.5+`
+- PostgreSQL: `14+`
 
-Things you may want to cover:
+## Setup
+```bash
+cd /Users/okamotodaichi/workspace/society_app/backend
+bundle install
+cp .env.example .env
+bundle exec rails db:create db:migrate
+```
 
-* Ruby version
+## Run local server
+```bash
+bundle exec rails server -p 3000
+```
 
-* System dependencies
+Health check:
+```bash
+curl -sS http://127.0.0.1:3000/healthz
+```
 
-* Configuration
+## Test environment (Issue08)
+This project uses PostgreSQL for `test` as well.
 
-* Database creation
+1. Ensure test DB is available:
+```bash
+RAILS_ENV=test bundle exec rails db:create db:migrate
+```
 
-* Database initialization
+2. Run all request/model specs:
+```bash
+bundle exec rspec
+```
 
-* How to run the test suite
+3. If schema drift happens locally:
+```bash
+bundle exec rails db:migrate
+RAILS_ENV=test bundle exec rails db:migrate
+```
 
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+## Notes
+- API auth is session-cookie based (Devise).
+- CORS is configured in `config/initializers/cors.rb`.
+- Keep `RAILS_MASTER_KEY`/secrets in env vars and never commit them.

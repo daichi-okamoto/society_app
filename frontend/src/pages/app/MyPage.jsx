@@ -3,8 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
 import LoadingScreen from "../../components/LoadingScreen";
+import { isActiveEntryStatus } from "../../lib/entryStatus";
 
-const ACTIVE_ENTRY_STATUSES = new Set(["approved", "pending"]);
+function buildEntriesBulkPath(tournamentIds) {
+  const params = new URLSearchParams();
+  params.set("tournament_ids", tournamentIds.join(","));
+  return `/tournament_entries/me_bulk?${params.toString()}`;
+}
 
 export default function MyPage() {
   const navigate = useNavigate();
@@ -26,15 +31,18 @@ export default function MyPage() {
         setTeams(memberTeams);
 
         const tournaments = tournamentsData?.tournaments || [];
-        const entryResults = await Promise.allSettled(
-          tournaments.map((tournament) => api.get(`/tournaments/${tournament.id}/entries/me`))
-        );
+        if (tournaments.length === 0) {
+          setAppearanceCount(0);
+          return;
+        }
+
+        const tournamentIds = tournaments.map((tournament) => tournament.id);
+        const entriesData = await api.get(buildEntriesBulkPath(tournamentIds));
         if (!active) return;
 
-        const joinedCount = entryResults.reduce((count, result) => {
-          if (result.status !== "fulfilled") return count;
-          const status = result.value?.entry?.status;
-          return ACTIVE_ENTRY_STATUSES.has(status) ? count + 1 : count;
+        const entriesByTournament = entriesData?.entries_by_tournament || {};
+        const joinedCount = Object.values(entriesByTournament).reduce((count, entry) => {
+          return isActiveEntryStatus(entry?.status) ? count + 1 : count;
         }, 0);
         setAppearanceCount(joinedCount);
       } catch {

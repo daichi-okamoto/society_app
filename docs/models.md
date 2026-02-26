@@ -1,112 +1,113 @@
-# モデル/バリデーション設計（MVP / Rails）
+# モデル設計（実装同期版）
 
-## users
-- バリデーション
-- name: 必須, 1-50
-- name_kana: 必須, 1-50
-- birth_date: 必須, 過去日付
-- phone: 必須, 形式チェック（数字とハイフン）
-- email: 必須, 一意, 形式チェック
-- address: 任意, 1-200
-- role: 必須, enum(participant, admin)
-- status: 必須, enum(active, suspended)
+最終更新: 2026-02-26
 
-## teams
-- バリデーション
-- name: 必須, 1-50
-- captain_user_id: 必須
-- join_code: 必須, 一意, 6-12英数字
-- created_by: 必須
-- ルール
-- captain_user_id は team_members の captain と一致
+## ユーザー・チーム
 
-## team_members
-- バリデーション
-- team_id: 必須
-- user_id: 必須
-- role: 必須, enum(captain, member)
-- status: 必須, enum(active, removed)
-- 一意制約
-- team_id + user_id
+### `users`
+- 役割: 認証主体
+- 主要項目:
+  - `role`: `participant | admin`
+  - `status`: `active | suspended`
+  - `name`, `name_kana`, `email`, `phone`, `address`
 
-## team_join_requests
-- バリデーション
-- team_id: 必須
-- user_id: 必須
-- status: 必須, enum(pending, approved, rejected)
-- 一意制約
-- team_id + user_id + status(pending)
-- ルール
-- 既所属なら作成不可
+### `teams`
+- 役割: チーム本体
+- 主要項目:
+  - `name`
+  - `captain_user_id`
+  - `created_by`
+  - `join_code`（招待コード）
+  - `approval_status`: `pending | approved`
+- 招待コード仕様:
+  - 形式: `TS-xxxxxx`
+  - `xxxxxx` は 6 桁ランダム数字
+  - 一意制約あり
 
-## tournaments
-- バリデーション
-- name: 必須
-- event_date: 必須, 未来日
-- venue: 必須
-- match_half_minutes: 必須, 1以上
-- max_teams: 必須, 1以上
-- entry_fee_amount: 必須, 0以上
-- entry_fee_currency: 必須, 例 JPY
-- cancel_deadline_date: 必須, event_date前日
+### `team_members`
+- 役割: ユーザーとチームの所属関係（恒久）
+- 主要項目:
+  - `team_id`, `user_id`
+  - `role`: `captain | member`
+  - `status`: `active | removed`
+  - `joined_at`
+- 制約:
+  - `(team_id, user_id)` 一意
 
-## tournament_entries
-- バリデーション
-- tournament_id: 必須
-- team_id: 必須
-- status: 必須, enum(pending, approved, rejected, cancelled)
-- 一意制約
-- tournament_id + team_id
-- ルール
-- チーム人数7人以上
-- 定員超過不可
+### `team_manual_members`
+- 役割: アプリ未登録ユーザーの恒久メンバー（チーム管理で手動追加）
+- 主要項目:
+  - `team_id`
+  - `name`, `name_kana`, `phone`
+  - 住所関連: `postal_code`, `prefecture`, `city`, `building`
+  - `position`, `jersey_number`
+- 注意:
+  - チーム管理画面の「手動追加」はここに保存される
 
-## matches
-- バリデーション
-- tournament_id: 必須
-- home_team_id: 必須
-- away_team_id: 必須
-- kickoff_at: 必須
-- status: 必須, enum(scheduled, finished)
-- ルール
-- home_team_id != away_team_id
+### `team_join_requests`
+- 役割: 招待コード参加申請
+- 主要項目:
+  - `team_id`, `user_id`
+  - `status`: `pending | approved | rejected`
+  - `requested_at`, `decided_at`, `decided_by`
+- 制約:
+  - 既所属ユーザーは申請不可
+  - `pending` 重複申請不可
 
-## match_results
-- バリデーション
-- match_id: 必須
-- home_score: 必須, 0以上
-- away_score: 必須, 0以上
+## 大会・エントリー
 
-## payments
-- バリデーション
-- tournament_entry_id: 必須
-- amount: 必須, 0以上
-- currency: 必須
-- method: 必須, enum(card, cash)
-- status: 必須, enum(pending, paid, failed, refunded)
-- ルール
-- cardの場合のみ stripe_payment_intent_id 必須
-- refundはstatus=paidのみ
+### `tournaments`
+- 役割: 大会マスタ
+- 主要項目:
+  - `name`, `event_date`, `venue`
+  - `max_teams`, `entry_fee_amount`
+  - `description`, `rules`, `status`
 
-## announcements
-- バリデーション
-- title: 必須, 1-100
-- body: 必須
-- published_at: 必須
+### `tournament_entries`
+- 役割: チームの大会参加申請
+- 主要項目:
+  - `tournament_id`, `team_id`
+  - `status`: `pending | approved | rejected | cancelled`
+  - `category`, `captain_name`, `captain_phone`
+- 制約:
+  - `(tournament_id, team_id)` 一意
 
-## messages
-- バリデーション
-- from_user_id: 必須
-- to_user_id: 必須
-- subject: 必須, 1-100
-- body: 必須
+### `entry_rosters`
+- 役割: 大会エントリーに対する提出名簿ヘッダ（Issue01）
+- 主要項目:
+  - `tournament_entry_id`
+  - `submitted_at`
+  - `submitted_by_user_id`
+- 制約:
+  - `tournament_entry_id` ごとに 1 件
 
-## tournament_images
-- バリデーション
-- tournament_id: 必須
-- file_url: 必須
-- file_name: 必須
-- content_type: 必須, image/jpeg or image/png
-- size_bytes: 必須, 上限設定
-- uploaded_by: 必須
+### `entry_roster_players`
+- 役割: 提出名簿の選手明細
+- 主要項目:
+  - `entry_roster_id`
+  - `source`: `team_member | guest`
+  - `team_member_id`（`team_member` のときのみ）
+  - `name`, `name_kana`, `phone`, `email`, `address`
+  - `position`, `jersey_number`
+- 注意:
+  - `guest` は大会限定。チーム恒久メンバーには昇格しない（Issue02）
 
+## 試合・結果・その他
+
+### `matches`
+- `tournament_id`, `home_team_id`, `away_team_id`, `kickoff_at`, `status`
+
+### `match_results`
+- `match_id`, `home_score`, `away_score`
+
+### `payments`
+- `tournament_entry_id`, `amount`, `currency`, `method`, `status`
+
+### `notifications`, `notification_targets`, `notification_reads`
+- 通知配信/対象/既読管理
+
+### `announcements`, `messages`
+- お知らせ・個別連絡
+
+### `tournament_images`
+- 大会画像管理

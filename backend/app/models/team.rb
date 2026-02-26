@@ -3,6 +3,7 @@ class Team < ApplicationRecord
   belongs_to :created_by_user, class_name: "User", foreign_key: :created_by
 
   has_many :team_members, dependent: :destroy
+  has_many :team_manual_members, dependent: :destroy
   has_many :team_join_requests, dependent: :destroy
 
   # Enum initialization can run before schema cache refresh in development.

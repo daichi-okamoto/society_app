@@ -6,11 +6,6 @@ import TournamentOverviewTabContent from "./components/TournamentOverviewTabCont
 
 const COVER_IMAGE =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuA-MSmLmTuGcxKd0viNblk-n6qrQbumimk_bAR3RKqKgOwcKc-LdwDPReDFB_rRD1MwwSTt39C6b11lp9BXIMZLX9IlkmWtnvO4k_sCC1z1GaJjB8OOTzg9fn33yRfvDYUp8N5hid65wbnqP0gxzTZStf_ZqFAliIuh8aYl61iL1PA7GAMFN_NzCjrd6XAaIkw_BCjlqM8dQtkg1YPZt3URvVgIiy1vwv7PG6LZtwHqHrlY8_665uqovQNppZ4sat9CmbSFAXqLNE2O";
-const SUBMIT_KEY_PREFIX = "roster-submit:";
-
-function submitKey(tournamentId) {
-  return `${SUBMIT_KEY_PREFIX}${tournamentId}`;
-}
 
 function formatDateShort(dateText) {
   if (!dateText) return "-";
@@ -58,18 +53,33 @@ export default function TournamentDetailRegistered({ tournament, entryTeamId }) 
   }, [tournament.id]);
 
   useEffect(() => {
-    if (!tournament?.id || typeof window === "undefined") {
+    if (!tournament?.id) {
       setRosterSubmitted(false);
       return;
     }
-    try {
-      const raw = window.sessionStorage.getItem(submitKey(tournament.id));
-      const parsed = raw ? JSON.parse(raw) : null;
-      setRosterSubmitted(Boolean(parsed?.players?.length));
-    } catch {
-      setRosterSubmitted(false);
-    }
-  }, [tournament?.id]);
+
+    let active = true;
+    const rosterPath = `/tournaments/${tournament.id}/entry_roster${entryTeamId ? `?team_id=${entryTeamId}` : ""}`;
+
+    api
+      .get(rosterPath)
+      .then((data) => {
+        if (!active) return;
+        setRosterSubmitted(Boolean(data?.roster?.players?.length));
+      })
+      .catch((e) => {
+        if (!active) return;
+        if (e?.status === 404) {
+          setRosterSubmitted(false);
+          return;
+        }
+        setRosterSubmitted(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [tournament?.id, entryTeamId]);
 
   const firstUnfinishedIndex = useMemo(() => {
     const index = matches.findIndex((match) => match.status !== "finished");

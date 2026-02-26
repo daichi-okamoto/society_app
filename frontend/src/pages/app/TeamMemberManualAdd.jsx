@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { loadManualMemberRecords, saveManualMemberRecords } from "../../lib/teamMembersStorage";
+import { api } from "../../lib/api";
 
 const PREFECTURES = [
   "北海道",
@@ -133,7 +133,7 @@ export default function TeamMemberManualAdd() {
     }
   };
 
-  const onSubmit = (event) => {
+  const onSubmit = async (event) => {
     event.preventDefault();
     if (submitting) return;
 
@@ -142,25 +142,19 @@ export default function TeamMemberManualAdd() {
       return;
     }
 
-    const record = {
-      id: `manual-${Date.now()}`,
-      name: form.name.trim(),
-      furigana: form.furigana.trim(),
-      phone: form.phone.trim(),
-      postal_code: form.postal_code.trim(),
-      prefecture: form.prefecture,
-      city_block: form.city_block.trim(),
-      building: form.building.trim(),
-      position: form.position,
-      number: form.number ? Number(form.number) : null,
-      source: "manual",
-      created_at: new Date().toISOString(),
-    };
-
     setSubmitting(true);
     try {
-      const list = loadManualMemberRecords(teamId);
-      saveManualMemberRecords(teamId, [record, ...list]);
+      await api.post(`/teams/${teamId}/manual_members`, {
+        name: form.name.trim(),
+        name_kana: form.furigana.trim(),
+        phone: form.phone.trim(),
+        postal_code: form.postal_code.trim(),
+        prefecture: form.prefecture,
+        city_block: form.city_block.trim(),
+        building: form.building.trim(),
+        position: form.position,
+        jersey_number: form.number ? Number(form.number) : null,
+      });
       navigate(`/teams/${teamId}/members`, {
         state: { flash: { type: "success", message: "メンバーを追加しました。" } },
       });

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_24_000010) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_25_000040) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -22,6 +22,34 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_24_000010) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["published_at"], name: "index_announcements_on_published_at"
+  end
+
+  create_table "entry_roster_players", force: :cascade do |t|
+    t.bigint "entry_roster_id", null: false
+    t.integer "source", default: 0, null: false
+    t.bigint "team_member_id"
+    t.string "name", null: false
+    t.string "name_kana"
+    t.string "phone"
+    t.string "email"
+    t.string "address"
+    t.string "position"
+    t.integer "jersey_number"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["entry_roster_id"], name: "index_entry_roster_players_on_entry_roster_id"
+    t.index ["source"], name: "index_entry_roster_players_on_source"
+    t.index ["team_member_id"], name: "index_entry_roster_players_on_team_member_id"
+  end
+
+  create_table "entry_rosters", force: :cascade do |t|
+    t.bigint "tournament_entry_id", null: false
+    t.bigint "submitted_by_user_id", null: false
+    t.datetime "submitted_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["submitted_by_user_id"], name: "index_entry_rosters_on_submitted_by_user_id"
+    t.index ["tournament_entry_id"], name: "index_entry_rosters_on_tournament_entry_id"
   end
 
   create_table "match_results", force: :cascade do |t|
@@ -121,6 +149,26 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_24_000010) do
     t.index ["user_id"], name: "index_team_join_requests_on_user_id"
   end
 
+  create_table "team_manual_members", force: :cascade do |t|
+    t.bigint "team_id", null: false
+    t.bigint "created_by_user_id", null: false
+    t.string "name", null: false
+    t.string "name_kana"
+    t.string "phone", null: false
+    t.string "postal_code"
+    t.string "prefecture"
+    t.string "city_block"
+    t.string "building"
+    t.string "position", default: "MF", null: false
+    t.integer "jersey_number"
+    t.text "avatar_data_url"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_team_manual_members_on_created_at"
+    t.index ["created_by_user_id"], name: "index_team_manual_members_on_created_by_user_id"
+    t.index ["team_id"], name: "index_team_manual_members_on_team_id"
+  end
+
   create_table "team_members", force: :cascade do |t|
     t.bigint "team_id", null: false
     t.bigint "user_id", null: false
@@ -212,6 +260,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_24_000010) do
   end
 
   add_foreign_key "announcements", "users", column: "created_by"
+  add_foreign_key "entry_roster_players", "entry_rosters"
+  add_foreign_key "entry_roster_players", "team_members"
+  add_foreign_key "entry_rosters", "tournament_entries"
+  add_foreign_key "entry_rosters", "users", column: "submitted_by_user_id"
   add_foreign_key "match_results", "matches"
   add_foreign_key "match_results", "users", column: "updated_by"
   add_foreign_key "matches", "teams", column: "away_team_id"
@@ -227,6 +279,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_24_000010) do
   add_foreign_key "team_join_requests", "teams"
   add_foreign_key "team_join_requests", "users"
   add_foreign_key "team_join_requests", "users", column: "decided_by"
+  add_foreign_key "team_manual_members", "teams"
+  add_foreign_key "team_manual_members", "users", column: "created_by_user_id"
   add_foreign_key "team_members", "teams"
   add_foreign_key "team_members", "users"
   add_foreign_key "teams", "users", column: "captain_user_id"

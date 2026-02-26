@@ -44,6 +44,7 @@ import AdminTournamentDetail from "./pages/admin/AdminTournamentDetail";
 import AdminTournamentCreate from "./pages/admin/AdminTournamentCreate";
 import AdminEntries from "./pages/admin/AdminEntries";
 import AdminTeams from "./pages/admin/AdminTeams";
+import AdminTeamDetail from "./pages/admin/AdminTeamDetail";
 import AdminPendingTeams from "./pages/admin/AdminPendingTeams";
 import AdminPendingTeamDetail from "./pages/admin/AdminPendingTeamDetail";
 import AdminMatches from "./pages/admin/AdminMatches";
@@ -107,6 +108,7 @@ export default function App() {
           <Route path="/admin/tournaments/:id" element={<AdminTournamentDetail />} />
           <Route path="/admin/entries" element={<AdminEntries />} />
           <Route path="/admin/teams" element={<AdminTeams />} />
+          <Route path="/admin/teams/:id" element={<AdminTeamDetail />} />
           <Route path="/admin/teams/pending" element={<AdminPendingTeams />} />
           <Route path="/admin/teams/pending/:id" element={<AdminPendingTeamDetail />} />
           <Route path="/admin/matches" element={<AdminMatches />} />

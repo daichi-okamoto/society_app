@@ -1,11 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import {
-  loadManualMemberRecords,
-  removeManualMemberRecord,
-  setMemberOverride,
-  updateManualMemberRecord,
-} from "../../lib/teamMembersStorage";
+import { api } from "../../lib/api";
+import LoadingScreen from "../../components/LoadingScreen";
+import { setMemberOverride } from "../../lib/teamMembersStorage";
 
 const POSITION_OPTIONS = ["FW", "MF", "DF", "GK"];
 
@@ -18,15 +15,54 @@ function readAsDataUrl(file) {
   });
 }
 
-function buildFallbackMember(memberId) {
+function buildFallback(memberId) {
   return {
     id: memberId,
+    source: "invited",
     name: "未設定メンバー",
     furigana: "",
-    pos: "MF",
+    position: "MF",
     number: 0,
-    source: "invited",
     avatar: "",
+    phone: "",
+    postal_code: "",
+    prefecture: "",
+    city_block: "",
+    building: "",
+  };
+}
+
+function toManualMember(member) {
+  return {
+    id: member.id,
+    source: "manual",
+    name: member.name || "",
+    furigana: member.name_kana || "",
+    position: member.position || "MF",
+    number: Number(member.jersey_number || 0),
+    avatar: member.avatar_data_url || "",
+    phone: member.phone || "",
+    postal_code: member.postal_code || "",
+    prefecture: member.prefecture || "",
+    city_block: member.city_block || "",
+    building: member.building || "",
+  };
+}
+
+function toInvitedMember(member, fromState) {
+  return {
+    id: member.id,
+    source: "invited",
+    name: member.name || "未設定メンバー",
+    furigana: member.name_kana || "",
+    position: fromState?.pos || "MF",
+    number: Number(fromState?.number || 0),
+    avatar: fromState?.avatar || "",
+    phone: "",
+    postal_code: "",
+    prefecture: "",
+    city_block: "",
+    building: "",
   };
 }
 
@@ -35,57 +71,78 @@ export default function TeamMemberEdit() {
   const location = useLocation();
   const { id: teamId, memberId } = useParams();
 
-  const manualRecord = useMemo(() => {
-    return loadManualMemberRecords(teamId).find((m) => String(m.id) === String(memberId)) || null;
-  }, [teamId, memberId]);
-
-  const sourceMember = useMemo(() => {
-    const fromState = location.state?.member;
-    if (fromState && fromState.source !== "manual") return fromState;
-
-    if (manualRecord) {
-      return {
-        id: manualRecord.id,
-        name: manualRecord.name,
-        furigana: manualRecord.furigana || "",
-        pos: manualRecord.position || "MF",
-        number: Number(manualRecord.number || 0),
-        source: "manual",
-        avatar: manualRecord.avatar_data_url || "",
-        phone: manualRecord.phone || "",
-        postal_code: manualRecord.postal_code || "",
-        prefecture: manualRecord.prefecture || "",
-        city_block: manualRecord.city_block || "",
-        building: manualRecord.building || "",
-      };
-    }
-
-    if (fromState) return fromState;
-    return buildFallbackMember(memberId);
-  }, [location.state?.member, memberId, manualRecord]);
-
-  const isManual = sourceMember?.source === "manual";
-
-  const [form, setForm] = useState({
-    name: sourceMember?.name || "",
-    furigana: sourceMember?.furigana || "",
-    position: sourceMember?.pos || "MF",
-    number: sourceMember?.number ? String(sourceMember.number) : "",
-    avatar: sourceMember?.avatar || "",
-    phone: sourceMember?.phone || "",
-    postal_code: sourceMember?.postal_code || "",
-    prefecture: sourceMember?.prefecture || "",
-    city_block: sourceMember?.city_block || "",
-    building: sourceMember?.building || "",
-  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState("");
+  const [member, setMember] = useState(() => buildFallback(memberId));
+  const [form, setForm] = useState({
+    name: "",
+    furigana: "",
+    position: "MF",
+    number: "",
+    avatar: "",
+    phone: "",
+    postal_code: "",
+    prefecture: "",
+    city_block: "",
+    building: "",
+  });
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadMember() {
+      setLoading(true);
+      setError("");
+      try {
+        const data = await api.get(`/teams/${teamId}`);
+        if (!active) return;
+        const detail = data?.team || {};
+        const manual = (detail.manual_members || []).find((m) => String(m.id) === String(memberId));
+        const fromState = location.state?.member || null;
+
+        const resolved = manual
+          ? toManualMember(manual)
+          : (() => {
+              const invited = (detail.members || []).find((m) => String(m.id) === String(memberId));
+              return invited ? toInvitedMember(invited, fromState) : buildFallback(memberId);
+            })();
+
+        setMember(resolved);
+        setForm({
+          name: resolved.name || "",
+          furigana: resolved.furigana || "",
+          position: POSITION_OPTIONS.includes(resolved.position) ? resolved.position : "MF",
+          number: resolved.number ? String(resolved.number) : "",
+          avatar: resolved.avatar || "",
+          phone: resolved.phone || "",
+          postal_code: resolved.postal_code || "",
+          prefecture: resolved.prefecture || "",
+          city_block: resolved.city_block || "",
+          building: resolved.building || "",
+        });
+      } catch {
+        if (!active) return;
+        setError("メンバー情報の取得に失敗しました。");
+      } finally {
+        if (!active) return;
+        setLoading(false);
+      }
+    }
+
+    loadMember();
+    return () => {
+      active = false;
+    };
+  }, [teamId, memberId, location.state?.member]);
+
+  const isManual = member.source === "manual";
 
   const avatarUrl = useMemo(() => {
     if (form.avatar) return form.avatar;
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(form.name || sourceMember?.name || "メンバー")}&background=fef3c7&color=b45309&size=256`;
-  }, [form.avatar, form.name, sourceMember?.name]);
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(form.name || member?.name || "メンバー")}&background=fef3c7&color=b45309&size=256`;
+  }, [form.avatar, form.name, member?.name]);
 
   function setField(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -110,7 +167,7 @@ export default function TeamMemberEdit() {
     return Math.floor(n);
   }
 
-  function onSubmit(event) {
+  async function onSubmit(event) {
     event.preventDefault();
     if (saving) return;
 
@@ -121,25 +178,23 @@ export default function TeamMemberEdit() {
 
     setSaving(true);
     setError("");
+    const normalizedPos = POSITION_OPTIONS.includes(form.position) ? form.position : "MF";
+    const normalizedNumber = normalizeNumber(form.number);
 
     try {
-      const normalizedPos = POSITION_OPTIONS.includes(form.position) ? form.position : "MF";
-      const normalizedNumber = normalizeNumber(form.number);
-
       if (isManual) {
-        updateManualMemberRecord(teamId, memberId, (record) => ({
-          ...record,
+        await api.patch(`/teams/${teamId}/manual_members/${memberId}`, {
           name: form.name.trim(),
-          furigana: form.furigana.trim(),
+          name_kana: form.furigana.trim(),
           phone: form.phone.trim(),
           postal_code: form.postal_code.trim(),
           prefecture: form.prefecture.trim(),
           city_block: form.city_block.trim(),
           building: form.building.trim(),
           position: normalizedPos,
-          number: normalizedNumber,
+          jersey_number: normalizedNumber,
           avatar_data_url: form.avatar || "",
-        }));
+        });
       } else {
         setMemberOverride(teamId, memberId, {
           pos: normalizedPos,
@@ -156,12 +211,13 @@ export default function TeamMemberEdit() {
     }
   }
 
-  function onDelete() {
+  async function onDelete() {
     if (!isManual || deleting) return;
     setDeleting(true);
+    setError("");
 
     try {
-      removeManualMemberRecord(teamId, memberId);
+      await api.del(`/teams/${teamId}/manual_members/${memberId}`);
       navigate(`/teams/${teamId}/members`, {
         state: { flash: { type: "success", message: "メンバーを削除しました。" } },
       });
@@ -170,6 +226,8 @@ export default function TeamMemberEdit() {
       setDeleting(false);
     }
   }
+
+  if (loading) return <LoadingScreen />;
 
   return (
     <div className="tmed-root">

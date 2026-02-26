@@ -27,12 +27,49 @@ RSpec.describe "Exports", type: :request do
     login_as(captain)
     post "/teams", params: { name: "FC Example" }
     team_id = json["team"]["id"]
-    # captain is already added as team member in TeamsController#create
+    tournament = Tournament.create!(
+      name: "保険CSV確認大会",
+      event_date: Date.current + 7.days,
+      venue: "渋谷スポーツセンター",
+      match_half_minutes: 12,
+      max_teams: 16,
+      entry_fee_amount: 8000,
+      entry_fee_currency: "JPY",
+      cancel_deadline_date: Date.current + 2.days,
+      description: "csv spec test"
+    )
+    entry = TournamentEntry.create!(
+      tournament_id: tournament.id,
+      team_id: team_id,
+      status: :approved,
+      applied_at: Time.current,
+      decided_at: Time.current,
+      decided_by: admin.id
+    )
+    roster = EntryRoster.create!(
+      tournament_entry_id: entry.id,
+      submitted_by_user_id: captain.id,
+      submitted_at: Time.current
+    )
+    EntryRosterPlayer.create!(
+      entry_roster_id: roster.id,
+      source: :team_member,
+      name: captain.name,
+      name_kana: captain.name_kana,
+      phone: captain.phone,
+      email: captain.email,
+      address: captain.address,
+      position: "MF",
+      jersey_number: 10
+    )
 
     login_as(admin)
-    get "/exports/insurance"
+    get "/exports/insurance", params: { tournament_id: tournament.id }
 
     expect(response).to have_http_status(:ok)
     expect(response.content_type).to include("text/csv")
+    expect(response.body).to include("大会名")
+    expect(response.body).to include("保険CSV確認大会")
+    expect(response.body).to include("チームメンバー")
   end
 end
