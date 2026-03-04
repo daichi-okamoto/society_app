@@ -47,8 +47,30 @@ RSpec.describe "Authorization", type: :request do
     expect(response).to have_http_status(:forbidden)
   end
 
+  it "forbids payments admin access for non-admin" do
+    user = User.create!(
+      name: "参加者",
+      name_kana: "サンカシャ",
+      birth_date: "1990-01-01",
+      phone: "090-0000-0003",
+      email: "user-auth3@example.com",
+      address: "東京都",
+      password: "password"
+    )
+
+    login_as(user)
+    get "/admin/payments"
+
+    expect(response).to have_http_status(:forbidden)
+  end
+
   it "requires admin for presign upload" do
     post "/uploads/presign", params: { filename: "a.jpg", content_type: "image/jpeg" }
+    expect(response).to have_http_status(:unauthorized)
+  end
+
+  it "requires admin for direct upload" do
+    post "/uploads/direct", params: {}
     expect(response).to have_http_status(:unauthorized)
   end
 

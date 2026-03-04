@@ -25,18 +25,32 @@ class WebhooksController < ActionController::API
       payment = find_payment_from_event(obj)
       return unless payment
 
+      already_paid = payment.paid?
       payment.update!(
         status: :paid,
         stripe_payment_intent_id: obj[:payment_intent] || payment.stripe_payment_intent_id,
         paid_at: Time.current
       )
-      UserMailer.payment_status(payment.tournament_entry.team.captain_user, "paid").deliver_now
+      PaymentEvent.log!(
+        payment: payment,
+        event_type: "webhook_paid",
+        message: "Payment marked as paid by Stripe webhook",
+        metadata: { stripe_event: event[:type], payment_intent_id: obj[:payment_intent] || obj[:id] }
+      )
+      UserMailer.payment_status(payment.tournament_entry.team.captain_user, "paid").deliver_now unless already_paid
     when "payment_intent.payment_failed"
       obj = event[:data][:object]
       payment = find_payment_from_event(obj)
       return unless payment
 
       payment.update!(status: :failed)
+      PaymentEvent.log!(
+        payment: payment,
+        event_type: "webhook_failed",
+        level: "error",
+        message: "Payment marked as failed by Stripe webhook",
+        metadata: { stripe_event: event[:type], payment_intent_id: obj[:id] }
+      )
       UserMailer.payment_status(payment.tournament_entry.team.captain_user, "failed").deliver_now
     end
   end

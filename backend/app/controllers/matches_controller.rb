@@ -1,5 +1,5 @@
 class MatchesController < ApplicationController
-  before_action :authenticate_user!, only: [:create, :update, :result]
+  before_action :authenticate_user!, only: [:create, :update, :destroy, :result]
 
   def index
     tournament = Tournament.find(params[:tournament_id])
@@ -49,6 +49,15 @@ class MatchesController < ApplicationController
     else
       render json: { error: { code: "validation_error", details: result.errors } }, status: :unprocessable_entity
     end
+  end
+
+  def destroy
+    require_admin!
+    return if performed?
+
+    match = Match.find(params[:id])
+    match.destroy!
+    head :no_content
   end
 
   private

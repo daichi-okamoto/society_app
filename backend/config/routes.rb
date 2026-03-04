@@ -36,7 +36,7 @@ Rails.application.routes.draw do
     post "cancel", on: :member
   end
 
-  resources :matches, only: [:update] do
+  resources :matches, only: [:update, :destroy] do
     post "result", on: :member
   end
 
@@ -45,7 +45,14 @@ Rails.application.routes.draw do
   get "/exports/insurance", to: "exports#insurance"
 
   post "/payments/stripe/checkout", to: "payments#checkout"
+  post "/payments/intent", to: "payments#intent"
+  get "/payments/latest", to: "payments#latest"
+  get "/admin/payments", to: "payments#admin_index"
   post "/payments/:id/refund", to: "payments#refund"
+  get "/payments/methods", to: "payment_methods#index"
+  post "/payments/setup_intent", to: "payment_methods#setup_intent"
+  post "/payments/methods/:payment_method_id/default", to: "payment_methods#set_default"
+  delete "/payments/methods/:payment_method_id", to: "payment_methods#destroy"
   post "/webhooks/stripe", to: "webhooks#stripe"
 
   resources :announcements, only: [:index, :create, :destroy]
@@ -60,6 +67,7 @@ Rails.application.routes.draw do
   get "/notifications/admin", to: "notifications#admin_index"
 
   post "/uploads/presign", to: "uploads#presign"
+  post "/uploads/direct", to: "uploads#direct"
 
   get "/healthz", to: "health#show"
   get "/readyz", to: "health#ready"

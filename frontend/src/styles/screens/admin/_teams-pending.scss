@@ -266,6 +266,13 @@
   padding: 14px 16px;
 }
 
+.adpdetail-meta > div {
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  align-items: center;
+  column-gap: 10px;
+}
+
 .adpdetail-meta > div + div {
   border-top: 1px solid #f8fafc;
   margin-top: 12px;
@@ -275,7 +282,15 @@
 .adpdetail-meta .material-symbols-outlined {
   color: #1e3a8a;
   font-size: 18px;
-  margin-right: 8px;
+}
+
+.adpdetail-meta b {
+  justify-self: start;
+}
+
+.adpdetail-meta strong {
+  justify-self: end;
+  text-align: right;
 }
 
 .adpdetail-members {

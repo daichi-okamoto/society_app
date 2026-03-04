@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_25_000040) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_04_020000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -115,6 +115,21 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_25_000040) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["sent_at"], name: "index_notifications_on_sent_at"
+  end
+
+  create_table "payment_events", force: :cascade do |t|
+    t.bigint "payment_id", null: false
+    t.string "event_type", null: false
+    t.string "level", default: "info", null: false
+    t.text "message", null: false
+    t.jsonb "metadata", default: {}, null: false
+    t.bigint "created_by"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_payment_events_on_created_at"
+    t.index ["event_type"], name: "index_payment_events_on_event_type"
+    t.index ["level"], name: "index_payment_events_on_level"
+    t.index ["payment_id"], name: "index_payment_events_on_payment_id"
   end
 
   create_table "payments", force: :cascade do |t|
@@ -236,6 +251,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_25_000040) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "active_entry_teams_count", default: 0, null: false
+    t.time "start_time"
+    t.time "end_time"
+    t.text "rules"
+    t.text "cautions"
     t.index ["event_date"], name: "index_tournaments_on_event_date"
     t.index ["status"], name: "index_tournaments_on_status"
   end
@@ -255,8 +274,11 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_25_000040) do
     t.datetime "remember_created_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "stripe_customer_id"
+    t.string "stripe_default_payment_method_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["stripe_customer_id"], name: "index_users_on_stripe_customer_id", unique: true
   end
 
   add_foreign_key "announcements", "users", column: "created_by"
@@ -275,6 +297,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_25_000040) do
   add_foreign_key "notification_reads", "users"
   add_foreign_key "notification_targets", "notifications"
   add_foreign_key "notifications", "users", column: "created_by"
+  add_foreign_key "payment_events", "payments"
   add_foreign_key "payments", "tournament_entries"
   add_foreign_key "team_join_requests", "teams"
   add_foreign_key "team_join_requests", "users"

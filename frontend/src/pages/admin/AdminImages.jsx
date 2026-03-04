@@ -8,12 +8,8 @@ export default function AdminImages() {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [form, setForm] = useState({
-    file_url: "",
-    file_name: "",
-    content_type: "image/jpeg",
-    size_bytes: ""
-  });
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     api
@@ -36,21 +32,45 @@ export default function AdminImages() {
       .catch(() => setError("画像一覧の取得に失敗しました"));
   }, [selectedTournamentId]);
 
-  const onChange = (key) => (e) => setForm((prev) => ({ ...prev, [key]: e.target.value }));
+  const refreshImages = async () => {
+    const data = await api.get(`/tournaments/${selectedTournamentId}/images`);
+    setImages(data?.images || []);
+  };
 
   const onSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    if (!selectedFile) {
+      setError("アップロードする画像を選択してください");
+      return;
+    }
+
+    setUploading(true);
     try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      const uploaded = await api.postForm("/uploads/direct", formData);
+      const contentType = uploaded.content_type || selectedFile.type || "application/octet-stream";
+
       await api.post(`/tournaments/${selectedTournamentId}/images`, {
-        ...form,
-        size_bytes: Number(form.size_bytes)
+        file_url: uploaded.public_url,
+        file_name: uploaded.file_name || selectedFile.name,
+        content_type: contentType,
+        size_bytes: Number(uploaded.size_bytes || selectedFile.size),
       });
-      setForm({ file_url: "", file_name: "", content_type: "image/jpeg", size_bytes: "" });
-      const data = await api.get(`/tournaments/${selectedTournamentId}/images`);
-      setImages(data?.images || []);
-    } catch {
-      setError("画像のアップロードに失敗しました");
+      setSelectedFile(null);
+      await refreshImages();
+    } catch (e) {
+      const code = e?.data?.error?.code;
+      if (code === "r2_not_configured") {
+        setError("R2の設定が未完了です。環境変数を確認してください");
+      } else if (code === "r2_upload_failed") {
+        setError("R2へのアップロードに失敗しました");
+      } else {
+        setError("画像のアップロードに失敗しました");
+      }
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -106,22 +126,22 @@ export default function AdminImages() {
       <h2>画像アップロード</h2>
       <form onSubmit={onSubmit}>
         <div>
-          <label htmlFor="img-url">URL</label>
-          <input id="img-url" value={form.file_url} onChange={onChange("file_url")} />
+          <label htmlFor="img-file">画像ファイル</label>
+          <input
+            id="img-file"
+            type="file"
+            accept="image/*"
+            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+          />
         </div>
-        <div>
-          <label htmlFor="img-name">ファイル名</label>
-          <input id="img-name" value={form.file_name} onChange={onChange("file_name")} />
-        </div>
-        <div>
-          <label htmlFor="img-type">MIME</label>
-          <input id="img-type" value={form.content_type} onChange={onChange("content_type")} />
-        </div>
-        <div>
-          <label htmlFor="img-size">サイズ</label>
-          <input id="img-size" value={form.size_bytes} onChange={onChange("size_bytes")} />
-        </div>
-        <button type="submit">アップロード</button>
+        {selectedFile ? (
+          <p>
+            選択中: {selectedFile.name} ({selectedFile.size} bytes)
+          </p>
+        ) : null}
+        <button type="submit" disabled={uploading}>
+          {uploading ? "アップロード中..." : "アップロード"}
+        </button>
       </form>
     </section>
   );

@@ -1,0 +1,116 @@
+.tpay-root {
+  max-width: 448px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: #fcfcfc;
+  box-shadow: 0 16px 56px rgba(15, 23, 42, 0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.tpay-header {
+  padding: 24px 20px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.tpay-header button {
+  border: 0;
+  background: transparent;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: #1e293b;
+}
+
+.tpay-header h1 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.tpay-header-spacer {
+  width: 40px;
+}
+
+.tpay-main {
+  padding: 20px 16px 120px;
+}
+
+.tpay-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 12px;
+}
+
+.tpay-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.tpay-info .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.tpay-status {
+  margin: 8px 0 12px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tpay-error {
+  margin: 8px 0 12px;
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tpay-link-btn {
+  border: 1px solid #1e3a8a;
+  background: #fff;
+  color: #1e3a8a;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.tpay-embedded {
+  min-height: 420px;
+}
+
+.tpay-embedded.mounted {
+  min-height: auto;
+}
+
+.tpay-form {
+  display: grid;
+  gap: 12px;
+}
+
+.tpay-submit {
+  border: 0;
+  border-radius: 10px;
+  background: #1e3a8a;
+  color: #fff;
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tpay-submit:disabled {
+  opacity: 0.6;
+}

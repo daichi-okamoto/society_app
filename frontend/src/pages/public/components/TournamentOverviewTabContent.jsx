@@ -1,4 +1,4 @@
-export default function TournamentOverviewTabContent({ description, venue }) {
+export default function TournamentOverviewTabContent({ description, venue, cautionItems = [] }) {
   const mapPlaceName = String(venue || "").trim() || "山吹ほたるパーク";
   const mapSrc = `https://www.google.com/maps?q=${encodeURIComponent(mapPlaceName)}&output=embed`;
 
@@ -22,7 +22,7 @@ export default function TournamentOverviewTabContent({ description, venue }) {
         </h2>
         <div className="tdetail-map">
           <iframe
-            title="山吹ほたるパーク 地図"
+            title={`${mapPlaceName} 地図`}
             src={mapSrc}
             loading="lazy"
             allowFullScreen
@@ -36,20 +36,18 @@ export default function TournamentOverviewTabContent({ description, venue }) {
           <span />
           注意事項
         </h2>
-        <ul>
-          <li>
-            <span className="material-symbols-outlined">check_circle</span>
-            <span>雨天決行（荒天時は中止のご連絡をいたします）</span>
-          </li>
-          <li>
-            <span className="material-symbols-outlined">check_circle</span>
-            <span>スパイクの使用は禁止です（トレシュ推奨）</span>
-          </li>
-          <li>
-            <span className="material-symbols-outlined">check_circle</span>
-            <span>開始20分前までに受付をお済ませください</span>
-          </li>
-        </ul>
+        {cautionItems.length > 0 ? (
+          <ul>
+            {cautionItems.map((item) => (
+              <li key={item}>
+                <span className="material-symbols-outlined">check_circle</span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>注意事項はありません。</p>
+        )}
       </section>
     </div>
   );

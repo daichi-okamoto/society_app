@@ -50,10 +50,26 @@ export default function AdminTeamDetail() {
 
   const onModerate = async (decision) => {
     if (!team || working) return;
+
+    if (decision === "suspend") {
+      const ok = window.confirm("このチームを利用停止にしますか？");
+      if (!ok) return;
+    }
+
+    if (decision === "reactivate") {
+      const ok = window.confirm("このチームの利用を再開しますか？");
+      if (!ok) return;
+    }
+
     setWorking(true);
     try {
       await api.patch(`/teams/${team.id}/moderate`, { decision });
-      const message = decision === "approve" ? "チームを承認しました。" : "チームを利用停止にしました。";
+      const message =
+        decision === "approve"
+          ? "チームを承認しました。"
+          : decision === "suspend"
+            ? "チームを利用停止にしました。"
+            : "チームの利用を再開しました。";
       navigate("/admin/teams", {
         replace: true,
         state: { flash: { type: "success", message } },
@@ -66,8 +82,10 @@ export default function AdminTeamDetail() {
   };
 
   const isPending = team?.status === "pending";
+  const isSuspended = team?.status === "suspended";
   const canApprove = isPending;
-  const canSuspend = team?.status !== "suspended";
+  const canSuspend = !isSuspended;
+  const canReactivate = isSuspended;
 
   return (
     <div className="adpdetail-root">
@@ -98,7 +116,7 @@ export default function AdminTeamDetail() {
               <p>ID: TM-{String(team.id).padStart(5, "0")}</p>
             </section>
 
-            {(canApprove || canSuspend) ? (
+            {(canApprove || canSuspend || canReactivate) ? (
               <section className="adpdetail-actions">
                 {canApprove ? (
                   <button type="button" className="approve" disabled={working} onClick={() => onModerate("approve")}>
@@ -110,6 +128,10 @@ export default function AdminTeamDetail() {
                 {canSuspend ? (
                   <button type="button" className="suspend" disabled={working} onClick={() => onModerate("suspend")}>
                     利用停止
+                  </button>
+                ) : canReactivate ? (
+                  <button type="button" className="approve" disabled={working} onClick={() => onModerate("reactivate")}>
+                    利用再開
                   </button>
                 ) : (
                   <div />

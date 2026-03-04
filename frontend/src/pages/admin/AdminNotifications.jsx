@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
+import AdminBottomNav from "../../components/admin/AdminBottomNav";
 
 function formatDateText(value) {
   if (!value) return "-";
@@ -135,30 +136,7 @@ export default function AdminNotifications() {
         </section>
       </main>
 
-      <nav className="adntf-nav">
-        <div className="adntf-nav-row">
-          <Link to="/admin" className="adntf-nav-item">
-            <span className="material-symbols-outlined">dashboard</span>
-            <span>ダッシュ</span>
-          </Link>
-          <Link to="/admin/tournaments" className="adntf-nav-item">
-            <span className="material-symbols-outlined">add_circle</span>
-            <span>大会作成</span>
-          </Link>
-          <Link to="/admin/teams" className="adntf-nav-item">
-            <span className="material-symbols-outlined">groups</span>
-            <span>チーム</span>
-          </Link>
-          <Link to="/admin/payments" className="adntf-nav-item">
-            <span className="material-symbols-outlined">payments</span>
-            <span>決済</span>
-          </Link>
-          <Link to="/admin/notifications" className="adntf-nav-item active">
-            <span className="material-symbols-outlined">notifications</span>
-            <span>通知</span>
-          </Link>
-        </div>
-      </nav>
+      <AdminBottomNav />
     </div>
   );
 }

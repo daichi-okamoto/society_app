@@ -22,9 +22,16 @@ describe("TournamentDetail", () => {
           event_date: "2026-05-01",
           venue: "会場",
           match_half_minutes: 12,
+          max_teams: 8,
+          active_entry_teams_count: 3,
           entry_fee_amount: 5000,
           entry_fee_currency: "JPY",
-          cancel_deadline_date: "2026-04-30"
+          cancel_deadline_date: "2026-04-30",
+          start_time: "19:30:00",
+          end_time: "21:30:00",
+          description: "大会概要テキスト",
+          rules: "スパイク禁止\n遅刻厳禁",
+          cautions: "雨天決行（荒天中止）\n開始20分前までに受付"
         }
       });
     });
@@ -43,10 +50,13 @@ describe("TournamentDetail", () => {
     expect(getAllByText("会場").length).toBeGreaterThan(0);
     expect(getByText("大会概要")).toBeTruthy();
     expect(getByText("注意事項")).toBeTruthy();
+    expect(getByText("雨天決行（荒天中止）")).toBeTruthy();
     expect(getByText("大会にエントリーする")).toBeTruthy();
+    expect(getByText("残り 5 / 8")).toBeTruthy();
+    expect(getByText("19:30〜21:30")).toBeTruthy();
 
     fireEvent.click(getByText("ルール"));
-    expect(getByText("試合形式")).toBeTruthy();
-    expect(getByText("競技規則")).toBeTruthy();
+    expect(getByText("スパイク禁止")).toBeTruthy();
+    expect(getByText("遅刻厳禁")).toBeTruthy();
   });
 });

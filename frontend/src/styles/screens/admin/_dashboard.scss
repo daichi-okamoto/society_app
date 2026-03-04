@@ -150,13 +150,15 @@
 
 .adash-tournament-card {
   scroll-snap-align: center;
-  min-width: 85vw;
-  max-width: 320px;
+  flex: 0 0 min(85vw, 320px);
+  width: min(85vw, 320px);
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  text-decoration: none;
+  color: inherit;
 }
 
 .adash-tournament-media {
@@ -213,6 +215,8 @@
   font-size: 16px;
   font-weight: 700;
   color: #0f172a;
+  line-height: 1.4;
+  word-break: break-word;
 }
 
 .adash-progress-head {
@@ -269,16 +273,16 @@
   color: #0f172a;
 }
 
-.adash-card-foot button {
-  border: 0;
-  background: transparent;
+.adash-open-icon {
   color: #64748b;
   width: 32px;
   height: 32px;
   border-radius: 999px;
+  display: grid;
+  place-items: center;
 }
 
-.adash-card-foot button .material-symbols-outlined {
+.adash-open-icon .material-symbols-outlined {
   font-size: 20px;
 }
 
@@ -501,7 +505,7 @@
 
 @media (min-width: 768px) {
   .adash-tournament-card {
-    min-width: 320px;
+    flex-basis: 320px;
+    width: 320px;
   }
 }
-

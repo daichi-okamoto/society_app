@@ -145,6 +145,24 @@
   line-height: 1.65;
 }
 
+.entry-complete-payment-notice {
+  margin-top: 12px !important;
+  font-size: 12px !important;
+  font-weight: 700;
+}
+
+.entry-complete-payment-notice.success {
+  color: #047857 !important;
+}
+
+.entry-complete-payment-notice.info {
+  color: #1d4ed8 !important;
+}
+
+.entry-complete-payment-notice.error {
+  color: #dc2626 !important;
+}
+
 .entry-complete-card {
   border: 1px solid #f3f4f6;
   border-radius: 24px;
@@ -239,4 +257,3 @@
   background: #fff;
   color: #d97706;
 }
-

@@ -76,6 +76,9 @@ class TeamsController < ApplicationController
     when "suspend"
       team.captain_user&.update!(status: :suspended)
       render json: { team: team_detail(team) }, status: :ok
+    when "reactivate"
+      team.captain_user&.update!(status: :active)
+      render json: { team: team_detail(team) }, status: :ok
     else
       render json: { error: { code: "validation_error", details: { decision: ["is invalid"] } } }, status: :unprocessable_entity
     end

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../../lib/api";
 
 function buildReceiptNumber(entryId) {
@@ -15,6 +15,7 @@ export default function TournamentEntryComplete() {
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [result, setResult] = useState(() => {
     const raw = window.sessionStorage.getItem(`entry-result:${id}`);
     if (!raw) return null;
@@ -25,6 +26,7 @@ export default function TournamentEntryComplete() {
     }
   });
   const [tournamentName, setTournamentName] = useState(location.state?.tournamentName || "渋谷ナイトカップ");
+  const [paymentNotice, setPaymentNotice] = useState(null);
 
   const receiptNumber = useMemo(() => {
     if (location.state?.receiptNumber) return location.state.receiptNumber;
@@ -37,6 +39,43 @@ export default function TournamentEntryComplete() {
       setResult((prev) => ({ ...(prev || {}), ...location.state }));
     }
   }, [location.state]);
+
+  useEffect(() => {
+    const paymentState = searchParams.get("payment");
+    if (paymentState !== "success") return;
+
+    const entryId = result?.entry_id;
+    if (!entryId) {
+      setPaymentNotice({ type: "info", message: "決済結果の確認中です。しばらくしてからご確認ください。" });
+      return;
+    }
+
+    let active = true;
+    api
+      .get(`/payments/latest?tournament_entry_id=${entryId}`)
+      .then((data) => {
+        if (!active) return;
+        const status = data?.payment?.status;
+        if (status === "paid") {
+          setPaymentNotice({ type: "success", message: "決済が完了しました。" });
+          window.sessionStorage.removeItem(`entry-draft:${id}`);
+          return;
+        }
+        if (status === "failed") {
+          setPaymentNotice({ type: "error", message: "決済に失敗しました。再度お試しください。" });
+          return;
+        }
+        setPaymentNotice({ type: "info", message: "決済結果を確認中です。数秒後に反映されます。" });
+      })
+      .catch(() => {
+        if (!active) return;
+        setPaymentNotice({ type: "error", message: "決済結果の取得に失敗しました。" });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [id, result?.entry_id, searchParams]);
 
   useEffect(() => {
     let active = true;
@@ -101,6 +140,9 @@ export default function TournamentEntryComplete() {
               <br />
               詳細はご登録のメールアドレスへ送信しました。
             </p>
+            {paymentNotice ? (
+              <p className={`entry-complete-payment-notice ${paymentNotice.type}`}>{paymentNotice.message}</p>
+            ) : null}
           </div>
 
           <section className="entry-complete-card">

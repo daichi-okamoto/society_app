@@ -17,7 +17,10 @@
 ## Stripe
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
-- `STRIPE_PUBLIC_KEY`（フロント用）
+- `VITE_STRIPE_PUBLISHABLE_KEY`（フロント用）
+
+## Frontend (Vite)
+- `VITE_API_BASE_URL`
 
 ## Cloudflare R2
 - `R2_ACCESS_KEY_ID`

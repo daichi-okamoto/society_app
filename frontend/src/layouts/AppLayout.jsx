@@ -68,6 +68,7 @@ export default function AppLayout() {
     /^\/teams\/[^/]+\/members\/[^/]+\/edit$/.test(location.pathname) ||
     /^\/teams\/[^/]+\/edit$/.test(location.pathname) ||
     /^\/tournaments\/[^/]+\/entry$/.test(location.pathname) ||
+    /^\/tournaments\/[^/]+\/payment$/.test(location.pathname) ||
     /^\/tournaments\/[^/]+\/entry\/confirm$/.test(location.pathname) ||
     /^\/tournaments\/[^/]+\/entry\/complete$/.test(location.pathname) ||
     /^\/tournaments\/[^/]+\/entry\/review$/.test(location.pathname) ||

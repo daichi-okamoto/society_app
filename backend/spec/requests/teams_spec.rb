@@ -70,4 +70,44 @@ RSpec.describe "Teams", type: :request do
       expect(json["join_request"]["status"]).to eq("pending")
     end
   end
+
+  describe "PATCH /teams/:id/moderate" do
+    it "reactivates a suspended team captain when decision is reactivate" do
+      admin = User.create!(
+        name: "管理者",
+        name_kana: "カンリシャ",
+        birth_date: "1990-01-01",
+        phone: "090-1111-1111",
+        email: "admin-reactivate@example.com",
+        address: "東京都",
+        password: "password",
+        role: :admin
+      )
+      captain = User.create!(
+        name: "停止中キャプテン",
+        name_kana: "テイシチュウキャプテン",
+        birth_date: "1992-01-01",
+        phone: "090-2222-2222",
+        email: "captain-reactivate@example.com",
+        address: "東京都",
+        password: "password",
+        status: :suspended
+      )
+      team = Team.create!(
+        name: "FC Reactivate",
+        join_code: "TS-654321",
+        captain_user_id: captain.id,
+        created_by: admin.id,
+        approval_status: :approved
+      )
+      TeamMember.create!(team: team, user: captain, role: :captain, status: :active, joined_at: Time.current)
+
+      login_as(admin)
+      patch "/teams/#{team.id}/moderate", params: { decision: "reactivate" }
+
+      expect(response).to have_http_status(:ok)
+      expect(captain.reload.status).to eq("active")
+      expect(json.dig("team", "status")).to eq("approved")
+    end
+  end
 end

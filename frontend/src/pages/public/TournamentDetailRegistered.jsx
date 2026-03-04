@@ -19,6 +19,15 @@ function formatKickoff(dateString) {
   return dt.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit", hour12: false });
 }
 
+function parseBulletItems(rawText) {
+  return String(rawText || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => line.replace(/^[-・✅\s]+/, "").trim())
+    .filter(Boolean);
+}
+
 export default function TournamentDetailRegistered({ tournament, entryTeamId }) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -85,6 +94,8 @@ export default function TournamentDetailRegistered({ tournament, entryTeamId }) 
     const index = matches.findIndex((match) => match.status !== "finished");
     return index < 0 ? 0 : index;
   }, [matches]);
+  const ruleLines = useMemo(() => parseBulletItems(tournament.rules), [tournament.rules]);
+  const cautionItems = useMemo(() => parseBulletItems(tournament.cautions), [tournament.cautions]);
 
   useEffect(() => {
     const recalc = () => {
@@ -229,7 +240,7 @@ export default function TournamentDetailRegistered({ tournament, entryTeamId }) 
         <div className="tdetail-content">
           {activeTab === "overview" ? (
             <section className="tdetail-entry-overview">
-              <TournamentOverviewTabContent description={tournament.description} venue={tournament.venue} />
+              <TournamentOverviewTabContent description={tournament.description} venue={tournament.venue} cautionItems={cautionItems} />
             </section>
           ) : null}
 
@@ -294,11 +305,15 @@ export default function TournamentDetailRegistered({ tournament, entryTeamId }) 
                   <span />
                   規約・ルール
                 </h2>
-                <ul className="tdetail-dots">
-                  <li>オフサイドなし / 7人制 / 自由交代</li>
-                  <li>当日は開始20分前までに受付をお済ませください</li>
-                  <li>スパイクの使用は禁止（トレシュー推奨）</li>
-                </ul>
+                {ruleLines.length > 0 ? (
+                  <ul className="tdetail-dots">
+                    {ruleLines.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>ルール情報は準備中です。</p>
+                )}
               </section>
             </section>
           ) : null}

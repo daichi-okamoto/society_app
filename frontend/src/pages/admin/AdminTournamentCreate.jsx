@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
+import AdminBottomNav from "../../components/admin/AdminBottomNav";
 
 const venueOptions = [
   { value: "", label: "会場を選択してください" },
@@ -9,13 +10,8 @@ const venueOptions = [
   { value: "多摩川河川敷グラウンド", label: "多摩川河川敷グラウンド" },
 ];
 
-const ruleOptions = [
-  "スパイク禁止",
-  "スライディング禁止",
-  "雨天決行（荒天中止）",
-  "審判1名制",
-  "女性ゴール2点",
-];
+const DEFAULT_RULE_OPTIONS = ["オフサイドなし", "審判1名制"];
+const DEFAULT_CAUTION_OPTIONS = ["雨天決行（荒天中止）", "スパイク禁止（トレシュー推奨）", "開始20分前までに受付"];
 
 function getLevelLabel(stars) {
   if (stars <= 2) return "ビギナー（初心者中心）";
@@ -37,9 +33,13 @@ export default function AdminTournamentCreate() {
     max_teams: "16",
     entry_fee_amount: "15000",
     description: "",
-    other_rules: "",
-    selectedRules: [],
   });
+  const [selectedRuleOptions, setSelectedRuleOptions] = useState([]);
+  const [customRules, setCustomRules] = useState([]);
+  const [customRuleInput, setCustomRuleInput] = useState("");
+  const [selectedCautionOptions, setSelectedCautionOptions] = useState([]);
+  const [customCautions, setCustomCautions] = useState([]);
+  const [customCautionInput, setCustomCautionInput] = useState("");
   const [groups, setGroups] = useState([
     { id: 1, name: "Aグループ", stars: 2 },
     { id: 2, name: "Bグループ", stars: 3 },
@@ -61,14 +61,8 @@ export default function AdminTournamentCreate() {
     setForm((prev) => ({ ...prev, [key]: event.target.value }));
   };
 
-  const toggleRule = (rule) => {
-    setForm((prev) => ({
-      ...prev,
-      selectedRules: prev.selectedRules.includes(rule)
-        ? prev.selectedRules.filter((r) => r !== rule)
-        : [...prev.selectedRules, rule],
-    }));
-  };
+  const combinedRules = useMemo(() => [...selectedRuleOptions, ...customRules], [selectedRuleOptions, customRules]);
+  const combinedCautions = useMemo(() => [...selectedCautionOptions, ...customCautions], [selectedCautionOptions, customCautions]);
 
   const addGroup = () => {
     setGroups((prev) => [...prev, { id: Date.now(), name: `${String.fromCharCode(65 + prev.length)}グループ`, stars: 3 }]);
@@ -89,22 +83,21 @@ export default function AdminTournamentCreate() {
   const buildDescription = () => {
     const lines = [];
     if (form.description.trim()) lines.push(form.description.trim());
-    lines.push(`開催時間: ${form.start_time}〜${form.end_time}`);
     if (groups.length > 0) {
       lines.push("グループ設定:");
       groups.forEach((g) => {
         lines.push(`- ${g.name || "未命名"}: ${"★".repeat(g.stars)} (${getLevelLabel(g.stars)})`);
       });
     }
-    if (form.selectedRules.length > 0) {
-      lines.push("主要ルール:");
-      form.selectedRules.forEach((r) => lines.push(`- ${r}`));
-    }
-    if (form.other_rules.trim()) {
-      lines.push("補足事項:");
-      lines.push(form.other_rules.trim());
-    }
     return lines.join("\n");
+  };
+
+  const buildRules = () => {
+    return combinedRules.map((rule) => `- ${rule}`).join("\n");
+  };
+
+  const buildCautions = () => {
+    return combinedCautions.map((item) => `- ${item}`).join("\n");
   };
 
   const onSubmit = async (event) => {
@@ -126,6 +119,10 @@ export default function AdminTournamentCreate() {
         entry_fee_currency: "JPY",
         cancel_deadline_date: form.event_date,
         description: buildDescription(),
+        start_time: form.start_time,
+        end_time: form.end_time,
+        rules: buildRules(),
+        cautions: buildCautions(),
       };
       const res = await api.post("/tournaments", payload);
       const createdId = res?.tournament?.id;
@@ -149,6 +146,44 @@ export default function AdminTournamentCreate() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const toggleDefaultRule = (rule) => {
+    setSelectedRuleOptions((prev) => (prev.includes(rule) ? prev.filter((item) => item !== rule) : [...prev, rule]));
+  };
+
+  const addCustomRule = () => {
+    const next = customRuleInput.trim();
+    if (!next) return;
+    if (combinedRules.includes(next)) {
+      setCustomRuleInput("");
+      return;
+    }
+    setCustomRules((prev) => [...prev, next]);
+    setCustomRuleInput("");
+  };
+
+  const removeCustomRule = (rule) => {
+    setCustomRules((prev) => prev.filter((item) => item !== rule));
+  };
+
+  const toggleDefaultCaution = (item) => {
+    setSelectedCautionOptions((prev) => (prev.includes(item) ? prev.filter((v) => v !== item) : [...prev, item]));
+  };
+
+  const addCustomCaution = () => {
+    const next = customCautionInput.trim();
+    if (!next) return;
+    if (combinedCautions.includes(next)) {
+      setCustomCautionInput("");
+      return;
+    }
+    setCustomCautions((prev) => [...prev, next]);
+    setCustomCautionInput("");
+  };
+
+  const removeCustomCaution = (item) => {
+    setCustomCautions((prev) => prev.filter((v) => v !== item));
   };
 
   return (
@@ -277,31 +312,111 @@ export default function AdminTournamentCreate() {
                 <textarea rows={4} value={form.description} onChange={onFormChange("description")} placeholder="大会の魅力や特徴を入力してください。" />
               </label>
 
-              <div className="adcreate-rules">
-                <label>主要ルール選択</label>
-                <div className="adcreate-rule-list">
-                  {ruleOptions.map((rule) => (
-                    <label key={rule} className="rule-item">
-                      <input
-                        type="checkbox"
-                        checked={form.selectedRules.includes(rule)}
-                        onChange={() => toggleRule(rule)}
-                      />
-                      <span>{rule}</span>
-                    </label>
-                  ))}
+              <div className="adcreate-rules-editor">
+                <p>ルール</p>
+                <div className="adcreate-rule-presets">
+                  {DEFAULT_RULE_OPTIONS.map((rule) => {
+                    const selected = selectedRuleOptions.includes(rule);
+                    return (
+                      <button
+                        key={rule}
+                        type="button"
+                        className={`adcreate-rule-preset ${selected ? "is-selected" : ""}`}
+                        onClick={() => toggleDefaultRule(rule)}
+                      >
+                        <span className="material-symbols-outlined">{selected ? "check_circle" : "add_circle"}</span>
+                        <span>{rule}</span>
+                      </button>
+                    );
+                  })}
                 </div>
+
+                <div className="adcreate-rule-add">
+                  <input
+                    type="text"
+                    value={customRuleInput}
+                    onChange={(e) => setCustomRuleInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addCustomRule();
+                      }
+                    }}
+                    placeholder="追加ルールを入力して追加"
+                  />
+                  <button type="button" onClick={addCustomRule}>
+                    追加
+                  </button>
+                </div>
+
+                <ul className="adcreate-rule-bullets">
+                  {combinedRules.map((rule) => (
+                    <li key={rule}>
+                      <span className="material-symbols-outlined">check</span>
+                      <span>{rule}</span>
+                      {customRules.includes(rule) ? (
+                        <button type="button" onClick={() => removeCustomRule(rule)} aria-label={`${rule}を削除`}>
+                          <span className="material-symbols-outlined">close</span>
+                        </button>
+                      ) : null}
+                    </li>
+                  ))}
+                  {combinedRules.length === 0 ? <li className="adcreate-rule-empty">ルールが未設定です。</li> : null}
+                </ul>
               </div>
 
-              <label>
-                その他の規約・補足事項
-                <textarea
-                  rows={3}
-                  value={form.other_rules}
-                  onChange={onFormChange("other_rules")}
-                  placeholder="上記以外の特別なルールや注意事項があれば入力してください。"
-                />
-              </label>
+              <div className="adcreate-rules-editor">
+                <p>注意事項</p>
+                <div className="adcreate-rule-presets">
+                  {DEFAULT_CAUTION_OPTIONS.map((item) => {
+                    const selected = selectedCautionOptions.includes(item);
+                    return (
+                      <button
+                        key={item}
+                        type="button"
+                        className={`adcreate-rule-preset ${selected ? "is-selected" : ""}`}
+                        onClick={() => toggleDefaultCaution(item)}
+                      >
+                        <span className="material-symbols-outlined">{selected ? "check_circle" : "add_circle"}</span>
+                        <span>{item}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="adcreate-rule-add">
+                  <input
+                    type="text"
+                    value={customCautionInput}
+                    onChange={(e) => setCustomCautionInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addCustomCaution();
+                      }
+                    }}
+                    placeholder="追加注意事項を入力して追加"
+                  />
+                  <button type="button" onClick={addCustomCaution}>
+                    追加
+                  </button>
+                </div>
+
+                <ul className="adcreate-rule-bullets">
+                  {combinedCautions.map((item) => (
+                    <li key={item}>
+                      <span className="material-symbols-outlined">check</span>
+                      <span>{item}</span>
+                      {customCautions.includes(item) ? (
+                        <button type="button" onClick={() => removeCustomCaution(item)} aria-label={`${item}を削除`}>
+                          <span className="material-symbols-outlined">close</span>
+                        </button>
+                      ) : null}
+                    </li>
+                  ))}
+                  {combinedCautions.length === 0 ? <li className="adcreate-rule-empty">注意事項が未設定です。</li> : null}
+                </ul>
+              </div>
             </div>
           </section>
 
@@ -320,30 +435,7 @@ export default function AdminTournamentCreate() {
         </form>
       </main>
 
-      <nav className="adcreate-nav">
-        <div className="adcreate-nav-row">
-          <Link to="/admin" className="adcreate-nav-item">
-            <span className="material-symbols-outlined">dashboard</span>
-            <span>ダッシュ</span>
-          </Link>
-          <Link to="/admin/tournaments/new" className="adcreate-nav-item active">
-            <span className="material-symbols-outlined">add_circle</span>
-            <span>大会</span>
-          </Link>
-          <Link to="/admin/teams" className="adcreate-nav-item">
-            <span className="material-symbols-outlined">groups</span>
-            <span>チーム</span>
-          </Link>
-          <Link to="/admin/payments" className="adcreate-nav-item">
-            <span className="material-symbols-outlined">payments</span>
-            <span>決済</span>
-          </Link>
-          <Link to="/admin/notifications" className="adcreate-nav-item">
-            <span className="material-symbols-outlined">notifications</span>
-            <span>通知</span>
-          </Link>
-        </div>
-      </nav>
+      <AdminBottomNav />
     </div>
   );
 }

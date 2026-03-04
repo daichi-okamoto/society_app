@@ -32,6 +32,8 @@ import TournamentEntryComplete from "./pages/app/TournamentEntryComplete";
 import TournamentEntryReview from "./pages/app/TournamentEntryReview";
 import TournamentEntryRoster from "./pages/app/TournamentEntryRoster";
 import Payment from "./pages/app/Payment";
+import PaymentAddCard from "./pages/app/PaymentAddCard";
+import TournamentPaymentCheckout from "./pages/app/TournamentPaymentCheckout";
 import TournamentImages from "./pages/app/TournamentImages";
 import NotificationCenter from "./pages/app/NotificationCenter";
 import HelpContact from "./pages/app/HelpContact";
@@ -91,11 +93,12 @@ export default function App() {
           <Route path="/tournaments/:id/entry/complete" element={<TournamentEntryComplete />} />
           <Route path="/tournaments/:id/entry/review" element={<TournamentEntryReview />} />
           <Route path="/tournaments/:id/entry/review/roster" element={<TournamentEntryRoster />} />
-          <Route path="/tournaments/:id/payment" element={<Payment />} />
+          <Route path="/tournaments/:id/payment" element={<TournamentPaymentCheckout />} />
           <Route path="/tournaments/:id/images" element={<TournamentImages />} />
           <Route path="/notifications" element={<NotificationCenter />} />
           <Route path="/help" element={<HelpContact />} />
           <Route path="/payments" element={<Payment />} />
+          <Route path="/payments/new-card" element={<PaymentAddCard />} />
           <Route path="/policies" element={<LegalPolicies />} />
         </Route>
       </Route>

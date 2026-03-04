@@ -1,17 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
+import AdminBottomNav from "../../components/admin/AdminBottomNav";
 
 const coverImages = [
   "https://lh3.googleusercontent.com/aida-public/AB6AXuArmpCuqVtA8v8TSrNLYNIa8STfBQr0JkidJPLJYHTg6K2qy98F3J0sHQ0WtejsoXu9JWYGCAc_Eodv-dRIIssNeiCJ4uRhCdBwETMSqfNcqp86lm8rt76vTh0lXAQdzu56cLaHk6C2OOQ8NIqMDH0VVI_sF364oBWQk3a2bRgzDTJyAO_VSsaOkft8yeqkNh1Bp0g-l2LfUCHNeAUxJPC9TcPK-HS55ht7pWufV-cXhCT_uE8nAaq4aUdygoSPXjNPlBUpdCwc7tU0",
   "https://lh3.googleusercontent.com/aida-public/AB6AXuA8qTaFGfVeqVEhcPp-LqZdm8kjvmFfQhFYnpLfRy004cqDeJM1GNlUFFnvHQCp91sfzqpZ7D5ArH5zL8pYYYQ7oDXT80w_n-P3-eWZGXvcSOc39FLS82aE_yqgyofZ61yWdN3RgLAiu4cZozUip9BD31LeC0oREahhR5NzPTqy0pBQkZWNV3zy6ylbiFJ_BHpfi38VIfYHPKs8Xff1PNR2r_YBXGMjaF6jIjwskbEm2BPqTaP_bTvMTp7-cThHzpwRWtAIybOw7UL3",
 ];
 
-function formatDateText(eventDate) {
+function formatTime(raw, fallback) {
+  if (!raw) return fallback;
+  const text = String(raw);
+  const m = text.match(/(?:T|^)(\d{2}):(\d{2})/);
+  if (!m) return fallback;
+  return `${Number(m[1])}:${m[2]}`;
+}
+
+function formatDateText(eventDate, startTime, endTime) {
   if (!eventDate) return "日付未設定";
   const dt = new Date(`${eventDate}T00:00:00`);
   const w = ["日", "月", "火", "水", "木", "金", "土"][dt.getDay()];
-  return `${dt.getMonth() + 1}/${dt.getDate()} (${w}) • 10:00 - 16:00`;
+  const start = formatTime(startTime, "10:00");
+  const end = formatTime(endTime, "16:00");
+  return `${dt.getMonth() + 1}/${dt.getDate()} (${w}) • ${start} - ${end}`;
 }
 
 const taskItems = [
@@ -60,11 +71,12 @@ export default function AdminDashboard() {
             id: t.id,
             status: idx % 2 === 0 ? "募集中" : "開催間近",
             statusClass: idx % 2 === 0 ? "is-primary" : "is-success",
-            dateText: formatDateText(t.event_date),
+            dateText: formatDateText(t.event_date, t.start_time, t.end_time),
             title: t.name,
             registeredText: `${current}/${maxTeams}チーム`,
             progress,
             revenue: `¥${Number(t.entry_fee_amount || 0).toLocaleString("ja-JP")}`,
+            fullRevenue: `¥${(Number(t.entry_fee_amount || 0) * maxTeams).toLocaleString("ja-JP")}`,
             image: coverImages[idx % coverImages.length],
             alt: "Tournament cover",
           };
@@ -120,7 +132,7 @@ export default function AdminDashboard() {
           <div className="adash-tournament-scroll">
             {!loading && tournaments.length === 0 ? <p className="adash-empty">大会データがありません</p> : null}
             {tournaments.map((tournament) => (
-              <article key={tournament.id} className="adash-tournament-card">
+              <Link key={tournament.id} to={`/admin/tournaments/${tournament.id}`} className="adash-tournament-card">
                 <div className="adash-tournament-media">
                   <img src={tournament.image} alt={tournament.alt} />
                   <div className="adash-media-overlay" />
@@ -145,15 +157,15 @@ export default function AdminDashboard() {
 
                   <div className="adash-card-foot">
                     <div>
-                      <span>予想売上</span>
-                      <strong>{tournament.revenue}</strong>
+                      <span>満枠売上</span>
+                      <strong>{tournament.fullRevenue}</strong>
                     </div>
-                    <button type="button" aria-label="open">
+                    <span className="adash-open-icon" aria-hidden="true">
                       <span className="material-symbols-outlined">arrow_forward_ios</span>
-                    </button>
+                    </span>
                   </div>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         </section>
@@ -208,31 +220,7 @@ export default function AdminDashboard() {
         </section>
       </main>
 
-      <nav className="adash-bottom-nav">
-        <div className="adash-bottom-nav-inner">
-          <Link to="/admin" className="adash-nav-btn is-active">
-            <span className="material-symbols-outlined">dashboard</span>
-            <span>ダッシュ</span>
-          </Link>
-          <Link to="/admin/tournaments" className="adash-nav-btn">
-            <span className="material-symbols-outlined">calendar_month</span>
-            <span>大会</span>
-          </Link>
-          <Link to="/admin/teams" className="adash-nav-btn">
-            <span className="material-symbols-outlined">groups</span>
-            <span>チーム</span>
-          </Link>
-          <Link to="/admin/payments" className="adash-nav-btn">
-            <span className="material-symbols-outlined">payments</span>
-            <span>決済</span>
-          </Link>
-          <Link to="/admin/notifications" className="adash-nav-btn adash-nav-notify">
-            <span className="adash-notify-dot" />
-            <span className="material-symbols-outlined">notifications</span>
-            <span>通知</span>
-          </Link>
-        </div>
-      </nav>
+      <AdminBottomNav />
     </div>
   );
 }

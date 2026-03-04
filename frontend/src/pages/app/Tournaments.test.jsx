@@ -9,6 +9,34 @@ vi.mock("../../lib/api", () => ({
 }));
 
 describe("Tournaments", () => {
+  it("shows distinct status labels by date", async () => {
+    const formatYmd = (date) => date.toISOString().slice(0, 10);
+    const today = new Date();
+    const future = new Date(today);
+    future.setDate(today.getDate() + 7);
+    const past = new Date(today);
+    past.setDate(today.getDate() - 7);
+
+    api.get.mockResolvedValue({
+      tournaments: [
+        { id: 1, name: "本日開催", event_date: formatYmd(today), venue: "会場A" },
+        { id: 2, name: "未来開催", event_date: formatYmd(future), venue: "会場B" },
+        { id: 3, name: "過去開催", event_date: formatYmd(past), venue: "会場C" },
+      ],
+    });
+
+    render(
+      <MemoryRouter>
+        <Tournaments />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => expect(screen.getByText("本日開催")).toBeInTheDocument());
+    expect(screen.getByText("開催中", { selector: ".tsrch-status" })).toBeInTheDocument();
+    expect(screen.getByText("募集中", { selector: ".tsrch-status" })).toBeInTheDocument();
+    expect(screen.getByText("開催終了", { selector: ".tsrch-status" })).toBeInTheDocument();
+  });
+
   it("renders tournaments", async () => {
     api.get.mockResolvedValue({
       tournaments: [{ id: 1, name: "大会A", event_date: "2026-05-01", venue: "会場" }]

@@ -35,18 +35,16 @@ function isWeekend(date) {
   return day === 0 || day === 6;
 }
 
-function isUpcoming(date) {
+function getTournamentStatus(date) {
   const d = new Date(`${date}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return false;
+  if (Number.isNaN(d.getTime())) {
+    return { key: "unknown", label: "日程未定" };
+  }
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  return d >= today;
-}
-
-function statusLabel(date, index) {
-  if (!isUpcoming(date)) return "開催終了";
-  if (index % 3 === 2) return "残りわずか";
-  return "募集中";
+  if (d < today) return { key: "finished", label: "開催終了" };
+  if (d.getTime() === today.getTime()) return { key: "live", label: "開催中" };
+  return { key: "open", label: "募集中" };
 }
 
 export default function Tournaments() {
@@ -86,7 +84,7 @@ export default function Tournaments() {
       })
       .filter((t) => {
         if (activeFilter === "all") return true;
-        if (activeFilter === "open") return isUpcoming(t.event_date);
+        if (activeFilter === "open") return getTournamentStatus(t.event_date).key === "open";
         if (activeFilter === "weekend") return isWeekend(t.event_date);
         if (activeFilter === "night") return /夜|ナイト|midnight/i.test(`${t.name} ${t.venue}`);
         if (activeFilter === "beginner") return /初心者|ビギナー/i.test(`${t.name}`);
@@ -132,16 +130,16 @@ export default function Tournaments() {
         ) : (
           <div className="tsrch-list">
             {filtered.map((tournament, index) => {
-              const status = statusLabel(tournament.event_date, index);
+              const status = getTournamentStatus(tournament.event_date);
               return (
                 <Link key={tournament.id} to={`/tournaments/${tournament.id}`} className="tsrch-card">
-                  <div className={`tsrch-card-image ${status === "残りわずか" ? "few" : ""}`}>
+                  <div className="tsrch-card-image">
                     <img
                       src={CARD_IMAGES[index % CARD_IMAGES.length]}
                       alt="Tournament Venue"
                       loading="lazy"
                     />
-                    <span className={`tsrch-status ${status === "残りわずか" ? "few" : ""}`}>{status}</span>
+                    <span className={`tsrch-status ${status.key}`}>{status.label}</span>
                   </div>
                   <div className="tsrch-card-body">
                     <h3>{tournament.name}</h3>

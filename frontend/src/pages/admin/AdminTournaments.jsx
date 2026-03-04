@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
+import AdminBottomNav from "../../components/admin/AdminBottomNav";
 
 const coverImages = [
   "https://lh3.googleusercontent.com/aida-public/AB6AXuArmpCuqVtA8v8TSrNLYNIa8STfBQr0JkidJPLJYHTg6K2qy98F3J0sHQ0WtejsoXu9JWYGCAc_Eodv-dRIIssNeiCJ4uRhCdBwETMSqfNcqp86lm8rt76vTh0lXAQdzu56cLaHk6C2OOQ8NIqMDH0VVI_sF364oBWQk3a2bRgzDTJyAO_VSsaOkft8yeqkNh1Bp0g-l2LfUCHNeAUxJPC9TcPK-HS55ht7pWufV-cXhCT_uE8nAaq4aUdygoSPXjNPlBUpdCwc7tU0",
@@ -231,30 +232,7 @@ export default function AdminTournaments() {
         ))}
       </main>
 
-      <nav className="adtour-nav">
-        <div className="adtour-nav-row">
-          <Link to="/admin" className="adtour-nav-item">
-            <span className="material-symbols-outlined">dashboard</span>
-            <span>ダッシュ</span>
-          </Link>
-          <Link to="/admin/tournaments" className="adtour-nav-item active">
-            <span className="material-symbols-outlined">emoji_events</span>
-            <span>大会</span>
-          </Link>
-          <Link to="/admin/teams" className="adtour-nav-item">
-            <span className="material-symbols-outlined">groups</span>
-            <span>チーム</span>
-          </Link>
-          <Link to="/admin/payments" className="adtour-nav-item">
-            <span className="material-symbols-outlined">payments</span>
-            <span>決済</span>
-          </Link>
-          <Link to="/admin" className="adtour-nav-item">
-            <span className="material-symbols-outlined">settings</span>
-            <span>設定</span>
-          </Link>
-        </div>
-      </nav>
+      <AdminBottomNav />
     </div>
   );
 }

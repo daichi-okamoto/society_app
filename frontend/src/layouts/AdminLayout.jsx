@@ -11,8 +11,9 @@ export default function AdminLayout() {
   const isNotifications = /^\/admin\/notifications\/?$/.test(location.pathname);
   const isPayments = /^\/admin\/payments\/?$/.test(location.pathname);
   const isTeams = /^\/admin\/teams(?:\/.*)?$/.test(location.pathname);
+  const isMatches = /^\/admin\/matches\/?$/.test(location.pathname);
 
-  if (isDashboard || isTournaments || isTournamentCreate || isTournamentDetail || isNotifications || isPayments || isTeams) {
+  if (isDashboard || isTournaments || isTournamentCreate || isTournamentDetail || isNotifications || isPayments || isTeams || isMatches) {
     return (
       <>
         <FlashMessage />
