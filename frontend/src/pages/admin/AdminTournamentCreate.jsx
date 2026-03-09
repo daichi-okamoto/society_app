@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
 import AdminBottomNav from "../../components/admin/AdminBottomNav";
@@ -40,6 +40,8 @@ export default function AdminTournamentCreate() {
   const [selectedCautionOptions, setSelectedCautionOptions] = useState([]);
   const [customCautions, setCustomCautions] = useState([]);
   const [customCautionInput, setCustomCautionInput] = useState("");
+  const [selectedImageFile, setSelectedImageFile] = useState(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
   const [groups, setGroups] = useState([
     { id: 1, name: "Aグループ", stars: 2 },
     { id: 2, name: "Bグループ", stars: 3 },
@@ -63,6 +65,17 @@ export default function AdminTournamentCreate() {
 
   const combinedRules = useMemo(() => [...selectedRuleOptions, ...customRules], [selectedRuleOptions, customRules]);
   const combinedCautions = useMemo(() => [...selectedCautionOptions, ...customCautions], [selectedCautionOptions, customCautions]);
+
+  useEffect(() => {
+    if (!selectedImageFile) {
+      setImagePreviewUrl("");
+      return undefined;
+    }
+
+    const objectUrl = URL.createObjectURL(selectedImageFile);
+    setImagePreviewUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [selectedImageFile]);
 
   const addGroup = () => {
     setGroups((prev) => [...prev, { id: Date.now(), name: `${String.fromCharCode(65 + prev.length)}グループ`, stars: 3 }]);
@@ -108,6 +121,7 @@ export default function AdminTournamentCreate() {
       return;
     }
     setSubmitting(true);
+    let createdId = null;
     try {
       const payload = {
         name: form.name.trim(),
@@ -125,7 +139,19 @@ export default function AdminTournamentCreate() {
         cautions: buildCautions(),
       };
       const res = await api.post("/tournaments", payload);
-      const createdId = res?.tournament?.id;
+      createdId = res?.tournament?.id;
+      if (createdId && selectedImageFile) {
+        const formData = new FormData();
+        formData.append("file", selectedImageFile);
+        const uploaded = await api.postForm("/uploads/direct", formData);
+        const contentType = uploaded.content_type || selectedImageFile.type || "application/octet-stream";
+        await api.post(`/tournaments/${createdId}/images`, {
+          file_url: uploaded.public_url,
+          file_name: uploaded.file_name || selectedImageFile.name,
+          content_type: contentType,
+          size_bytes: Number(uploaded.size_bytes || selectedImageFile.size),
+        });
+      }
       if (createdId) {
         navigate(`/admin/tournaments/${createdId}`, {
           replace: true,
@@ -138,6 +164,18 @@ export default function AdminTournamentCreate() {
         });
       }
     } catch (e) {
+      if (createdId) {
+        navigate(`/admin/tournaments/${createdId}`, {
+          replace: true,
+          state: {
+            flash: {
+              type: "info",
+              message: "大会を作成しましたが、画像のアップロードに失敗しました。",
+            },
+          },
+        });
+        return;
+      }
       if (e?.status === 422) {
         setError("入力内容を確認してください");
       } else {
@@ -298,6 +336,30 @@ export default function AdminTournamentCreate() {
                   </div>
                 ))}
               </div>
+            </div>
+          </section>
+
+          <section className="adcreate-section">
+            <h2>
+              <span className="material-symbols-outlined">image</span>
+              カバー画像
+            </h2>
+            <div className="adcreate-card">
+              <label>
+                大会画像
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(event) => setSelectedImageFile(event.target.files?.[0] || null)}
+                />
+              </label>
+              {imagePreviewUrl ? (
+                <div className="adcreate-image-preview">
+                  <img src={imagePreviewUrl} alt="大会画像プレビュー" />
+                </div>
+              ) : (
+                <div className="adcreate-image-empty">画像を設定すると、ホームと大会詳細の背景に表示されます。</div>
+              )}
             </div>
           </section>
 

@@ -9,6 +9,7 @@ const FILTERS = [
   { key: "weekend", label: "週末開催" },
   { key: "night", label: "平日夜間" },
   { key: "beginner", label: "初心者歓迎" },
+  { key: "past", label: "過去の大会" },
 ];
 
 const CARD_IMAGES = [
@@ -45,6 +46,11 @@ function getTournamentStatus(date) {
   if (d < today) return { key: "finished", label: "開催終了" };
   if (d.getTime() === today.getTime()) return { key: "live", label: "開催中" };
   return { key: "open", label: "募集中" };
+}
+
+function getTournamentDestination(tournament) {
+  const status = getTournamentStatus(tournament.event_date);
+  return status.key === "finished" ? `/tournaments/${tournament.id}/results` : `/tournaments/${tournament.id}`;
 }
 
 export default function Tournaments() {
@@ -85,6 +91,7 @@ export default function Tournaments() {
       .filter((t) => {
         if (activeFilter === "all") return true;
         if (activeFilter === "open") return getTournamentStatus(t.event_date).key === "open";
+        if (activeFilter === "past") return getTournamentStatus(t.event_date).key === "finished";
         if (activeFilter === "weekend") return isWeekend(t.event_date);
         if (activeFilter === "night") return /夜|ナイト|midnight/i.test(`${t.name} ${t.venue}`);
         if (activeFilter === "beginner") return /初心者|ビギナー/i.test(`${t.name}`);
@@ -132,7 +139,7 @@ export default function Tournaments() {
             {filtered.map((tournament, index) => {
               const status = getTournamentStatus(tournament.event_date);
               return (
-                <Link key={tournament.id} to={`/tournaments/${tournament.id}`} className="tsrch-card">
+                <Link key={tournament.id} to={getTournamentDestination(tournament)} className="tsrch-card">
                   <div className="tsrch-card-image">
                     <img
                       src={CARD_IMAGES[index % CARD_IMAGES.length]}

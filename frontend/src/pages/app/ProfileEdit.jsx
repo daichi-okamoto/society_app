@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
@@ -58,8 +58,10 @@ export default function ProfileEdit() {
   const navigate = useNavigate();
   const { user, setUser } = useAuth();
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [searchingAddress, setSearchingAddress] = useState(false);
   const [error, setError] = useState("");
+  const fileInputRef = useRef(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -72,6 +74,7 @@ export default function ProfileEdit() {
     prefecture: "",
     city_block: "",
     building: "",
+    avatar_url: "",
   });
 
   useEffect(() => {
@@ -88,13 +91,15 @@ export default function ProfileEdit() {
       prefecture: parsedAddress.prefecture,
       city_block: parsedAddress.city_block,
       building: parsedAddress.building,
+      avatar_url: user.avatar_url || "",
     });
   }, [user]);
 
   const avatarUrl = useMemo(() => {
+    if (form.avatar_url) return form.avatar_url;
     const displayName = form.name || user?.name || "田中 太郎";
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=fef3c7&color=b45309&size=256`;
-  }, [form.name, user?.name]);
+  }, [form.avatar_url, form.name, user?.name]);
 
   function setField(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -154,9 +159,9 @@ export default function ProfileEdit() {
         name_kana: form.name_kana,
         email: form.email,
         phone: form.phone,
-        birth_date: normalizeBirthDate(form.birth_date)
-,
+        birth_date: normalizeBirthDate(form.birth_date),
         address: composedAddress,
+        avatar_url: form.avatar_url,
       };
       const data = await api.patch("/users/me", payload);
       setUser(data?.user || null);
@@ -167,6 +172,32 @@ export default function ProfileEdit() {
       setError("更新に失敗しました");
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function onAvatarSelect(e) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || uploadingAvatar) return;
+
+    setUploadingAvatar(true);
+    setError("");
+
+    try {
+      const formData = new FormData();
+      formData.append("upload_kind", "profile_avatar");
+      formData.append("file", file);
+
+      const uploaded = await api.postForm("/uploads/direct", formData);
+      if (!uploaded?.public_url) {
+        throw new Error("upload_failed");
+      }
+
+      setForm((prev) => ({ ...prev, avatar_url: uploaded.public_url }));
+    } catch {
+      setError("プロフィール画像のアップロードに失敗しました。");
+    } finally {
+      setUploadingAvatar(false);
     }
   }
 
@@ -184,8 +215,20 @@ export default function ProfileEdit() {
         <section className="mpe-avatar-section">
           <div className="mpe-avatar-wrap">
             <img src={avatarUrl} alt={form.name || "ユーザー"} />
-            <button type="button" aria-label="写真を変更">
-              <span className="material-symbols-outlined">photo_camera</span>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="mpe-avatar-input"
+              onChange={onAvatarSelect}
+            />
+            <button
+              type="button"
+              aria-label="写真を変更"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingAvatar}
+            >
+              <span className="material-symbols-outlined">{uploadingAvatar ? "progress_activity" : "photo_camera"}</span>
             </button>
           </div>
         </section>

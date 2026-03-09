@@ -13,9 +13,7 @@ export default function AuthScaffold({
     <div className="login-sp-screen">
       <div className={`login-sp-panel ${panelClassName}`.trim()}>
         <div className="login-sp-hero">
-          <div className="login-sp-icon-wrap">
-            <span className="material-symbols-outlined">sports_soccer</span>
-          </div>
+          <div className="login-sp-icon-wrap" aria-hidden="true" />
           <h1>{title}</h1>
           <p>{subtitle}</p>
         </div>

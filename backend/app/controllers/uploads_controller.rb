@@ -35,7 +35,9 @@ class UploadsController < ApplicationController
   end
 
   def direct
-    require_admin!
+    unless profile_avatar_upload? || current_user.admin?
+      require_admin!
+    end
     return if performed?
 
     unless R2_CLIENT && R2_BUCKET && R2_PUBLIC_BASE_URL
@@ -47,7 +49,7 @@ class UploadsController < ApplicationController
       return render json: { error: { code: "validation_error", message: "file is required" } }, status: :unprocessable_entity
     end
 
-    key = "tournament-images/#{SecureRandom.uuid}-#{file.original_filename}"
+    key = upload_key_for(file)
     R2_CLIENT.put_object(
       bucket: R2_BUCKET,
       key: key,
@@ -64,5 +66,18 @@ class UploadsController < ApplicationController
     }, status: :ok
   rescue Aws::S3::Errors::ServiceError
     render json: { error: { code: "r2_upload_failed" } }, status: :unprocessable_entity
+  end
+
+  private
+
+  def profile_avatar_upload?
+    params[:upload_kind].to_s == "profile_avatar"
+  end
+
+  def upload_key_for(file)
+    suffix = "#{SecureRandom.uuid}-#{file.original_filename}"
+    return "profile-avatars/#{current_user.id}/#{suffix}" if profile_avatar_upload?
+
+    "tournament-images/#{suffix}"
   end
 end

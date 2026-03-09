@@ -16,4 +16,8 @@ class Tournament < ApplicationRecord
     count = tournament_entries.where(status: [:pending, :approved]).count
     update_column(:active_entry_teams_count, count)
   end
+
+  def primary_image_url
+    tournament_images.max_by(&:created_at)&.file_url
+  end
 end

@@ -30,4 +30,26 @@ describe("Register", () => {
 
     expect(getByText("アカウントを作成")).toBeTruthy();
   });
+
+  it("toggles password visibility for password and confirmation", () => {
+    const { getByLabelText } = render(
+      <MemoryRouter>
+        <Register />
+      </MemoryRouter>
+    );
+
+    const passwordInput = getByLabelText("パスワード");
+    const passwordConfirmInput = getByLabelText("パスワード（確認）");
+    const passwordToggle = getByLabelText("パスワード表示切替");
+    const passwordConfirmToggle = getByLabelText("パスワード確認表示切替");
+
+    expect(passwordInput.getAttribute("type")).toBe("password");
+    expect(passwordConfirmInput.getAttribute("type")).toBe("password");
+
+    fireEvent.click(passwordToggle);
+    fireEvent.click(passwordConfirmToggle);
+
+    expect(passwordInput.getAttribute("type")).toBe("text");
+    expect(passwordConfirmInput.getAttribute("type")).toBe("text");
+  });
 });

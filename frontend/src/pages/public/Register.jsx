@@ -27,6 +27,8 @@ export default function Register() {
     password: "",
     passwordConfirm: ""
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
 
@@ -78,7 +80,7 @@ export default function Register() {
   return (
     <AuthScaffold
       title="新しく始める"
-      subtitle="J7 Soccer アカウントを作成"
+      subtitle="高森ソサイチアカウントを作成"
       termsLead="登録することで"
       panelClassName="register-panel"
       afterForm={
@@ -90,43 +92,70 @@ export default function Register() {
       <form className="login-sp-form register-form" onSubmit={onSubmit}>
         <div className="login-sp-field">
           <label htmlFor="reg-email">メールアドレス</label>
-          <input
-            id="reg-email"
-            name="email"
-            type="email"
-            placeholder="example@j7soccer.com"
-            value={form.email}
-            onChange={onChange}
-            className={fieldErrors.email ? "is-invalid" : ""}
-          />
+          <div className="login-sp-input-wrap">
+            <span className="material-symbols-outlined">mail</span>
+            <input
+              id="reg-email"
+              name="email"
+              type="email"
+              placeholder="example@j7soccer.com"
+              value={form.email}
+              onChange={onChange}
+              className={fieldErrors.email ? "is-invalid" : ""}
+            />
+          </div>
           {fieldErrors.email ? <p className="login-sp-field-error">{fieldErrors.email}</p> : null}
         </div>
 
         <div className="login-sp-field">
           <label htmlFor="reg-password">パスワード</label>
-          <input
-            id="reg-password"
-            name="password"
-            type="password"
-            placeholder="8文字以上の英数字"
-            value={form.password}
-            onChange={onChange}
-            className={fieldErrors.password ? "is-invalid" : ""}
-          />
+          <div className="login-sp-input-wrap">
+            <span className="material-symbols-outlined">lock</span>
+            <input
+              id="reg-password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="8文字以上の英数字"
+              value={form.password}
+              onChange={onChange}
+              className={fieldErrors.password ? "is-invalid" : ""}
+            />
+            <button
+              type="button"
+              className="login-sp-toggle"
+              aria-label="パスワード表示切替"
+              onClick={() => setShowPassword((prev) => !prev)}
+            >
+              <span className="material-symbols-outlined">{showPassword ? "visibility" : "visibility_off"}</span>
+            </button>
+          </div>
           {fieldErrors.password ? <p className="login-sp-field-error">{fieldErrors.password}</p> : null}
         </div>
 
         <div className="login-sp-field">
           <label htmlFor="reg-password-confirm">パスワード（確認）</label>
-          <input
-            id="reg-password-confirm"
-            name="passwordConfirm"
-            type="password"
-            placeholder="もう一度入力してください"
-            value={form.passwordConfirm}
-            onChange={onChange}
-            className={fieldErrors.passwordConfirm ? "is-invalid" : ""}
-          />
+          <div className="login-sp-input-wrap">
+            <span className="material-symbols-outlined">lock</span>
+            <input
+              id="reg-password-confirm"
+              name="passwordConfirm"
+              type={showPasswordConfirm ? "text" : "password"}
+              placeholder="もう一度入力してください"
+              value={form.passwordConfirm}
+              onChange={onChange}
+              className={fieldErrors.passwordConfirm ? "is-invalid" : ""}
+            />
+            <button
+              type="button"
+              className="login-sp-toggle"
+              aria-label="パスワード確認表示切替"
+              onClick={() => setShowPasswordConfirm((prev) => !prev)}
+            >
+              <span className="material-symbols-outlined">
+                {showPasswordConfirm ? "visibility" : "visibility_off"}
+              </span>
+            </button>
+          </div>
           {fieldErrors.passwordConfirm ? <p className="login-sp-field-error">{fieldErrors.passwordConfirm}</p> : null}
         </div>
 
@@ -137,7 +166,11 @@ export default function Register() {
         </button>
 
         <AuthDivider />
-        <AuthGoogleButton label="Googleで登録" />
+        <AuthGoogleButton
+          label="Googleで登録"
+          failureRedirectTo="/register"
+          successMessage="Googleアカウントで登録しました。"
+        />
       </form>
     </AuthScaffold>
   );

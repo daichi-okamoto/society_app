@@ -37,26 +37,6 @@
   object-fit: cover;
 }
 
-.mp-camera {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 32px;
-  height: 32px;
-  border: 2px solid #fff;
-  border-radius: 999px;
-  background: #d97706;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
-}
-
-.mp-camera .material-symbols-outlined {
-  font-size: 14px;
-}
-
 .mp-header h1 {
   margin: 0 0 4px;
   font-size: 20px;
@@ -236,4 +216,3 @@
 .mp-nav-center .material-symbols-outlined {
   font-size: 30px;
 }
-

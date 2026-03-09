@@ -2,7 +2,7 @@ class TournamentsController < ApplicationController
   before_action :require_admin!, only: [:create, :update, :destroy]
 
   def index
-    tournaments = Tournament.order(event_date: :desc)
+    tournaments = Tournament.includes(:tournament_images).order(event_date: :desc)
     render json: { tournaments: tournaments.map { |t| tournament_summary(t) } }, status: :ok
   end
 
@@ -54,6 +54,7 @@ class TournamentsController < ApplicationController
       max_teams: t.max_teams,
       entry_fee_amount: t.entry_fee_amount,
       active_entry_teams_count: t.active_entry_teams_count,
+      image_url: t.primary_image_url,
       start_time: format_time(t.start_time),
       end_time: format_time(t.end_time)
     }
@@ -72,6 +73,7 @@ class TournamentsController < ApplicationController
       entry_fee_currency: t.entry_fee_currency,
       cancel_deadline_date: t.cancel_deadline_date,
       description: t.description,
+      image_url: t.primary_image_url,
       start_time: format_time(t.start_time),
       end_time: format_time(t.end_time),
       rules: t.rules,

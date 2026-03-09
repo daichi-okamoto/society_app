@@ -1,10 +1,13 @@
 Rails.application.routes.draw do
-  devise_for :users, skip: [:sessions, :registrations, :passwords, :confirmations, :unlock]
+  devise_for :users,
+             skip: [:sessions, :registrations, :passwords, :confirmations, :unlock],
+             controllers: { omniauth_callbacks: "users/omniauth_callbacks" }
 
   post "/auth/register", to: "auth#register"
   post "/auth/admin/register", to: "auth#admin_register"
   post "/auth/login", to: "auth#login"
   post "/auth/logout", to: "auth#logout"
+  get "/auth/google", to: "auth#google"
 
   get "/users/me", to: "users#me"
   patch "/users/me", to: "users#update"

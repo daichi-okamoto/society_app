@@ -19,7 +19,7 @@ class UsersController < ApplicationController
   private
 
   def update_params
-    params.permit(:name, :name_kana, :birth_date, :phone, :email, :address)
+    params.permit(:name, :name_kana, :birth_date, :phone, :email, :address, :avatar_url)
   end
 
   def user_json(user)
@@ -30,6 +30,7 @@ class UsersController < ApplicationController
       birth_date: user.birth_date,
       phone: user.phone,
       address: user.address,
+      avatar_url: user.avatar_url,
       email: user.email,
       role: user.role
     }

@@ -3,9 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../lib/api";
 import TournamentOverviewTabContent from "./components/TournamentOverviewTabContent";
-
-const COVER_IMAGE =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuA-MSmLmTuGcxKd0viNblk-n6qrQbumimk_bAR3RKqKgOwcKc-LdwDPReDFB_rRD1MwwSTt39C6b11lp9BXIMZLX9IlkmWtnvO4k_sCC1z1GaJjB8OOTzg9fn33yRfvDYUp8N5hid65wbnqP0gxzTZStf_ZqFAliIuh8aYl61iL1PA7GAMFN_NzCjrd6XAaIkw_BCjlqM8dQtkg1YPZt3URvVgIiy1vwv7PG6LZtwHqHrlY8_665uqovQNppZ4sat9CmbSFAXqLNE2O";
+import { getTournamentCoverUrl } from "../../lib/tournamentImages";
 
 function formatDateShort(dateText) {
   if (!dateText) return "-";
@@ -147,7 +145,7 @@ export default function TournamentDetailRegistered({ tournament, entryTeamId }) 
       style={{ "--sheet-offset": `${sheetOffset}px` }}
     >
       <div className="tdetail-hero">
-        <img src={COVER_IMAGE} alt="Tournament Cover" />
+        <img src={getTournamentCoverUrl(tournament)} alt={tournament.name} />
         <div className="tdetail-hero-overlay" />
         <button type="button" className="tdetail-back" onClick={() => navigate(-1)} aria-label="戻る">
           <span className="material-symbols-outlined">arrow_back_ios_new</span>

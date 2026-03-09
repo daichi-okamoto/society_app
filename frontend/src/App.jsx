@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import PublicLayout from "./layouts/PublicLayout";
 import AppLayout from "./layouts/AppLayout";
 import AdminLayout from "./layouts/AdminLayout";
@@ -62,7 +62,8 @@ export default function App() {
   return (
     <Routes>
       <Route element={<PublicLayout />}>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Navigate to="/app/home" replace />} />
+        <Route path="/home" element={<Home />} />
         <Route path="/tournaments/:id" element={<TournamentDetail />} />
         <Route path="/tournaments/:id/results" element={<Results />} />
         <Route path="/announcements" element={<Announcements />} />

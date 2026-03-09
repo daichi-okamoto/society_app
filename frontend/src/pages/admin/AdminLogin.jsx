@@ -1,14 +1,21 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthActions } from "../../hooks/useAuthActions";
+import AuthGoogleButton from "../../components/auth/AuthGoogleButton";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login, logout } = useAuthActions();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const oauthError = searchParams.get("oauth_error");
+  const oauthErrorMessage =
+    oauthError === "admin_required"
+      ? "管理者アカウントでGoogleログインしてください。"
+      : "Googleログインに失敗しました。もう一度お試しください。";
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -79,7 +86,9 @@ export default function AdminLogin() {
             </div>
           </div>
 
-          {error ? <p className="adlogin-error">{error}</p> : null}
+          {error || oauthError ? (
+            <p className="adlogin-error">{error || oauthErrorMessage}</p>
+          ) : null}
 
           <button type="submit" className="adlogin-submit">
             ログイン
@@ -90,13 +99,14 @@ export default function AdminLogin() {
           <span>または</span>
         </div>
 
-        <button type="button" className="adlogin-google-btn">
-          <img
-            alt="Google logo"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpLuO3AxcrdhNM-_F80qPVD29mBqCYg_FTzOSQz6gtf-BU6JtzfQuYzyF4IdiZh6LweIPdmJtW3S4rnvby3rRWYAehWW2P9BSNb1zN62JWZK5Jmxv0KMro4g0-aNfgswwGSJ6qgeZje1enye3BoYMD81GbQVpku1JCQTrtWfvwwpjRY-rOyDOgwTM1XEa6YYoSNdzmO_-zELS35rzLlhDYKscI2Eo0PbzHzHu2MUkZvL6NwuUHFvQBARXjEtUnqgMkZrGQDyX5iPks"
-          />
-          <span>Googleでログイン</span>
-        </button>
+        <AuthGoogleButton
+          label="Googleでログイン"
+          className="adlogin-google-btn"
+          redirectTo="/admin"
+          failureRedirectTo="/admin/login"
+          successMessage="Googleアカウントで管理画面にログインしました。"
+          extraParams={{ role: "admin", admin_intent: "login" }}
+        />
 
         <div className="adlogin-foot-links">
           <button type="button">パスワードを忘れた場合</button>

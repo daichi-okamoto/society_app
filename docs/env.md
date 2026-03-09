@@ -13,6 +13,8 @@
 ## Rails（秘密情報）
 - `SECRET_KEY_BASE`
 - `ADMIN_SIGNUP_CODE`（管理者登録用の招待コード）
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
 
 ## Stripe
 - `STRIPE_SECRET_KEY`

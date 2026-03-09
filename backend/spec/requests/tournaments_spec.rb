@@ -37,6 +37,43 @@ RSpec.describe "Tournaments", type: :request do
       expect(json["tournament"]["start_time"]).to be_present
       expect(json["tournament"]["end_time"]).to be_present
     end
+
+    it "returns the latest tournament image url when present" do
+      admin = User.create!(
+        name: "管理者",
+        name_kana: "カンリシャ",
+        birth_date: "1990-01-01",
+        phone: "090-1111-1111",
+        email: "admin-image@example.com",
+        address: "東京都",
+        password: "password",
+        role: :admin
+      )
+
+      tournament = Tournament.create!(
+        name: "画像付き大会",
+        event_date: "2026-05-01",
+        venue: "会場",
+        match_half_minutes: 12,
+        max_teams: 10,
+        entry_fee_amount: 10000,
+        entry_fee_currency: "JPY",
+        cancel_deadline_date: "2026-04-30"
+      )
+
+      tournament.tournament_images.create!(
+        uploaded_by: admin.id,
+        file_url: "https://cdn.example.com/cover.jpg",
+        file_name: "cover.jpg",
+        content_type: "image/jpeg",
+        size_bytes: 1234
+      )
+
+      get "/tournaments/#{tournament.id}"
+
+      expect(response).to have_http_status(:ok)
+      expect(json["tournament"]["image_url"]).to eq("https://cdn.example.com/cover.jpg")
+    end
   end
 
   describe "POST /tournaments" do
