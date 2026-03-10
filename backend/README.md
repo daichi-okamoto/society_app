@@ -1,7 +1,7 @@
 # Backend (Rails API)
 
 ## Prerequisites
-- Ruby: `3.2.x`
+- Ruby: `3.4.x`
 - Bundler: `2.5+`
 - PostgreSQL: `14+`
 
