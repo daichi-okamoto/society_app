@@ -26,6 +26,7 @@ gem "devise"
 gem "omniauth-google-oauth2"
 gem "stripe", "~> 12.0"
 gem "aws-sdk-s3", "~> 1.170"
+gem "csv"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
