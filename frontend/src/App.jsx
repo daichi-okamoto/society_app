@@ -57,6 +57,7 @@ import AdminImages from "./pages/admin/AdminImages";
 import AdminPayments from "./pages/admin/AdminPayments";
 import AdminExports from "./pages/admin/AdminExports";
 import AdminNotifications from "./pages/admin/AdminNotifications";
+import AdminNotificationCreate from "./pages/admin/AdminNotificationCreate";
 
 export default function App() {
   return (
@@ -123,6 +124,7 @@ export default function App() {
           <Route path="/admin/payments" element={<AdminPayments />} />
           <Route path="/admin/exports" element={<AdminExports />} />
           <Route path="/admin/notifications" element={<AdminNotifications />} />
+          <Route path="/admin/notifications/new" element={<AdminNotificationCreate />} />
         </Route>
       </Route>
     </Routes>

@@ -2,11 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
 import AdminBottomNav from "../../components/admin/AdminBottomNav";
-
-const coverImages = [
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuArmpCuqVtA8v8TSrNLYNIa8STfBQr0JkidJPLJYHTg6K2qy98F3J0sHQ0WtejsoXu9JWYGCAc_Eodv-dRIIssNeiCJ4uRhCdBwETMSqfNcqp86lm8rt76vTh0lXAQdzu56cLaHk6C2OOQ8NIqMDH0VVI_sF364oBWQk3a2bRgzDTJyAO_VSsaOkft8yeqkNh1Bp0g-l2LfUCHNeAUxJPC9TcPK-HS55ht7pWufV-cXhCT_uE8nAaq4aUdygoSPXjNPlBUpdCwc7tU0",
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuA8qTaFGfVeqVEhcPp-LqZdm8kjvmFfQhFYnpLfRy004cqDeJM1GNlUFFnvHQCp91sfzqpZ7D5ArH5zL8pYYYQ7oDXT80w_n-P3-eWZGXvcSOc39FLS82aE_yqgyofZ61yWdN3RgLAiu4cZozUip9BD31LeC0oREahhR5NzPTqy0pBQkZWNV3zy6ylbiFJ_BHpfi38VIfYHPKs8Xff1PNR2r_YBXGMjaF6jIjwskbEm2BPqTaP_bTvMTp7-cThHzpwRWtAIybOw7UL3",
-];
+import { getTournamentCoverUrl } from "../../lib/tournamentImages";
 
 function statusByDate(eventDate) {
   if (!eventDate) return "recruiting";
@@ -41,7 +37,7 @@ export default function AdminTournaments() {
       .get("/tournaments")
       .then((data) => {
         if (!active) return;
-        const list = (data?.tournaments || []).map((t, idx) => {
+        const list = (data?.tournaments || []).map((t) => {
           const maxTeams = Number(t.max_teams || 16);
           const current = Math.max(0, Math.min(maxTeams, Number(t.active_entry_teams_count || 0)));
           const progress = Math.round((current / Math.max(maxTeams, 1)) * 100);
@@ -50,16 +46,16 @@ export default function AdminTournaments() {
             id: String(t.id),
             kind: status === "finished" ? "finished" : status === "live" ? "live" : "hero-recruiting",
             badge: status === "finished" ? "終了" : status === "live" ? "開催中" : "募集中",
-            badgeClass: status === "finished" ? "" : idx % 2 === 1 ? "is-amber" : "",
+            badgeClass: status === "finished" ? "is-finished" : status === "live" ? "is-success" : "is-primary",
             date: status === "live" ? "本日 • 13:00 - 18:00" : formatDateLabel(t.event_date),
             title: t.name,
             current,
             total: maxTeams,
             progress,
-            progressColor: idx % 2 === 1 ? "#f59e0b" : "var(--tour-primary)",
+            progressColor: status === "live" ? "#059669" : "var(--tour-primary)",
             revenueLabel: status === "live" ? "確定売上" : status === "finished" ? "最終売上" : "現在の売上",
             revenue: `¥${Number(t.entry_fee_amount || 0).toLocaleString("ja-JP")}`,
-            image: coverImages[idx % coverImages.length],
+            image: getTournamentCoverUrl(t),
             teamsText: `${current}チーム`,
             phaseText: "予選リーグ中",
             winner: "優勝: -",
@@ -91,6 +87,16 @@ export default function AdminTournaments() {
 
   const openTournamentDetail = (id) => {
     navigate(`/admin/tournaments/${id}`);
+  };
+
+  const onCardKeyDown = (event, id) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    openTournamentDetail(id);
+  };
+
+  const stopPropagation = (event) => {
+    event.stopPropagation();
   };
 
   return (
@@ -142,7 +148,14 @@ export default function AdminTournaments() {
         {loading ? <p className="adtour-empty">読み込み中...</p> : null}
         {!loading && filteredCards.length === 0 ? <p className="adtour-empty">表示できる大会がありません。</p> : null}
         {filteredCards.map((card) => (
-          <article key={card.id} className={`adtour-card ${card.kind}`}>
+          <article
+            key={card.id}
+            className={`adtour-card ${card.kind}`}
+            role="button"
+            tabIndex={0}
+            onClick={() => openTournamentDetail(card.id)}
+            onKeyDown={(event) => onCardKeyDown(event, card.id)}
+          >
             {card.kind !== "finished" ? (
               <div className={`adtour-hero ${card.kind === "live" ? "is-live" : ""}`}>
                 {card.image ? <img src={card.image} alt="" /> : <div className="adtour-solid-bg" />}
@@ -174,7 +187,7 @@ export default function AdminTournaments() {
                 </div>
                 <div className="adtour-finished-foot">
                   <span>{card.winner}</span>
-                  <button type="button" onClick={() => openTournamentDetail(card.id)}>
+                  <button type="button" onClick={() => openTournamentDetail(card.id)} onClickCapture={stopPropagation}>
                     結果詳細
                     <span className="material-symbols-outlined">chevron_right</span>
                   </button>
@@ -215,11 +228,21 @@ export default function AdminTournaments() {
                   </div>
                   <div>
                     {card.kind === "live" ? (
-                      <button type="button" className="adtour-live-cta" onClick={() => openTournamentDetail(card.id)}>
+                      <button
+                        type="button"
+                        className="adtour-live-cta"
+                        onClick={() => openTournamentDetail(card.id)}
+                        onClickCapture={stopPropagation}
+                      >
                         運営画面へ
                       </button>
                     ) : (
-                      <button type="button" className="adtour-link-btn" onClick={() => openTournamentDetail(card.id)}>
+                      <button
+                        type="button"
+                        className="adtour-link-btn"
+                        onClick={() => openTournamentDetail(card.id)}
+                        onClickCapture={stopPropagation}
+                      >
                         詳細を見る
                         <span className="material-symbols-outlined">arrow_forward</span>
                       </button>

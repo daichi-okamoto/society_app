@@ -27,4 +27,12 @@ class UserMailer < ApplicationMailer
       body: "送信者: #{from_user.name}\n件名: #{subject}\n\n#{body}"
     )
   end
+
+  def admin_notification(user, notification)
+    mail(
+      to: user.email,
+      subject: notification.title,
+      body: "#{notification.body}\n\n送信日時: #{notification.sent_at || notification.scheduled_at || Time.current}"
+    )
+  end
 end

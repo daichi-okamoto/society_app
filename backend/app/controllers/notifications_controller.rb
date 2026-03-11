@@ -4,6 +4,7 @@ class NotificationsController < ApplicationController
   before_action :authenticate_user!
 
   def index
+    promote_scheduled_notifications!
     notifications = notifications_for_user(current_user).sort_by(&:sent_at).reverse
     reads = NotificationRead.where(user_id: current_user.id).pluck(:notification_id).to_set
     unread = notifications.reject { |n| reads.include?(n.id) }
@@ -15,6 +16,7 @@ class NotificationsController < ApplicationController
   end
 
   def history
+    promote_scheduled_notifications!
     reads = NotificationRead.where(user_id: current_user.id).includes(:notification).order(read_at: :desc).limit(100)
     render json: {
       notifications: reads.map { |r| notification_json(r.notification).merge(read_at: r.read_at) }
@@ -25,6 +27,7 @@ class NotificationsController < ApplicationController
     require_admin!
     return if performed?
 
+    promote_scheduled_notifications!
     notifications = Notification.order(created_at: :desc).limit(100)
     render json: { notifications: notifications.map { |n| notification_json(n) } }, status: :ok
   end
@@ -33,45 +36,38 @@ class NotificationsController < ApplicationController
     require_admin!
     return if performed?
 
+    draft = boolean_param(:draft, default: false)
+    send_now = boolean_param(:send_now, default: true)
+    delivery_scope = params[:delivery_scope].presence || legacy_delivery_scope
+    target_specs = build_target_specs(delivery_scope)
+    scheduled_at = normalized_scheduled_at(draft: draft, send_now: send_now)
+
+    return render_invalid_scope if target_specs.nil?
+    return render_missing_schedule if !draft && !send_now && scheduled_at.nil?
+    return render_missing_targets if target_specs.empty?
+
     notification = Notification.new(
       title: params[:title],
       body: params[:body],
-      scheduled_at: params[:scheduled_at],
-      created_by: current_user.id
+      scheduled_at: scheduled_at,
+      sent_at: send_now && !draft ? Time.current : nil,
+      created_by: current_user.id,
+      delivery_scope: delivery_scope,
+      deliver_via_push: boolean_param(:deliver_via_push, default: true),
+      deliver_via_email: boolean_param(:deliver_via_email, default: false)
     )
 
-    target_type = params[:target_type]
-    target_ids = params[:target_ids] || (params[:target_id].present? ? [params[:target_id]] : [])
-
-    if notification.save
-      if target_type == "everyone"
-        NotificationTarget.create!(
-          notification: notification,
-          target_type: target_type,
-          target_id: nil
-        )
-      else
-        if target_ids.empty?
-          notification.destroy!
-          return render json: { error: { code: "validation_error" } }, status: :unprocessable_entity
-        end
-        target_ids.each do |tid|
-          NotificationTarget.create!(
-            notification: notification,
-            target_type: target_type,
-            target_id: tid
-          )
-        end
+    Notification.transaction do
+      notification.save!
+      target_specs.each do |target_type, target_id|
+        NotificationTarget.create!(notification: notification, target_type: target_type, target_id: target_id)
       end
-
-      if notification.scheduled_at <= Time.current
-        notification.update!(sent_at: Time.current)
-      end
-
-      render json: { notification: { id: notification.id } }, status: :created
-    else
-      render json: { error: { code: "validation_error", details: notification.errors } }, status: :unprocessable_entity
+      send_notification_emails!(notification) if notification.sent_at.present? && notification.deliver_via_email?
     end
+
+    render json: { notification: notification_json(notification) }, status: :created
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { error: { code: "validation_error", details: e.record.errors } }, status: :unprocessable_entity
   end
 
   def destroy
@@ -96,8 +92,6 @@ class NotificationsController < ApplicationController
   end
 
   def stream
-    # In development, disable long-lived SSE unless explicitly enabled.
-    # This avoids hanging Puma workers and makes Ctrl+C shutdown reliable.
     if !Rails.env.production? && ENV["ENABLE_NOTIFICATION_SSE"] != "true"
       return head :no_content
     end
@@ -109,22 +103,17 @@ class NotificationsController < ApplicationController
     last_id = request.headers["Last-Event-ID"].to_i
 
     sse = SSE.new(response.stream, event: "notification")
-    # Keep each SSE request short-lived so Puma can shut down cleanly on Ctrl+C in development.
-    # The client can reconnect with Last-Event-ID to continue from the latest event.
     deadline = Time.current + 25.seconds
 
     while Time.current < deadline
       break if response.stream.closed?
 
-      # promote scheduled notifications
-      Notification.where(sent_at: nil).where("scheduled_at <= ?", Time.current).find_each do |n|
-        n.update_columns(sent_at: Time.current, updated_at: Time.current)
-      end
+      promote_scheduled_notifications!
 
       notifications = notifications_for_user(current_user).select { |n| n.id > last_id }
-      notifications.sort_by(&:id).each do |n|
-        sse.write(notification_json(n), id: n.id)
-        last_id = n.id
+      notifications.sort_by(&:id).each do |notification|
+        sse.write(notification_json(notification), id: notification.id)
+        last_id = notification.id
       end
 
       sse.write("", event: "keep-alive")
@@ -138,13 +127,28 @@ class NotificationsController < ApplicationController
 
   private
 
-  def notification_json(n)
+  def render_invalid_scope
+    render json: { error: { code: "validation_error", details: { delivery_scope: ["is invalid"] } } }, status: :unprocessable_entity
+  end
+
+  def render_missing_schedule
+    render json: { error: { code: "validation_error", details: { scheduled_at: ["is required"] } } }, status: :unprocessable_entity
+  end
+
+  def render_missing_targets
+    render json: { error: { code: "validation_error", details: { targets: ["must be selected"] } } }, status: :unprocessable_entity
+  end
+
+  def notification_json(notification)
     {
-      id: n.id,
-      title: n.title,
-      body: n.body,
-      sent_at: n.sent_at,
-      scheduled_at: n.scheduled_at
+      id: notification.id,
+      title: notification.title,
+      body: notification.body,
+      sent_at: notification.sent_at,
+      scheduled_at: notification.scheduled_at,
+      delivery_scope: notification.delivery_scope,
+      deliver_via_push: notification.deliver_via_push,
+      deliver_via_email: notification.deliver_via_email
     }
   end
 
@@ -155,13 +159,90 @@ class NotificationsController < ApplicationController
     team_ids = TeamMember.where(user_id: user.id, status: :active).pluck(:team_id)
     tournament_ids = TournamentEntry.approved.where(team_id: team_ids).pluck(:tournament_id)
 
-    notifications.select do |n|
-      n.notification_targets.any? do |t|
-        t.everyone? ||
-          (t.user? && t.target_id == user.id) ||
-          (t.team? && team_ids.include?(t.target_id)) ||
-          (t.tournament? && tournament_ids.include?(t.target_id))
+    notifications.select do |notification|
+      notification.notification_targets.any? do |target|
+        target.everyone? ||
+          (target.user? && target.target_id == user.id) ||
+          (target.team? && team_ids.include?(target.target_id)) ||
+          (target.tournament? && tournament_ids.include?(target.target_id))
       end
     end
+  end
+
+  def promote_scheduled_notifications!
+    Notification.where(sent_at: nil).where.not(scheduled_at: nil).where("scheduled_at <= ?", Time.current).find_each do |notification|
+      notification.update_columns(sent_at: Time.current, updated_at: Time.current)
+      send_notification_emails!(notification) if notification.deliver_via_email?
+    end
+  end
+
+  def normalized_scheduled_at(draft:, send_now:)
+    return nil if draft
+    return Time.current if send_now
+
+    raw = params[:scheduled_at].presence
+    return nil if raw.blank?
+
+    Time.zone.parse(raw)
+  rescue ArgumentError, TypeError
+    nil
+  end
+
+  def legacy_delivery_scope
+    case params[:target_type].to_s
+    when "everyone" then "everyone"
+    when "tournament" then "tournament_teams"
+    when "team" then "specific_teams"
+    else nil
+    end
+  end
+
+  def boolean_param(key, default:)
+    return default if params[key].nil?
+
+    ActiveModel::Type::Boolean.new.cast(params[key])
+  end
+
+  def build_target_specs(delivery_scope)
+    case delivery_scope
+    when "everyone"
+      [[:everyone, nil]]
+    when "tournament_teams"
+      tournament_id = params[:tournament_id].to_i
+      return [] unless tournament_id.positive?
+
+      [[:tournament, tournament_id]]
+    when "specific_teams"
+      Array(params[:team_ids]).map(&:to_i).select(&:positive?).uniq.map { |team_id| [:team, team_id] }
+    when "captains"
+      Team.distinct.pluck(:captain_user_id).compact.map { |user_id| [:user, user_id] }
+    else
+      nil
+    end
+  end
+
+  def send_notification_emails!(notification)
+    recipients_for_notification(notification).find_each do |user|
+      UserMailer.admin_notification(user, notification).deliver_now
+    end
+  end
+
+  def recipients_for_notification(notification)
+    ids = notification.notification_targets.flat_map do |target|
+      if target.everyone?
+        User.pluck(:id)
+      elsif target.user?
+        [target.target_id]
+      elsif target.team?
+        TeamMember.where(team_id: target.target_id, status: :active).pluck(:user_id)
+      elsif target.tournament?
+        team_ids = TournamentEntry.approved.where(tournament_id: target.target_id).pluck(:team_id)
+        TeamMember.where(team_id: team_ids, status: :active).pluck(:user_id)
+      else
+        []
+      end
+    end
+
+    User.where(id: ids.uniq)
   end
 end

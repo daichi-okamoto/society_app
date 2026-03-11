@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
 import LoadingScreen from "../../components/LoadingScreen";
+import { getTournamentCoverUrl } from "../../lib/tournamentImages";
 
 const FILTERS = [
   { key: "all", label: "すべて" },
@@ -10,11 +11,6 @@ const FILTERS = [
   { key: "night", label: "平日夜間" },
   { key: "beginner", label: "初心者歓迎" },
   { key: "past", label: "過去の大会" },
-];
-
-const CARD_IMAGES = [
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuCX9N6okYrlSA1JKbjKPe2_OujI5m-zAzfcWY6dOzQXUlqN9fIRSxO_fow1KBmxaYSudTZ_ag5J0YGHfE5NyDAiKo88kZu02LEKIs7vX7-YpAIhujKiuIZaTgsNOir5-rx2E2WiM2ozCYYAcfeiFYyxfOngcE6_Tx7HCaieXyeyOVbYf1Pfz8ry5aegO7v_iIommHbn2LUuXWkF4IgkzymE5RF7WbOhknTU51mDkLaYr64wO2o7IWVRuAoo9mNi55XVan_RHplgzHaw",
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuAAeKupJcOmpiZThZ7bbSDYhNUK0NgjtIU6sFirZJX3m2mpo1pT64o0IJ2IIOVsgoRuoEitPWWCWqSJuiUDAAzL9i9HjWwisZeVzoDKIjX4AewNdQWqBcHfnNS1bQnGrNmR1UueA7dsewPYUsq_oD5eoy5WPZtTsItIjSgARcxF7l3dB7JI-Sd5DpoulpE_xPGhCaXwP-i6RWSAubbcrdxkBpB-FoQeqqYheO9-Q8t1M3K7r30E96u4D1OsOg2c4Dolsp_miQjFKb2f",
 ];
 
 function formatDateAndTime(date, name) {
@@ -136,13 +132,13 @@ export default function Tournaments() {
           <p className="tsrch-empty">条件に合う大会はありません。</p>
         ) : (
           <div className="tsrch-list">
-            {filtered.map((tournament, index) => {
+            {filtered.map((tournament) => {
               const status = getTournamentStatus(tournament.event_date);
               return (
                 <Link key={tournament.id} to={getTournamentDestination(tournament)} className="tsrch-card">
                   <div className="tsrch-card-image">
                     <img
-                      src={CARD_IMAGES[index % CARD_IMAGES.length]}
+                      src={getTournamentCoverUrl(tournament)}
                       alt="Tournament Venue"
                       loading="lazy"
                     />

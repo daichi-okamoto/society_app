@@ -155,6 +155,7 @@
   border: 1px solid #e5e7eb;
   background: #fff;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  cursor: pointer;
 }
 
 .adtour-card.finished {
@@ -196,17 +197,32 @@
 
 .adtour-badge {
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.95);
-  color: #172554;
+  background: rgba(30, 58, 138, 0.95);
+  color: #ffffff;
   padding: 4px 10px;
   font-size: 12px;
   font-weight: 700;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.15);
 }
 
+.adtour-badge.is-primary {
+  background: rgba(30, 58, 138, 0.95);
+  color: #ffffff;
+}
+
+.adtour-badge.is-success {
+  background: rgba(5, 150, 105, 0.92);
+  color: #ffffff;
+}
+
 .adtour-badge.is-amber {
   background: #f59e0b;
   color: #fff;
+}
+
+.adtour-badge.is-finished {
+  background: rgba(71, 85, 105, 0.92);
+  color: #ffffff;
 }
 
 .adtour-hero-copy {

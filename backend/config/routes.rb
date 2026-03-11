@@ -50,6 +50,7 @@ Rails.application.routes.draw do
   post "/payments/stripe/checkout", to: "payments#checkout"
   post "/payments/intent", to: "payments#intent"
   get "/payments/latest", to: "payments#latest"
+  get "/admin/dashboard", to: "admin_dashboard#show"
   get "/admin/payments", to: "payments#admin_index"
   post "/payments/:id/refund", to: "payments#refund"
   get "/payments/methods", to: "payment_methods#index"

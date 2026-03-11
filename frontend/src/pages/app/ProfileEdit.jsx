@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
+import { parseValidationError } from "../../lib/apiErrors";
 import { useAuth } from "../../context/AuthContext";
 
 const PREFECTURES = [
@@ -105,6 +106,15 @@ export default function ProfileEdit() {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  function goBack() {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+
+    navigate("/me");
+  }
+
   async function onPostalSearch() {
     if (searchingAddress) return;
     const digits = toDigits(form.postal_code);
@@ -157,7 +167,6 @@ export default function ProfileEdit() {
       const payload = {
         name: form.name,
         name_kana: form.name_kana,
-        email: form.email,
         phone: form.phone,
         birth_date: normalizeBirthDate(form.birth_date),
         address: composedAddress,
@@ -168,8 +177,16 @@ export default function ProfileEdit() {
       navigate("/me", {
         state: { flash: { type: "success", message: "プロフィールを更新しました。" } },
       });
-    } catch {
-      setError("更新に失敗しました");
+    } catch (err) {
+      if (err?.status === 401) {
+        setError("ログイン状態の有効期限が切れました。再度ログインしてください。");
+      } else if (err?.status === 422 && err?.data?.error?.code === "validation_error") {
+        setError(parseValidationError(err).summary);
+      } else if (err?.code === "network_error") {
+        setError("通信に失敗しました。時間をおいて再度お試しください。");
+      } else {
+        setError(err?.data?.error?.message || "更新に失敗しました。");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -204,7 +221,7 @@ export default function ProfileEdit() {
   return (
     <div className="mpe-root">
       <header className="mpe-header">
-        <button type="button" onClick={() => navigate(-1)}>
+        <button type="button" onClick={goBack}>
           <span className="material-symbols-outlined">arrow_back_ios</span>
         </button>
         <h1>プロフィールを編集</h1>
@@ -260,9 +277,11 @@ export default function ProfileEdit() {
               id="email"
               type="email"
               value={form.email}
-              onChange={(e) => setField("email", e.target.value)}
               placeholder="example@mail.com"
+              readOnly
+              disabled
             />
+            <p className="mpe-note">メールアドレスの変更は現在サポートしていません。</p>
 
             <label htmlFor="phone">電話番号</label>
             <input

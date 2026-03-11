@@ -29,7 +29,7 @@ describe("TournamentDetail", () => {
           cancel_deadline_date: "2026-04-30",
           start_time: "19:30:00",
           end_time: "21:30:00",
-          description: "大会概要テキスト",
+          description: "大会概要テキスト\nグループ設定:\n- Aグループ: ★★★★ (スタンダード)\n- Bグループ: ★★ (ビギナー)",
           rules: "スパイク禁止\n遅刻厳禁",
           cautions: "雨天決行（荒天中止）\n開始20分前までに受付"
         }
@@ -49,6 +49,9 @@ describe("TournamentDetail", () => {
     expect(getByText("開催日時")).toBeTruthy();
     expect(getAllByText("会場").length).toBeGreaterThan(0);
     expect(getByText("大会概要")).toBeTruthy();
+    expect(getByText("グループ設定")).toBeTruthy();
+    expect(getByText("Aグループ")).toBeTruthy();
+    expect(getByText("Bグループ")).toBeTruthy();
     expect(getByText("注意事項")).toBeTruthy();
     expect(getByText("雨天決行（荒天中止）")).toBeTruthy();
     expect(getByText("大会にエントリーする")).toBeTruthy();

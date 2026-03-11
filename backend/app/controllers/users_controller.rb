@@ -12,14 +12,20 @@ class UsersController < ApplicationController
     if current_user.update(update_params)
       render json: { user: user_json(current_user) }, status: :ok
     else
-      render json: { error: { code: "validation_error", details: current_user.errors } }, status: :unprocessable_entity
+      render json: {
+        error: {
+          code: "validation_error",
+          message: current_user.errors.full_messages.first || "入力内容を確認してください",
+          details: current_user.errors.to_hash(true)
+        }
+      }, status: :unprocessable_entity
     end
   end
 
   private
 
   def update_params
-    params.permit(:name, :name_kana, :birth_date, :phone, :email, :address, :avatar_url)
+    params.permit(:name, :name_kana, :birth_date, :phone, :address, :avatar_url)
   end
 
   def user_json(user)

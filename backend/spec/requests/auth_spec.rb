@@ -121,6 +121,70 @@ RSpec.describe "Auth", type: :request do
     end
   end
 
+  describe "PATCH /users/me" do
+    let!(:user) do
+      User.create!(
+        name: "更新前ユーザー",
+        name_kana: "コウシンマエユーザー",
+        birth_date: "1990-01-01",
+        phone: "090-0000-0000",
+        email: "profile-update@example.com",
+        address: "東京都",
+        password: "password"
+      )
+    end
+
+    before do
+      login_as(user)
+    end
+
+    it "updates the current user profile" do
+      patch "/users/me", params: {
+        name: "更新後ユーザー",
+        name_kana: "コウシンゴユーザー",
+        birth_date: "1997-10-05",
+        phone: "080-1111-2222",
+        email: "profile-update@example.com",
+        address: "〒399-3102 長野県下伊那郡高森町 ラピュタ102"
+      }
+
+      expect(response).to have_http_status(:ok)
+      expect(json.dig("user", "name")).to eq("更新後ユーザー")
+      expect(user.reload.address).to include("長野県下伊那郡高森町")
+    end
+
+    it "does not allow changing the email from profile update" do
+      patch "/users/me", params: {
+        name: "更新後ユーザー",
+        name_kana: "コウシンゴユーザー",
+        birth_date: "1997-10-05",
+        phone: "080-1111-2222",
+        email: "changed@example.com",
+        address: "東京都"
+      }
+
+      expect(response).to have_http_status(:ok)
+      expect(user.reload.email).to eq("profile-update@example.com")
+      expect(json.dig("user", "email")).to eq("profile-update@example.com")
+    end
+
+    it "returns validation details when the update is invalid" do
+      patch "/users/me", params: {
+        name: "",
+        name_kana: "",
+        birth_date: "",
+        phone: "",
+        address: "東京都"
+      }
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(json.dig("error", "code")).to eq("validation_error")
+      expect(json.dig("error", "message")).to be_present
+      expect(json.dig("error", "details", "name")).to be_present
+      expect(json.dig("error", "details", "phone")).to be_present
+    end
+  end
+
   describe "GET /auth/google" do
     it "redirects to the devise google oauth entrypoint" do
       get "/auth/google", params: { redirect_to: "/app/home" }

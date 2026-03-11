@@ -3,13 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
 import AdminBottomNav from "../../components/admin/AdminBottomNav";
 
-const venueOptions = [
-  { value: "", label: "会場を選択してください" },
-  { value: "代々木フットサルパーク", label: "代々木フットサルパーク" },
-  { value: "MIFA Football Park 豊洲", label: "MIFA Football Park 豊洲" },
-  { value: "多摩川河川敷グラウンド", label: "多摩川河川敷グラウンド" },
-];
-
 const DEFAULT_RULE_OPTIONS = ["オフサイドなし", "審判1名制"];
 const DEFAULT_CAUTION_OPTIONS = ["雨天決行（荒天中止）", "スパイク禁止（トレシュー推奨）", "開始20分前までに受付"];
 
@@ -268,13 +261,7 @@ export default function AdminTournamentCreate() {
               </div>
               <label>
                 会場 <span className="req">*</span>
-                <select value={form.venue} onChange={onFormChange("venue")}>
-                  {venueOptions.map((opt) => (
-                    <option key={opt.value || "blank"} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+                <input value={form.venue} onChange={onFormChange("venue")} placeholder="例: MIFA Football Park 豊洲" />
               </label>
             </div>
           </section>
