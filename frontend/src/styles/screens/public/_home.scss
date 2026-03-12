@@ -258,6 +258,156 @@
   display: none;
 }
 
+.public-home-shell {
+  max-width: 448px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 32px 20px 40px;
+  background: linear-gradient(180deg, #fffaf3 0%, #ffffff 220px, #ffffff 100%);
+  color: #0f172a;
+}
+
+.public-home-hero {
+  padding: 24px;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top right, rgba(217, 119, 6, 0.16), transparent 34%),
+    linear-gradient(135deg, #ffffff, #fff7ed);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+}
+
+.public-home-eyebrow {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #d97706;
+}
+
+.public-home-hero h1 {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1.15;
+}
+
+.public-home-lead {
+  margin: 12px 0 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #475569;
+}
+
+.public-home-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.public-home-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.public-home-button.primary {
+  background: #d97706;
+  color: #ffffff;
+}
+
+.public-home-button.secondary {
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.public-home-section {
+  margin-top: 24px;
+  padding: 24px;
+  border-radius: 28px;
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 16px 44px rgba(15, 23, 42, 0.06);
+}
+
+.public-home-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.public-home-section-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.public-home-section-header a {
+  color: #d97706;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.public-home-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+
+.public-home-card {
+  padding: 16px;
+  border-radius: 18px;
+  background: #fffaf3;
+  border: 1px solid #ffedd5;
+}
+
+.public-home-card-title {
+  margin: 0 0 8px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.public-home-card p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #64748b;
+}
+
+.public-home-empty {
+  margin: 0;
+  color: #64748b;
+}
+
+.public-home-footer {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+  padding-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.public-home-footer a {
+  color: #9a3412;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .j7-recommend-card {
   display: block;
   min-width: 260px;

@@ -63,13 +63,14 @@ export default function App() {
   return (
     <Routes>
       <Route element={<PublicLayout />}>
-        <Route path="/" element={<Navigate to="/app/home" replace />} />
-        <Route path="/home" element={<Home />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Navigate to="/" replace />} />
         <Route path="/tournaments/:id" element={<TournamentDetail />} />
         <Route path="/tournaments/:id/results" element={<Results />} />
         <Route path="/announcements" element={<Announcements />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/policies" element={<LegalPolicies />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/register" element={<AdminRegister />} />
       </Route>
@@ -101,7 +102,6 @@ export default function App() {
           <Route path="/help" element={<HelpContact />} />
           <Route path="/payments" element={<Payment />} />
           <Route path="/payments/new-card" element={<PaymentAddCard />} />
-          <Route path="/policies" element={<LegalPolicies />} />
         </Route>
       </Route>
 
