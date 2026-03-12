@@ -160,6 +160,11 @@
   align-items: center;
 }
 
+.tdetail-kpis article > .material-symbols-outlined {
+  color: #c46f12;
+  font-size: 20px;
+}
+
 .tdetail-kpis .icon {
   width: 32px;
   height: 32px;
@@ -276,6 +281,58 @@
   color: #64748b;
   font-size: 14px;
   line-height: 2;
+  white-space: pre-line;
+}
+
+.tdetail-group-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.tdetail-group-card {
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  background: linear-gradient(180deg, #ffffff 0%, #fffaf2 100%);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+  padding: 14px 16px;
+}
+
+.tdetail-group-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.tdetail-group-head strong {
+  color: #1e293b;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.tdetail-group-head span {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tdetail-group-stars {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tdetail-group-stars .material-symbols-outlined {
+  color: #cbd5e1;
+  font-size: 24px;
+  font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 24;
+}
+
+.tdetail-group-stars .material-symbols-outlined.filled {
+  color: #d97706;
+  font-variation-settings: "FILL" 1, "wght" 600, "GRAD" 0, "opsz" 24;
 }
 
 .tdetail-map {

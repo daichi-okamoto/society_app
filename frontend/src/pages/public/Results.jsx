@@ -3,9 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../../lib/api";
 import LoadingScreen from "../../components/LoadingScreen";
 import { useAuth } from "../../context/AuthContext";
-
-const COVER_IMAGE =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuCX9N6okYrlSA1JKbjKPe2_OujI5m-zAzfcWY6dOzQXUlqN9fIRSxO_fow1KBmxaYSudTZ_ag5J0YGHfE5NyDAiKo88kZu02LEKIs7vX7-YpAIhujKiuIZaTgsNOir5-rx2E2WiM2ozCYYAcfeiFYyxfOngcE6_Tx7HCaieXyeyOVbYf1Pfz8ry5aegO7v_iIommHbn2LUuXWkF4IgkzymE5RF7WbOhknTU51mDkLaYr64wO2o7IWVRuAoo9mNi55XVan_RHplgzHaw";
+import { getTournamentCoverUrl } from "../../lib/tournamentImages";
 
 function formatHeaderDate(dateText) {
   if (!dateText) return "-";
@@ -250,6 +248,7 @@ export default function Results() {
     () => standings.find((row) => row.teamId === entryTeamId) || null,
     [standings, entryTeamId]
   );
+  const hasMyEntry = Boolean(entryTeamId);
   const focusTeamName = focusStanding?.teamName || "所属チーム未設定";
   const summary = useMemo(() => summarizeMatches(matches, entryTeamId), [matches, entryTeamId]);
   const matchCards = useMemo(
@@ -333,7 +332,7 @@ export default function Results() {
       style={{ "--sheet-offset": `${sheetOffset}px` }}
     >
       <div className="pastres-hero">
-        <img src={tournament.image_url || COVER_IMAGE} alt="Tournament Cover" />
+        <img src={getTournamentCoverUrl(tournament)} alt={tournament.name} />
         <div className="pastres-hero-overlay" />
         <div className="pastres-page-label">大会結果詳細</div>
         <button type="button" className="pastres-back" onClick={() => navigate(-1)} aria-label="戻る">
@@ -365,73 +364,77 @@ export default function Results() {
 
         <section className="pastres-content">
           <div className="pastres-section-stack">
-            <section className="pastres-summary-head">
-              <h2>
-                <span />
-                最終結果
-              </h2>
-              <small>{focusTeamName}</small>
-            </section>
+            {hasMyEntry ? (
+              <>
+                <section className="pastres-summary-head">
+                  <h2>
+                    <span />
+                    最終結果
+                  </h2>
+                  <small>{focusTeamName}</small>
+                </section>
 
-              <section className="pastres-medal-block">
-                <div className="pastres-medal-icon">
-                  <span className="material-symbols-outlined">emoji_events</span>
-                </div>
-                <div className="pastres-medal-copy">
-                  <strong>{focusStanding ? `${focusStanding.rank}位` : "-"}</strong>
-                </div>
-                <p>{focusStanding ? `${focusStanding.rank}位 / ${standings.length}チーム中` : "順位未確定"}</p>
-              </section>
-
-            <section className="pastres-stats-card">
-              <div className="pastres-stats-top">
-                <div className="pastres-rate-ring">
-                  <svg viewBox="0 0 36 36">
-                    <path className="pastres-circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                    <path className="pastres-circle" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" strokeDasharray={`${winRate}, 100`} />
-                  </svg>
-                  <div className="pastres-rate-copy">
-                    <strong>{winRate}%</strong>
-                    <span>勝率</span>
+                <section className="pastres-medal-block">
+                  <div className="pastres-medal-icon">
+                    <span className="material-symbols-outlined">emoji_events</span>
                   </div>
-                </div>
+                  <div className="pastres-medal-copy">
+                    <strong>{focusStanding ? `${focusStanding.rank}位` : "-"}</strong>
+                  </div>
+                  <p>{focusStanding ? `${focusStanding.rank}位 / ${standings.length}チーム中` : "順位未確定"}</p>
+                </section>
 
-                <div className="pastres-record">
-                  <div>
-                    <h4>総合成績</h4>
-                    <div className="pastres-record-line">
-                      <strong>{summary.wins}</strong><span>勝</span>
-                      <strong>{summary.losses}</strong><span>敗</span>
-                      <strong>{summary.draws}</strong><span>分</span>
+                <section className="pastres-stats-card">
+                  <div className="pastres-stats-top">
+                    <div className="pastres-rate-ring">
+                      <svg viewBox="0 0 36 36">
+                        <path className="pastres-circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path className="pastres-circle" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" strokeDasharray={`${winRate}, 100`} />
+                      </svg>
+                      <div className="pastres-rate-copy">
+                        <strong>{winRate}%</strong>
+                        <span>勝率</span>
+                      </div>
+                    </div>
+
+                    <div className="pastres-record">
+                      <div>
+                        <h4>総合成績</h4>
+                        <div className="pastres-record-line">
+                          <strong>{summary.wins}</strong><span>勝</span>
+                          <strong>{summary.losses}</strong><span>敗</span>
+                          <strong>{summary.draws}</strong><span>分</span>
+                        </div>
+                      </div>
+                      <div className="pastres-record-bar">
+                        <div style={{ width: `${winBar}%` }} />
+                        <div style={{ width: `${lossBar}%` }} />
+                        <div style={{ width: `${drawBar}%` }} />
+                      </div>
                     </div>
                   </div>
-                  <div className="pastres-record-bar">
-                    <div style={{ width: `${winBar}%` }} />
-                    <div style={{ width: `${lossBar}%` }} />
-                    <div style={{ width: `${drawBar}%` }} />
-                  </div>
-                </div>
-              </div>
 
-              <div className="pastres-stats-bottom">
-                <div>
-                  <p>得点 / Goals For</p>
-                  <strong>{summary.goalsFor}</strong>
-                </div>
-                <div>
-                  <span>{`DIFF ${diff >= 0 ? "+" : ""}${diff}`}</span>
-                </div>
-                <div>
-                  <p>失点 / Goals Against</p>
-                  <strong>{summary.goalsAgainst}</strong>
-                </div>
-              </div>
-              <div className="pastres-gfga-bar">
-                <div style={{ width: `${goalsForPercent}%` }} />
-                <span />
-                <div style={{ width: `${goalsAgainstPercent}%` }} />
-              </div>
-            </section>
+                  <div className="pastres-stats-bottom">
+                    <div>
+                      <p>得点 / Goals For</p>
+                      <strong>{summary.goalsFor}</strong>
+                    </div>
+                    <div>
+                      <span>{`DIFF ${diff >= 0 ? "+" : ""}${diff}`}</span>
+                    </div>
+                    <div>
+                      <p>失点 / Goals Against</p>
+                      <strong>{summary.goalsAgainst}</strong>
+                    </div>
+                  </div>
+                  <div className="pastres-gfga-bar">
+                    <div style={{ width: `${goalsForPercent}%` }} />
+                    <span />
+                    <div style={{ width: `${goalsAgainstPercent}%` }} />
+                  </div>
+                </section>
+              </>
+            ) : null}
           </div>
         </section>
 
@@ -457,35 +460,37 @@ export default function Results() {
         <section className="pastres-content">
           {activeTab === "matches" ? (
             <div className="pastres-section-stack">
-              <section className="pastres-block">
-                <h3>
-                  <span />
-                  所属チーム試合結果
-                </h3>
-                <div className="pastres-match-list">
-                  {summary.normalizedMatches.length === 0 ? (
-                    <p className="pastres-empty">試合結果はまだありません。</p>
-                  ) : (
-                    summary.normalizedMatches.map((match) => (
-                      <article key={match.id} className="pastres-match-card">
-                        <div className="pastres-match-top">
-                          <span>{match.kickoffLabel}</span>
-                          <em className={match.resultLabel.toLowerCase()}>{match.resultLabel}</em>
-                        </div>
-                        <div className="pastres-score-row">
-                          <b className={match.resultLabel === "LOSS" ? "muted" : ""}>{match.leftName}</b>
-                          <div>
-                            <strong className={match.resultLabel === "LOSS" ? "muted" : ""}>{match.leftScore}</strong>
-                            <span>-</span>
-                            <strong className={match.resultLabel === "WIN" ? "muted" : ""}>{match.rightScore}</strong>
+              {hasMyEntry ? (
+                <section className="pastres-block">
+                  <h3>
+                    <span />
+                    所属チーム試合結果
+                  </h3>
+                  <div className="pastres-match-list">
+                    {summary.normalizedMatches.length === 0 ? (
+                      <p className="pastres-empty">試合結果はまだありません。</p>
+                    ) : (
+                      summary.normalizedMatches.map((match) => (
+                        <article key={match.id} className="pastres-match-card">
+                          <div className="pastres-match-top">
+                            <span>{match.kickoffLabel}</span>
+                            <em className={match.resultLabel.toLowerCase()}>{match.resultLabel}</em>
                           </div>
-                          <b className={match.resultLabel === "WIN" ? "muted" : ""}>{match.rightName}</b>
-                        </div>
-                      </article>
-                    ))
-                  )}
-                </div>
-              </section>
+                          <div className="pastres-score-row">
+                            <b className={match.resultLabel === "LOSS" ? "muted" : ""}>{match.leftName}</b>
+                            <div>
+                              <strong className={match.resultLabel === "LOSS" ? "muted" : ""}>{match.leftScore}</strong>
+                              <span>-</span>
+                              <strong className={match.resultLabel === "WIN" ? "muted" : ""}>{match.rightScore}</strong>
+                            </div>
+                            <b className={match.resultLabel === "WIN" ? "muted" : ""}>{match.rightName}</b>
+                          </div>
+                        </article>
+                      ))
+                    )}
+                  </div>
+                </section>
+              ) : null}
               <section className="pastres-block">
                 <h3>
                   <span />

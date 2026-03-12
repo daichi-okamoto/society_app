@@ -2,14 +2,28 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import TournamentOverviewTabContent from "./components/TournamentOverviewTabContent";
-
-const COVER_IMAGE =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuCX9N6okYrlSA1JKbjKPe2_OujI5m-zAzfcWY6dOzQXUlqN9fIRSxO_fow1KBmxaYSudTZ_ag5J0YGHfE5NyDAiKo88kZu02LEKIs7vX7-YpAIhujKiuIZaTgsNOir5-rx2E2WiM2ozCYYAcfeiFYyxfOngcE6_Tx7HCaieXyeyOVbYf1Pfz8ry5aegO7v_iIommHbn2LUuXWkF4IgkzymE5RF7WbOhknTU51mDkLaYr64wO2o7IWVRuAoo9mNi55XVan_RHplgzHaw";
+import { getTournamentCoverUrl } from "../../lib/tournamentImages";
 
 function formatDate(dateText) {
   if (!dateText) return "-";
   const date = new Date(`${dateText}T00:00:00`);
   return date.toLocaleDateString("ja-JP", { month: "numeric", day: "numeric", weekday: "short" });
+}
+
+function formatTime(timeText, fallback = "19:00") {
+  const raw = timeText || fallback;
+  const match = String(raw).match(/(?:T|^)(\d{2}):(\d{2})/);
+  if (!match) return fallback;
+  return `${Number(match[1])}:${match[2]}`;
+}
+
+function parseBulletItems(rawText) {
+  return String(rawText || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => line.replace(/^[-・✅\s]+/, "").trim())
+    .filter(Boolean);
 }
 
 export default function TournamentDetailUpcoming({ tournament }) {
@@ -66,13 +80,21 @@ export default function TournamentDetailUpcoming({ tournament }) {
     setIsDraggingSheet(true);
   }
 
+  const startTime = formatTime(tournament.start_time, "19:00");
+  const endTime = formatTime(tournament.end_time, "21:00");
+  const maxTeams = Number(tournament.max_teams || 0);
+  const activeTeams = Number(tournament.active_entry_teams_count || 0);
+  const remainingTeams = Math.max(maxTeams - activeTeams, 0);
+  const ruleLines = parseBulletItems(tournament.rules);
+  const cautionItems = parseBulletItems(tournament.cautions);
+
   return (
     <div
       className={`tdetail-root ${isDraggingSheet ? "dragging" : ""} ${sheetOffset > maxSheetOffset * 0.5 ? "expanded" : ""}`}
       style={{ "--sheet-offset": `${sheetOffset}px` }}
     >
       <div className="tdetail-hero">
-        <img src={COVER_IMAGE} alt="Tournament Cover" />
+        <img src={getTournamentCoverUrl(tournament)} alt={tournament.name} />
         <div className="tdetail-hero-overlay" />
         <button type="button" className="tdetail-back" onClick={() => navigate(-1)} aria-label="戻る">
           <span className="material-symbols-outlined">arrow_back_ios_new</span>
@@ -106,12 +128,16 @@ export default function TournamentDetailUpcoming({ tournament }) {
               <span className="material-symbols-outlined">calendar_month</span>
               <small>開催日時</small>
               <strong>{formatDate(tournament.event_date)}</strong>
-              <strong>19:00〜</strong>
+              <strong>
+                {startTime}〜{endTime}
+              </strong>
             </article>
             <article>
               <span className="material-symbols-outlined">groups</span>
               <small>募集チーム</small>
-              <strong>残り 2 / 8</strong>
+              <strong>
+                残り {remainingTeams} / {maxTeams}
+              </strong>
             </article>
             <article>
               <span className="material-symbols-outlined">payments</span>
@@ -134,70 +160,23 @@ export default function TournamentDetailUpcoming({ tournament }) {
 
           <div className="tdetail-content">
             {activeTab === "overview" ? (
-              <TournamentOverviewTabContent description={tournament.description} venue={tournament.venue} />
+              <TournamentOverviewTabContent description={tournament.description} venue={tournament.venue} cautionItems={cautionItems} />
             ) : (
               <div className="tdetail-sections">
                 <section>
                   <h2>
                     <span />
-                    試合形式
+                    ルール
                   </h2>
-                  <ul className="tdetail-dots">
-                    <li>12分ハーフ（ハーフタイム3分）</li>
-                    <li>予選リーグ（各チーム3試合）+ 順位決定戦</li>
-                    <li>同点の場合はPK戦（3人制）にて勝敗を決定</li>
-                  </ul>
-                </section>
-
-                <section>
-                  <h2>
-                    <span />
-                    競技規則
-                  </h2>
-                  <div className="tdetail-rule-card">
-                    <article>
-                      <span className="material-symbols-outlined">sports_soccer</span>
-                      <div>
-                        <h3>基本ルール</h3>
-                        <p>JFA 7人制サッカー競技規則に準ずる。ただし、オフサイドはございません。</p>
-                      </div>
-                    </article>
-                    <article>
-                      <span className="material-symbols-outlined">swap_horiz</span>
-                      <div>
-                        <h3>交代ルール</h3>
-                        <p>自由な交代（審判への申告不要、交代エリアからの出入り）が可能です。</p>
-                      </div>
-                    </article>
-                    <article>
-                      <span className="material-symbols-outlined">warning</span>
-                      <div>
-                        <h3>ラフプレイ</h3>
-                        <p>スライディングタックルは原則禁止（シュートブロック等の一部例外あり）。</p>
-                      </div>
-                    </article>
-                  </div>
-                </section>
-
-                <section>
-                  <h2>
-                    <span />
-                    注意事項（用具・設備）
-                  </h2>
-                  <ul className="tdetail-icons">
-                    <li>
-                      <span className="material-symbols-outlined">block</span>
-                      <p>サッカースパイクの使用は厳禁です。トレーニングシューズをご用意ください。</p>
-                    </li>
-                    <li>
-                      <span className="material-symbols-outlined">check_circle</span>
-                      <p>レガース（すねあて）の着用は必須です。</p>
-                    </li>
-                    <li>
-                      <span className="material-symbols-outlined">check_circle</span>
-                      <p>アクセサリー類、腕時計は安全のため外してプレイしてください。</p>
-                    </li>
-                  </ul>
+                  {ruleLines.length > 0 ? (
+                    <ul className="tdetail-dots">
+                      {ruleLines.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>ルール情報は準備中です。</p>
+                  )}
                 </section>
               </div>
             )}

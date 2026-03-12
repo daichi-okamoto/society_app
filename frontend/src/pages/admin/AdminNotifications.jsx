@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
+import AdminBottomNav from "../../components/admin/AdminBottomNav";
 
 function formatDateText(value) {
   if (!value) return "-";
@@ -65,10 +66,11 @@ export default function AdminNotifications() {
   }, [teams]);
 
   const toScopeText = (item) => {
-    if (item.target_type === "everyone") return "全ユーザー";
-    if (item.target_type === "tournament") return tournamentMap.get(String(item.target_id)) || "大会対象";
-    if (item.target_type === "team") return teamMap.get(String(item.target_id)) || "チーム対象";
-    return "個別ユーザー";
+    if (item.delivery_scope === "everyone") return "全ユーザー";
+    if (item.delivery_scope === "tournament_teams") return tournamentMap.get(String(item.target_id)) || "大会参加チーム";
+    if (item.delivery_scope === "specific_teams") return "特定のチーム";
+    if (item.delivery_scope === "captains") return "各チーム代表者のみ";
+    return "配信対象あり";
   };
 
   const sentItems = useMemo(() => notifications.filter((item) => !!item.sent_at), [notifications]);
@@ -95,7 +97,7 @@ export default function AdminNotifications() {
       </header>
 
       <main className="adntf-main">
-        <Link to="/admin/notifications" className="adntf-create-btn">
+        <Link to="/admin/notifications/new" className="adntf-create-btn">
           <span className="material-symbols-outlined">add</span>
           新規通知作成
         </Link>
@@ -135,30 +137,7 @@ export default function AdminNotifications() {
         </section>
       </main>
 
-      <nav className="adntf-nav">
-        <div className="adntf-nav-row">
-          <Link to="/admin" className="adntf-nav-item">
-            <span className="material-symbols-outlined">dashboard</span>
-            <span>ダッシュ</span>
-          </Link>
-          <Link to="/admin/tournaments" className="adntf-nav-item">
-            <span className="material-symbols-outlined">add_circle</span>
-            <span>大会作成</span>
-          </Link>
-          <Link to="/admin/teams" className="adntf-nav-item">
-            <span className="material-symbols-outlined">groups</span>
-            <span>チーム</span>
-          </Link>
-          <Link to="/admin/payments" className="adntf-nav-item">
-            <span className="material-symbols-outlined">payments</span>
-            <span>決済</span>
-          </Link>
-          <Link to="/admin/notifications" className="adntf-nav-item active">
-            <span className="material-symbols-outlined">notifications</span>
-            <span>通知</span>
-          </Link>
-        </div>
-      </nav>
+      <AdminBottomNav />
     </div>
   );
 }

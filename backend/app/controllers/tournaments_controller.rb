@@ -2,7 +2,7 @@ class TournamentsController < ApplicationController
   before_action :require_admin!, only: [:create, :update, :destroy]
 
   def index
-    tournaments = Tournament.order(event_date: :desc)
+    tournaments = Tournament.includes(:tournament_images).order(event_date: :desc)
     render json: { tournaments: tournaments.map { |t| tournament_summary(t) } }, status: :ok
   end
 
@@ -38,7 +38,11 @@ class TournamentsController < ApplicationController
   private
 
   def tournament_params
-    params.permit(:name, :event_date, :venue, :match_half_minutes, :max_teams, :entry_fee_amount, :entry_fee_currency, :cancel_deadline_date, :description)
+    params.permit(
+      :name, :event_date, :venue, :match_half_minutes, :max_teams,
+      :entry_fee_amount, :entry_fee_currency, :cancel_deadline_date,
+      :description, :start_time, :end_time, :rules, :cautions
+    )
   end
 
   def tournament_summary(t)
@@ -49,7 +53,10 @@ class TournamentsController < ApplicationController
       venue: t.venue,
       max_teams: t.max_teams,
       entry_fee_amount: t.entry_fee_amount,
-      active_entry_teams_count: t.active_entry_teams_count
+      active_entry_teams_count: t.active_entry_teams_count,
+      image_url: t.primary_image_url,
+      start_time: format_time(t.start_time),
+      end_time: format_time(t.end_time)
     }
   end
 
@@ -61,9 +68,20 @@ class TournamentsController < ApplicationController
       venue: t.venue,
       match_half_minutes: t.match_half_minutes,
       max_teams: t.max_teams,
+      active_entry_teams_count: t.active_entry_teams_count,
       entry_fee_amount: t.entry_fee_amount,
       entry_fee_currency: t.entry_fee_currency,
-      cancel_deadline_date: t.cancel_deadline_date
+      cancel_deadline_date: t.cancel_deadline_date,
+      description: t.description,
+      image_url: t.primary_image_url,
+      start_time: format_time(t.start_time),
+      end_time: format_time(t.end_time),
+      rules: t.rules,
+      cautions: t.cautions
     }
+  end
+
+  def format_time(value)
+    value&.strftime("%H:%M")
   end
 end

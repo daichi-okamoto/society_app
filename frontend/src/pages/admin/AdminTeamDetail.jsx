@@ -22,6 +22,7 @@ export default function AdminTeamDetail() {
   const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
+  const [showAllMembers, setShowAllMembers] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -31,6 +32,7 @@ export default function AdminTeamDetail() {
       .then((res) => {
         if (!active) return;
         setTeam(res?.team || null);
+        setShowAllMembers(false);
       })
       .catch(() => {
         if (!active) return;
@@ -47,13 +49,33 @@ export default function AdminTeamDetail() {
 
   const members = useMemo(() => team?.members || [], [team]);
   const captain = team?.captain || members.find((m) => m.role === "captain") || null;
+  const visibleMembers = useMemo(
+    () => (showAllMembers ? members : members.slice(0, 3)),
+    [members, showAllMembers]
+  );
 
   const onModerate = async (decision) => {
     if (!team || working) return;
+
+    if (decision === "suspend") {
+      const ok = window.confirm("このチームを利用停止にしますか？");
+      if (!ok) return;
+    }
+
+    if (decision === "reactivate") {
+      const ok = window.confirm("このチームの利用を再開しますか？");
+      if (!ok) return;
+    }
+
     setWorking(true);
     try {
       await api.patch(`/teams/${team.id}/moderate`, { decision });
-      const message = decision === "approve" ? "チームを承認しました。" : "チームを利用停止にしました。";
+      const message =
+        decision === "approve"
+          ? "チームを承認しました。"
+          : decision === "suspend"
+            ? "チームを利用停止にしました。"
+            : "チームの利用を再開しました。";
       navigate("/admin/teams", {
         replace: true,
         state: { flash: { type: "success", message } },
@@ -66,8 +88,10 @@ export default function AdminTeamDetail() {
   };
 
   const isPending = team?.status === "pending";
+  const isSuspended = team?.status === "suspended";
   const canApprove = isPending;
-  const canSuspend = team?.status !== "suspended";
+  const canSuspend = !isSuspended;
+  const canReactivate = isSuspended;
 
   return (
     <div className="adpdetail-root">
@@ -98,7 +122,7 @@ export default function AdminTeamDetail() {
               <p>ID: TM-{String(team.id).padStart(5, "0")}</p>
             </section>
 
-            {(canApprove || canSuspend) ? (
+            {(canApprove || canSuspend || canReactivate) ? (
               <section className="adpdetail-actions">
                 {canApprove ? (
                   <button type="button" className="approve" disabled={working} onClick={() => onModerate("approve")}>
@@ -110,6 +134,10 @@ export default function AdminTeamDetail() {
                 {canSuspend ? (
                   <button type="button" className="suspend" disabled={working} onClick={() => onModerate("suspend")}>
                     利用停止
+                  </button>
+                ) : canReactivate ? (
+                  <button type="button" className="approve" disabled={working} onClick={() => onModerate("reactivate")}>
+                    利用再開
                   </button>
                 ) : (
                   <div />
@@ -161,7 +189,7 @@ export default function AdminTeamDetail() {
                 </h3>
               </div>
               <div className="adpdetail-member-list">
-                {members.slice(0, 3).map((member) => (
+                {visibleMembers.map((member) => (
                   <div key={member.id} className="adpdetail-member-item">
                     <div className="left">
                       <div className="icon">
@@ -177,7 +205,11 @@ export default function AdminTeamDetail() {
                     </span>
                   </div>
                 ))}
-                {members.length > 3 ? <button type="button">全メンバーを表示</button> : null}
+                {members.length > 3 ? (
+                  <button type="button" onClick={() => setShowAllMembers((prev) => !prev)}>
+                    {showAllMembers ? "一部のみ表示" : "全メンバーを表示"}
+                  </button>
+                ) : null}
               </div>
             </section>
           </>

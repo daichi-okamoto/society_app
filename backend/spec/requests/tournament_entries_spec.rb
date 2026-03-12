@@ -123,6 +123,54 @@ RSpec.describe "TournamentEntries", type: :request do
     expect(json.dig("error", "code")).to eq("team_not_approved")
   end
 
+  it "rejects application when active members are less than 7" do
+    captain = User.create!(
+      name: "キャプテン不足",
+      name_kana: "キャプテンフソク",
+      birth_date: "1990-01-01",
+      phone: "090-4000-0000",
+      email: "cap-few@example.com",
+      address: "東京都",
+      password: "password"
+    )
+
+    login_as(captain)
+    post "/teams", params: { name: "FC Few" }
+    team_id = json["team"]["id"]
+    Team.find(team_id).update!(approval_status: :approved)
+
+    admin = User.create!(
+      name: "運営不足",
+      name_kana: "ウンエイフソク",
+      birth_date: "1990-01-01",
+      phone: "090-4000-9999",
+      email: "admin-few@example.com",
+      address: "東京都",
+      password: "password",
+      role: :admin
+    )
+    login_as(admin)
+    post "/tournaments", params: {
+      name: "大会名",
+      event_date: "2026-05-10",
+      venue: "会場",
+      match_half_minutes: 12,
+      max_teams: 15,
+      entry_fee_amount: 20000,
+      entry_fee_currency: "JPY",
+      cancel_deadline_date: "2026-05-09"
+    }
+    tournament_id = json["tournament"]["id"]
+
+    login_as(captain)
+    post "/tournaments/#{tournament_id}/entries", params: { team_id: team_id }
+
+    expect(response).to have_http_status(:unprocessable_entity)
+    expect(json.dig("error", "code")).to eq("minimum_team_members_required")
+    expect(json.dig("error", "required")).to eq(7)
+    expect(json.dig("error", "current")).to eq(1)
+  end
+
   it "returns my entries in bulk by tournament ids" do
     captain = User.create!(
       name: "キャプテンB",

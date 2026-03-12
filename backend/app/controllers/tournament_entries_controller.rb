@@ -9,8 +9,15 @@ class TournamentEntriesController < ApplicationController
       return render json: { error: { code: "forbidden" } }, status: :forbidden
     end
 
-    if TeamMember.where(team_id: team.id, status: :active).count < 7
-      return render json: { error: { code: "validation_error" } }, status: :unprocessable_entity
+    active_member_count = TeamMember.where(team_id: team.id, status: :active).count
+    if active_member_count < 7
+      return render json: {
+        error: {
+          code: "minimum_team_members_required",
+          required: 7,
+          current: active_member_count
+        }
+      }, status: :unprocessable_entity
     end
 
     unless team.approved?

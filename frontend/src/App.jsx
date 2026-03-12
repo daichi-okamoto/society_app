@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import PublicLayout from "./layouts/PublicLayout";
 import AppLayout from "./layouts/AppLayout";
 import AdminLayout from "./layouts/AdminLayout";
@@ -32,6 +32,8 @@ import TournamentEntryComplete from "./pages/app/TournamentEntryComplete";
 import TournamentEntryReview from "./pages/app/TournamentEntryReview";
 import TournamentEntryRoster from "./pages/app/TournamentEntryRoster";
 import Payment from "./pages/app/Payment";
+import PaymentAddCard from "./pages/app/PaymentAddCard";
+import TournamentPaymentCheckout from "./pages/app/TournamentPaymentCheckout";
 import TournamentImages from "./pages/app/TournamentImages";
 import NotificationCenter from "./pages/app/NotificationCenter";
 import HelpContact from "./pages/app/HelpContact";
@@ -55,17 +57,20 @@ import AdminImages from "./pages/admin/AdminImages";
 import AdminPayments from "./pages/admin/AdminPayments";
 import AdminExports from "./pages/admin/AdminExports";
 import AdminNotifications from "./pages/admin/AdminNotifications";
+import AdminNotificationCreate from "./pages/admin/AdminNotificationCreate";
 
 export default function App() {
   return (
     <Routes>
       <Route element={<PublicLayout />}>
         <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Navigate to="/" replace />} />
         <Route path="/tournaments/:id" element={<TournamentDetail />} />
         <Route path="/tournaments/:id/results" element={<Results />} />
         <Route path="/announcements" element={<Announcements />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/policies" element={<LegalPolicies />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/register" element={<AdminRegister />} />
       </Route>
@@ -91,12 +96,12 @@ export default function App() {
           <Route path="/tournaments/:id/entry/complete" element={<TournamentEntryComplete />} />
           <Route path="/tournaments/:id/entry/review" element={<TournamentEntryReview />} />
           <Route path="/tournaments/:id/entry/review/roster" element={<TournamentEntryRoster />} />
-          <Route path="/tournaments/:id/payment" element={<Payment />} />
+          <Route path="/tournaments/:id/payment" element={<TournamentPaymentCheckout />} />
           <Route path="/tournaments/:id/images" element={<TournamentImages />} />
           <Route path="/notifications" element={<NotificationCenter />} />
           <Route path="/help" element={<HelpContact />} />
           <Route path="/payments" element={<Payment />} />
-          <Route path="/policies" element={<LegalPolicies />} />
+          <Route path="/payments/new-card" element={<PaymentAddCard />} />
         </Route>
       </Route>
 
@@ -119,6 +124,7 @@ export default function App() {
           <Route path="/admin/payments" element={<AdminPayments />} />
           <Route path="/admin/exports" element={<AdminExports />} />
           <Route path="/admin/notifications" element={<AdminNotifications />} />
+          <Route path="/admin/notifications/new" element={<AdminNotificationCreate />} />
         </Route>
       </Route>
     </Routes>

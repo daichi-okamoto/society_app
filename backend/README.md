@@ -1,7 +1,7 @@
 # Backend (Rails API)
 
 ## Prerequisites
-- Ruby: `3.2.x`
+- Ruby: `3.4.x`
 - Bundler: `2.5+`
 - PostgreSQL: `14+`
 
@@ -12,6 +12,11 @@ bundle install
 cp .env.example .env
 bundle exec rails db:create db:migrate
 ```
+
+Google login:
+- Fill `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `backend/.env`
+- Register this callback URL in Google Cloud Console:
+  `http://localhost:3000/users/auth/google_oauth2/callback`
 
 ## Run local server
 ```bash

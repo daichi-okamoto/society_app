@@ -3,9 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { api } from "../../lib/api";
 import TournamentOverviewTabContent from "./components/TournamentOverviewTabContent";
-
-const COVER_IMAGE =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuA-MSmLmTuGcxKd0viNblk-n6qrQbumimk_bAR3RKqKgOwcKc-LdwDPReDFB_rRD1MwwSTt39C6b11lp9BXIMZLX9IlkmWtnvO4k_sCC1z1GaJjB8OOTzg9fn33yRfvDYUp8N5hid65wbnqP0gxzTZStf_ZqFAliIuh8aYl61iL1PA7GAMFN_NzCjrd6XAaIkw_BCjlqM8dQtkg1YPZt3URvVgIiy1vwv7PG6LZtwHqHrlY8_665uqovQNppZ4sat9CmbSFAXqLNE2O";
+import { getTournamentCoverUrl } from "../../lib/tournamentImages";
 
 function formatDateShort(dateText) {
   if (!dateText) return "-";
@@ -17,6 +15,15 @@ function formatKickoff(dateString) {
   if (!dateString) return "--:--";
   const dt = new Date(dateString);
   return dt.toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
+function parseBulletItems(rawText) {
+  return String(rawText || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => line.replace(/^[-・✅\s]+/, "").trim())
+    .filter(Boolean);
 }
 
 export default function TournamentDetailRegistered({ tournament, entryTeamId }) {
@@ -85,6 +92,8 @@ export default function TournamentDetailRegistered({ tournament, entryTeamId }) 
     const index = matches.findIndex((match) => match.status !== "finished");
     return index < 0 ? 0 : index;
   }, [matches]);
+  const ruleLines = useMemo(() => parseBulletItems(tournament.rules), [tournament.rules]);
+  const cautionItems = useMemo(() => parseBulletItems(tournament.cautions), [tournament.cautions]);
 
   useEffect(() => {
     const recalc = () => {
@@ -136,7 +145,7 @@ export default function TournamentDetailRegistered({ tournament, entryTeamId }) 
       style={{ "--sheet-offset": `${sheetOffset}px` }}
     >
       <div className="tdetail-hero">
-        <img src={COVER_IMAGE} alt="Tournament Cover" />
+        <img src={getTournamentCoverUrl(tournament)} alt={tournament.name} />
         <div className="tdetail-hero-overlay" />
         <button type="button" className="tdetail-back" onClick={() => navigate(-1)} aria-label="戻る">
           <span className="material-symbols-outlined">arrow_back_ios_new</span>
@@ -229,7 +238,7 @@ export default function TournamentDetailRegistered({ tournament, entryTeamId }) 
         <div className="tdetail-content">
           {activeTab === "overview" ? (
             <section className="tdetail-entry-overview">
-              <TournamentOverviewTabContent description={tournament.description} venue={tournament.venue} />
+              <TournamentOverviewTabContent description={tournament.description} venue={tournament.venue} cautionItems={cautionItems} />
             </section>
           ) : null}
 
@@ -294,11 +303,15 @@ export default function TournamentDetailRegistered({ tournament, entryTeamId }) 
                   <span />
                   規約・ルール
                 </h2>
-                <ul className="tdetail-dots">
-                  <li>オフサイドなし / 7人制 / 自由交代</li>
-                  <li>当日は開始20分前までに受付をお済ませください</li>
-                  <li>スパイクの使用は禁止（トレシュー推奨）</li>
-                </ul>
+                {ruleLines.length > 0 ? (
+                  <ul className="tdetail-dots">
+                    {ruleLines.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>ルール情報は準備中です。</p>
+                )}
               </section>
             </section>
           ) : null}

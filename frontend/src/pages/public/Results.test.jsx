@@ -12,6 +12,52 @@ vi.mock("../../context/AuthContext", () => ({
 }));
 
 describe("Results", () => {
+  it("hides final summary when user has no entry", async () => {
+    api.get.mockImplementation((path) => {
+      if (path === "/tournaments/1") {
+        return Promise.resolve({
+          tournament: {
+            id: 1,
+            name: "J7 渋谷カップ Vol.11",
+            event_date: "2024-04-18",
+            venue: "渋谷フットサル"
+          }
+        });
+      }
+      if (path === "/tournaments/1/entries/me") {
+        return Promise.resolve({
+          entry: null
+        });
+      }
+      return Promise.resolve({
+        matches: [
+          {
+            id: 1,
+            home_team_id: 2,
+            away_team_id: 3,
+            home_team_name: "渋谷ギャラクシー",
+            away_team_name: "代々木ユナイテッド",
+            kickoff_at: "2024-04-18T10:30:00+09:00",
+            result: { home_score: 3, away_score: 1 }
+          }
+        ]
+      });
+    });
+
+    const { getByText, queryByText } = render(
+      <MemoryRouter initialEntries={["/tournaments/1/results"]}>
+        <Routes>
+          <Route path="/tournaments/:id/results" element={<Results />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => expect(getByText("大会結果詳細")).toBeTruthy());
+    expect(queryByText("最終結果")).toBeNull();
+    expect(queryByText("所属チーム試合結果")).toBeNull();
+    expect(getByText("他チームの結果")).toBeTruthy();
+  });
+
   it("renders match results", async () => {
     api.get.mockImplementation((path) => {
       if (path === "/tournaments/1") {

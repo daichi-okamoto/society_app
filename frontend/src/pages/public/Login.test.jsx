@@ -29,4 +29,21 @@ describe("Login", () => {
 
     expect(getByText("ログイン", { selector: "button" })).toBeTruthy();
   });
+
+  it("toggles password visibility", () => {
+    const { getByLabelText } = render(
+      <MemoryRouter>
+        <Login />
+      </MemoryRouter>
+    );
+
+    const passwordInput = getByLabelText("パスワード");
+    const toggleButton = getByLabelText("パスワード表示切替");
+
+    expect(passwordInput.getAttribute("type")).toBe("password");
+    fireEvent.click(toggleButton);
+    expect(passwordInput.getAttribute("type")).toBe("text");
+    fireEvent.click(toggleButton);
+    expect(passwordInput.getAttribute("type")).toBe("password");
+  });
 });

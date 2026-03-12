@@ -108,6 +108,8 @@
 }
 
 .adteam-summary-card {
+  display: flex;
+  flex-direction: column;
   position: relative;
   border: 1px solid #f1f5f9;
   background: #fff;

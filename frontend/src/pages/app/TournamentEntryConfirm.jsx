@@ -18,6 +18,16 @@ function loadDraftFromStorage(id) {
   }
 }
 
+function loadResultFromStorage(id) {
+  const raw = window.sessionStorage.getItem(`entry-result:${id}`);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 function buildReceiptNumber(entryId) {
   const now = new Date();
   const y = now.getFullYear();
@@ -33,10 +43,12 @@ export default function TournamentEntryConfirm() {
   const location = useLocation();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [requiresCardSetup, setRequiresCardSetup] = useState(false);
 
   const draft = useMemo(() => {
     return location.state?.draft || loadDraftFromStorage(id);
   }, [id, location.state]);
+  const previousResult = useMemo(() => loadResultFromStorage(id), [id]);
 
   const categoryMeta = CATEGORY_LABELS[draft?.category] || CATEGORY_LABELS.enjoy;
   const paymentLabel = draft?.payment_method === "cash" ? "当日払い" : "クレジットカード";
@@ -51,15 +63,30 @@ export default function TournamentEntryConfirm() {
 
     setSubmitting(true);
     setError(null);
+    setRequiresCardSetup(false);
 
     try {
-      const data = await api.post(`/tournaments/${id}/entries`, {
-        team_id: Number(draft.team_id),
-        category: draft.category,
-        payment_method: draft.payment_method,
-      });
+      const canReuseEntry = previousResult?.entry_id && Number(previousResult?.team_id) === Number(draft.team_id);
+      const entryId =
+        draft.payment_method === "card" && canReuseEntry
+          ? Number(previousResult.entry_id)
+          : Number(
+              (
+                await api.post(`/tournaments/${id}/entries`, {
+                  team_id: Number(draft.team_id),
+                  category: draft.category,
+                  payment_method: draft.payment_method,
+                })
+              )?.entry?.id
+            );
+
+      if (!entryId) {
+        throw new Error("entry_create_failed");
+      }
+
       const result = {
-        receiptNumber: buildReceiptNumber(data?.entry?.id),
+        entry_id: entryId,
+        receiptNumber: buildReceiptNumber(entryId),
         tournamentName: draft.tournament_name || "",
         team_id: Number(draft.team_id),
         team_name: draft.team_name,
@@ -69,6 +96,19 @@ export default function TournamentEntryConfirm() {
         payment_method: draft.payment_method,
       };
       window.sessionStorage.setItem(`entry-result:${id}`, JSON.stringify(result));
+      if (draft.payment_method === "card") {
+        const methodData = await api.get("/payments/methods");
+        const methods = methodData?.methods || [];
+        if (methods.length === 0) {
+          setRequiresCardSetup(true);
+          setError("カードが未登録です。お支払い情報からカード登録を行ってください。");
+          return;
+        }
+
+        navigate(`/tournaments/${id}/payment?entry_id=${entryId}&saved_card=1`, { state: { result } });
+        return;
+      }
+
       window.sessionStorage.removeItem(`entry-draft:${id}`);
       navigate(`/tournaments/${id}/entry/complete`, {
         state: {
@@ -80,6 +120,12 @@ export default function TournamentEntryConfirm() {
       const code = err?.data?.error?.code;
       if (code === "team_not_approved") {
         setError("このチームは未承認のため大会エントリーできません。チーム承認後に再度お試しください。");
+      } else if (code === "minimum_team_members_required") {
+        const required = Number(err?.data?.error?.required || 7);
+        const current = Number(err?.data?.error?.current || 0);
+        setError(`メンバー数が不足しています。大会エントリーには${required}名以上必要です（現在${current}名）。`);
+      } else if (code === "validation_error") {
+        setError("このチームは既にエントリー済みの可能性があります。申し込み状況をご確認ください。");
       } else {
         setError("申し込みに失敗しました。時間をおいて再度お試しください。");
       }
@@ -187,6 +233,15 @@ export default function TournamentEntryConfirm() {
         </div>
 
         {error ? <p className="entry-confirm-error">{error}</p> : null}
+        {requiresCardSetup ? (
+          <button
+            type="button"
+            className="entry-confirm-payment-setup-btn"
+            onClick={() => navigate(`/payments?redirect=/tournaments/${id}/entry/confirm`)}
+          >
+            お支払い情報へ
+          </button>
+        ) : null}
       </main>
 
       <div className="entry-confirm-footer sticky-footer">

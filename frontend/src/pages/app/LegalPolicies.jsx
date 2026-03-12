@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const TERMS_SECTIONS = [
   {
@@ -126,15 +126,24 @@ const PRIVACY_SECTIONS = [
 
 export default function LegalPolicies() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState("terms");
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") === "privacy" ? "privacy" : "terms";
+  const [tab, setTab] = useState(initialTab);
 
   const title = useMemo(() => (tab === "terms" ? "高森ソサイチ サービス利用規約" : "高森ソサイチ プライバシーポリシー"), [tab]);
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+    navigate("/", { replace: true });
+  };
 
   return (
     <div className="legal-root">
       <header className="legal-header">
         <div className="legal-header-row">
-          <button type="button" onClick={() => navigate(-1)} aria-label="戻る">
+          <button type="button" onClick={handleBack} aria-label="戻る">
             <span className="material-symbols-outlined">arrow_back_ios_new</span>
           </button>
           <h1>規約とポリシー</h1>

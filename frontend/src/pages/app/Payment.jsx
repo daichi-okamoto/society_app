@@ -1,32 +1,74 @@
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { api } from "../../lib/api";
 
-const CARD_INFO = {
-  brand: "VISA",
-  masked: ["••••", "••••", "••••", "4242"],
-  expiredAt: "12/26",
-};
+export default function Payment() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectPath = searchParams.get("redirect");
+  const [methods, setMethods] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-const PAYMENT_HISTORY = [
-  { id: 1, title: "渋谷区 7人制 秋季大会", meta: "2023.11.24 • エントリー費", amount: "¥4,500", status: "決済完了", icon: "sports_soccer" },
-  { id: 2, title: "スポーツ保険更新", meta: "2023.10.12 • 年会費", amount: "¥2,800", status: "決済完了", icon: "shield" },
-  { id: 3, title: "個人フットサル参加", meta: "2023.09.30 • 施設利用料", amount: "¥1,500", status: "決済完了", icon: "stadium" },
-];
+  const loadMethods = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await api.get("/payments/methods");
+      setMethods(data?.methods || []);
+    } catch {
+      setError("支払い情報の取得に失敗しました。");
+      setMethods([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-export default function Payment({
-  paymentMethod = CARD_INFO,
-  paymentHistory = PAYMENT_HISTORY,
-}) {
-  // 将来的には API から取得して `paymentMethod` を切り替える
-  const hasPaymentMethod = Boolean(paymentMethod);
+  useEffect(() => {
+    loadMethods();
+  }, []);
+
+  const defaultMethod = useMemo(() => methods.find((m) => m.is_default) || methods[0] || null, [methods]);
+  const hasPaymentMethod = Boolean(defaultMethod);
+
+  const goBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+
+    navigate(redirectPath || "/me");
+  };
+
+  const toAddCardPage = () =>
+    navigate(
+      redirectPath
+        ? `/payments/new-card?redirect=${encodeURIComponent(redirectPath)}`
+        : "/payments/new-card"
+    );
+
+  const removeMethod = async (methodId) => {
+    try {
+      await api.del(`/payments/methods/${methodId}`);
+      await loadMethods();
+    } catch {
+      setError("カード削除に失敗しました。");
+    }
+  };
+
+  const setDefault = async (methodId) => {
+    try {
+      await api.post(`/payments/methods/${methodId}/default`, {});
+      await loadMethods();
+    } catch {
+      setError("デフォルトカードの更新に失敗しました。");
+    }
+  };
 
   return (
     <div className="pay-root">
       <header className="pay-header">
-        <button
-          type="button"
-          onClick={() => window.history.back()}
-          aria-label="お支払い情報を戻る"
-        >
+        <button type="button" onClick={goBack} aria-label="お支払い情報を戻る">
           <span className="material-symbols-outlined">arrow_back_ios_new</span>
         </button>
         <h1>お支払い情報</h1>
@@ -34,7 +76,18 @@ export default function Payment({
       </header>
 
       <main className="pay-main">
-        {hasPaymentMethod ? (
+        {redirectPath ? (
+          <div className="pay-entry-notice">
+            <span className="material-symbols-outlined">info</span>
+            <p>大会エントリーにはカード登録が必要です。登録完了後に申し込みへ戻ってください。</p>
+          </div>
+        ) : null}
+
+        {error ? <p className="pay-error">{error}</p> : null}
+
+        {loading ? (
+          <p className="pay-loading">読み込み中...</p>
+        ) : hasPaymentMethod ? (
           <section className="pay-has-card">
             <div className="pay-section-title">
               <p>登録済みのお支払い方法</p>
@@ -46,53 +99,48 @@ export default function Payment({
                 <span className="pay-card-chip-wrap">
                   <span className="pay-card-chip" />
                 </span>
-                <strong>{paymentMethod.brand}</strong>
+                <strong>{String(defaultMethod.brand || "CARD").toUpperCase()}</strong>
               </div>
 
               <div className="pay-card-number">
                 <p>カード番号</p>
                 <div>
-                  {paymentMethod.masked.map((chunk, index) => (
-                    <span key={index}>{chunk}</span>
-                  ))}
+                  <span>••••</span>
+                  <span>••••</span>
+                  <span>••••</span>
+                  <span>{defaultMethod.last4 || "----"}</span>
                 </div>
               </div>
 
               <div className="pay-card-bottom">
                 <div>
                   <p>有効期限</p>
-                  <p>{paymentMethod.expiredAt}</p>
+                  <p>{defaultMethod.exp_month}/{String(defaultMethod.exp_year || "").slice(-2)}</p>
                 </div>
-                <button type="button">編集</button>
+                <span className="pay-default-tag">デフォルト</span>
               </div>
             </div>
 
-            <div className="pay-section-title with-action">
-              <h2>最近の支払い履歴</h2>
-              <button type="button">すべて見る</button>
-            </div>
-
-            <div className="pay-history-list">
-              {paymentHistory.map((item) => (
-                <article className="pay-history-item" key={item.id}>
-                  <div className="pay-history-left">
-                    <div className="pay-history-icon">
-                      <span className="material-symbols-outlined">{item.icon}</span>
-                    </div>
-                    <div>
-                      <h3>{item.title}</h3>
-                      <p>{item.meta}</p>
-                    </div>
+            <div className="pay-method-list">
+              {methods.map((method) => (
+                <article className="pay-method-item" key={method.id}>
+                  <div>
+                    <strong>{String(method.brand || "CARD").toUpperCase()} •••• {method.last4}</strong>
+                    <p>{method.exp_month}/{String(method.exp_year || "").slice(-2)}</p>
                   </div>
-                  <div className="pay-history-right">
-                    <strong>{item.amount}</strong>
-                    <span>{item.status}</span>
+                  <div className="pay-method-actions">
+                    {!method.is_default ? (
+                      <button type="button" onClick={() => setDefault(method.id)}>既定にする</button>
+                    ) : (
+                      <span>既定</span>
+                    )}
+                    <button type="button" className="danger" onClick={() => removeMethod(method.id)}>削除</button>
                   </div>
                 </article>
               ))}
             </div>
 
-            <button type="button" className="pay-add-btn">
+            <button type="button" className="pay-add-btn" onClick={toAddCardPage}>
               <span className="material-symbols-outlined">add_card</span>
               <span>新しいカードを追加</span>
             </button>
@@ -113,15 +161,10 @@ export default function Payment({
               クレジットカード等の登録をお勧めします。
             </p>
 
-            <button type="button" className="pay-primary-btn">
+            <button type="button" className="pay-primary-btn" onClick={toAddCardPage}>
               <span className="material-symbols-outlined">add</span>
               <span>お支払い方法を追加する</span>
             </button>
-
-            <p className="pay-empty-note">
-              <span className="material-symbols-outlined">shield</span>
-              <span>カード情報は暗号化され、安全に保管されます</span>
-            </p>
           </section>
         )}
       </main>

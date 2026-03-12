@@ -13,11 +13,16 @@
 ## Rails（秘密情報）
 - `SECRET_KEY_BASE`
 - `ADMIN_SIGNUP_CODE`（管理者登録用の招待コード）
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
 
 ## Stripe
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
-- `STRIPE_PUBLIC_KEY`（フロント用）
+- `VITE_STRIPE_PUBLISHABLE_KEY`（フロント用）
+
+## Frontend (Vite)
+- `VITE_API_BASE_URL`
 
 ## Cloudflare R2
 - `R2_ACCESS_KEY_ID`
