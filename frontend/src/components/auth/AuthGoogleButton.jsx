@@ -1,6 +1,32 @@
-export default function AuthGoogleButton({ label }) {
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+
+export default function AuthGoogleButton({
+  label,
+  redirectTo = "/app/home",
+  failureRedirectTo = "/login",
+  successMessage = "Googleアカウントでログインしました。",
+  className = "login-sp-google",
+  extraParams = {},
+  onBeforeRedirect
+}) {
+  const onClick = () => {
+    if (typeof onBeforeRedirect === "function" && onBeforeRedirect() === false) {
+      return;
+    }
+
+    const url = new URL("/auth/google", API_BASE_URL);
+    url.searchParams.set("redirect_to", redirectTo);
+    url.searchParams.set("failure_redirect_to", failureRedirectTo);
+    url.searchParams.set("success_message", successMessage);
+    Object.entries(extraParams).forEach(([key, value]) => {
+      if (value === null || value === undefined || value === "") return;
+      url.searchParams.set(key, String(value));
+    });
+    window.location.assign(url.toString());
+  };
+
   return (
-    <button type="button" className="login-sp-google">
+    <button type="button" className={className} onClick={onClick}>
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />

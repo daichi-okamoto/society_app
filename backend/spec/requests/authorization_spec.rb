@@ -74,6 +74,50 @@ RSpec.describe "Authorization", type: :request do
     expect(response).to have_http_status(:unauthorized)
   end
 
+  it "allows profile avatar upload for authenticated participant" do
+    user = User.create!(
+      name: "参加者",
+      name_kana: "サンカシャ",
+      birth_date: "1990-01-01",
+      phone: "090-0000-0004",
+      email: "user-auth4@example.com",
+      address: "東京都",
+      password: "password"
+    )
+
+    login_as(user)
+    stub_const("UploadsController::R2_CLIENT", instance_double(Aws::S3::Client, put_object: true))
+    stub_const("UploadsController::R2_BUCKET", "test-bucket")
+    stub_const("UploadsController::R2_PUBLIC_BASE_URL", "https://cdn.example.com")
+
+    post "/uploads/direct", params: {
+      upload_kind: "profile_avatar",
+      file: fixture_file_upload("sample.png", "image/png")
+    }
+
+    expect(response).to have_http_status(:ok)
+    expect(JSON.parse(response.body).fetch("public_url")).to include("/profile-avatars/#{user.id}/")
+  end
+
+  it "forbids tournament image upload for authenticated participant" do
+    user = User.create!(
+      name: "参加者",
+      name_kana: "サンカシャ",
+      birth_date: "1990-01-01",
+      phone: "090-0000-0005",
+      email: "user-auth5@example.com",
+      address: "東京都",
+      password: "password"
+    )
+
+    login_as(user)
+    post "/uploads/direct", params: {
+      file: fixture_file_upload("sample.png", "image/png")
+    }
+
+    expect(response).to have_http_status(:forbidden)
+  end
+
   it "forbids match create for non-admin" do
     captain = User.create!(
       name: "キャプテン",

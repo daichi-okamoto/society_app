@@ -66,10 +66,11 @@ export default function AdminNotifications() {
   }, [teams]);
 
   const toScopeText = (item) => {
-    if (item.target_type === "everyone") return "全ユーザー";
-    if (item.target_type === "tournament") return tournamentMap.get(String(item.target_id)) || "大会対象";
-    if (item.target_type === "team") return teamMap.get(String(item.target_id)) || "チーム対象";
-    return "個別ユーザー";
+    if (item.delivery_scope === "everyone") return "全ユーザー";
+    if (item.delivery_scope === "tournament_teams") return tournamentMap.get(String(item.target_id)) || "大会参加チーム";
+    if (item.delivery_scope === "specific_teams") return "特定のチーム";
+    if (item.delivery_scope === "captains") return "各チーム代表者のみ";
+    return "配信対象あり";
   };
 
   const sentItems = useMemo(() => notifications.filter((item) => !!item.sent_at), [notifications]);
@@ -96,7 +97,7 @@ export default function AdminNotifications() {
       </header>
 
       <main className="adntf-main">
-        <Link to="/admin/notifications" className="adntf-create-btn">
+        <Link to="/admin/notifications/new" className="adntf-create-btn">
           <span className="material-symbols-outlined">add</span>
           新規通知作成
         </Link>

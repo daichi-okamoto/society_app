@@ -52,6 +52,8 @@ describe("AdminMatches", () => {
       </MemoryRouter>
     );
 
+    await waitFor(() => expect(screen.getByText("大会A")).toBeInTheDocument());
+    expect(screen.getByText("3/29 (日) • 9:00 - 16:00")).toBeInTheDocument();
     await waitFor(() => expect(screen.getByText("試合が登録されていません")).toBeInTheDocument());
 
     fireEvent.click(screen.getByRole("button", { name: /試合を追加する/ }));

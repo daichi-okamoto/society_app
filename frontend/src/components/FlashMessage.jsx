@@ -22,7 +22,16 @@ export default function FlashMessage() {
   const dismissTimerRef = useRef(null);
   const removeTimerRef = useRef(null);
 
-  const parsed = useMemo(() => normalizeFlash(location.state?.flash), [location.state]);
+  const parsed = useMemo(() => {
+    const stateFlash = normalizeFlash(location.state?.flash);
+    if (stateFlash) return stateFlash;
+
+    const searchParams = new URLSearchParams(location.search);
+    return normalizeFlash({
+      type: searchParams.get("flash_type"),
+      message: searchParams.get("flash_message"),
+    });
+  }, [location.state, location.search]);
 
   const dismiss = () => {
     if (!flash) return;
@@ -47,8 +56,13 @@ export default function FlashMessage() {
     setHiding(false);
 
     const nextState = { ...(location.state || {}) };
+    const nextSearchParams = new URLSearchParams(location.search);
     delete nextState.flash;
-    navigate(`${location.pathname}${location.search}${location.hash}`, {
+    nextSearchParams.delete("flash_type");
+    nextSearchParams.delete("flash_message");
+
+    const nextSearch = nextSearchParams.toString();
+    navigate(`${location.pathname}${nextSearch ? `?${nextSearch}` : ""}${location.hash}`, {
       replace: true,
       state: Object.keys(nextState).length ? nextState : null,
     });

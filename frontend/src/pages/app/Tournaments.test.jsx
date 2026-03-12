@@ -39,7 +39,7 @@ describe("Tournaments", () => {
 
   it("renders tournaments", async () => {
     api.get.mockResolvedValue({
-      tournaments: [{ id: 1, name: "大会A", event_date: "2026-05-01", venue: "会場" }]
+      tournaments: [{ id: 1, name: "大会A", event_date: "2026-05-01", venue: "会場", image_url: "https://example.com/tournament-a.jpg" }]
     });
 
     render(
@@ -51,6 +51,7 @@ describe("Tournaments", () => {
     await waitFor(() => expect(screen.getByRole("heading", { name: "大会をさがす" })).toBeInTheDocument());
     expect(screen.getByText("大会A")).toBeInTheDocument();
     expect(screen.getByText("会場")).toBeInTheDocument();
+    expect(screen.getByAltText("Tournament Venue")).toHaveAttribute("src", "https://example.com/tournament-a.jpg");
   });
 
   it("filters by keyword", async () => {
@@ -73,5 +74,33 @@ describe("Tournaments", () => {
     });
     expect(screen.queryByText("渋谷カップ")).not.toBeInTheDocument();
     expect(screen.getByText("新宿リーグ")).toBeInTheDocument();
+  });
+
+  it("filters past tournaments with the past tag", async () => {
+    const formatYmd = (date) => date.toISOString().slice(0, 10);
+    const today = new Date();
+    const future = new Date(today);
+    future.setDate(today.getDate() + 7);
+    const past = new Date(today);
+    past.setDate(today.getDate() - 7);
+
+    api.get.mockResolvedValue({
+      tournaments: [
+        { id: 1, name: "未来大会", event_date: formatYmd(future), venue: "会場A" },
+        { id: 2, name: "過去大会", event_date: formatYmd(past), venue: "会場B" },
+      ],
+    });
+
+    render(
+      <MemoryRouter>
+        <Tournaments />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => expect(screen.getByText("未来大会")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "過去の大会" }));
+
+    expect(screen.getByText("過去大会")).toBeInTheDocument();
+    expect(screen.queryByText("未来大会")).not.toBeInTheDocument();
   });
 });

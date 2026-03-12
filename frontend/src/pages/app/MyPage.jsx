@@ -96,9 +96,6 @@ export default function MyPage() {
           <div className="mp-avatar">
             <img src={avatarUrl} alt={displayName} />
           </div>
-          <button type="button" className="mp-camera" aria-label="写真を変更">
-            <span className="material-symbols-outlined">photo_camera</span>
-          </button>
         </div>
 
         <h1>{displayName}</h1>

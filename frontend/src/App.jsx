@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import PublicLayout from "./layouts/PublicLayout";
 import AppLayout from "./layouts/AppLayout";
 import AdminLayout from "./layouts/AdminLayout";
@@ -57,17 +57,20 @@ import AdminImages from "./pages/admin/AdminImages";
 import AdminPayments from "./pages/admin/AdminPayments";
 import AdminExports from "./pages/admin/AdminExports";
 import AdminNotifications from "./pages/admin/AdminNotifications";
+import AdminNotificationCreate from "./pages/admin/AdminNotificationCreate";
 
 export default function App() {
   return (
     <Routes>
       <Route element={<PublicLayout />}>
         <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Navigate to="/" replace />} />
         <Route path="/tournaments/:id" element={<TournamentDetail />} />
         <Route path="/tournaments/:id/results" element={<Results />} />
         <Route path="/announcements" element={<Announcements />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/policies" element={<LegalPolicies />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/register" element={<AdminRegister />} />
       </Route>
@@ -99,7 +102,6 @@ export default function App() {
           <Route path="/help" element={<HelpContact />} />
           <Route path="/payments" element={<Payment />} />
           <Route path="/payments/new-card" element={<PaymentAddCard />} />
-          <Route path="/policies" element={<LegalPolicies />} />
         </Route>
       </Route>
 
@@ -122,6 +124,7 @@ export default function App() {
           <Route path="/admin/payments" element={<AdminPayments />} />
           <Route path="/admin/exports" element={<AdminExports />} />
           <Route path="/admin/notifications" element={<AdminNotifications />} />
+          <Route path="/admin/notifications/new" element={<AdminNotificationCreate />} />
         </Route>
       </Route>
     </Routes>

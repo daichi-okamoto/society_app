@@ -118,6 +118,35 @@
   line-height: 1.55;
 }
 
+.adcreate-card input[type="file"] {
+  padding: 10px 12px;
+  background: #fff;
+}
+
+.adcreate-image-preview {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.adcreate-image-preview img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.adcreate-image-empty {
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 18px 16px;
+}
+
 .adcreate-grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, fireEvent, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import AdminTournaments from "./AdminTournaments";
 import { api } from "../../lib/api";
 
@@ -20,8 +20,11 @@ describe("AdminTournaments", () => {
     });
 
     const { getByText, getByPlaceholderText, queryByText, getByRole } = render(
-      <MemoryRouter>
-        <AdminTournaments />
+      <MemoryRouter initialEntries={["/admin/tournaments"]}>
+        <Routes>
+          <Route path="/admin/tournaments" element={<AdminTournaments />} />
+          <Route path="/admin/tournaments/:id" element={<div>detail page</div>} />
+        </Routes>
       </MemoryRouter>
     );
     await waitFor(() => expect(getByText("大会A")).toBeTruthy());
@@ -34,5 +37,8 @@ describe("AdminTournaments", () => {
 
     fireEvent.click(getByRole("button", { name: "募集中" }));
     await waitFor(() => expect(getByText("大会B")).toBeTruthy());
+
+    fireEvent.click(getByText("大会B").closest(".adtour-card"));
+    await waitFor(() => expect(getByText("detail page")).toBeTruthy());
   });
 });

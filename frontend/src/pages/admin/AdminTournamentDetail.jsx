@@ -2,11 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../../lib/api";
 import AdminBottomNav from "../../components/admin/AdminBottomNav";
-
-const coverImages = [
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuArmpCuqVtA8v8TSrNLYNIa8STfBQr0JkidJPLJYHTg6K2qy98F3J0sHQ0WtejsoXu9JWYGCAc_Eodv-dRIIssNeiCJ4uRhCdBwETMSqfNcqp86lm8rt76vTh0lXAQdzu56cLaHk6C2OOQ8NIqMDH0VVI_sF364oBWQk3a2bRgzDTJyAO_VSsaOkft8yeqkNh1Bp0g-l2LfUCHNeAUxJPC9TcPK-HS55ht7pWufV-cXhCT_uE8nAaq4aUdygoSPXjNPlBUpdCwc7tU0",
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuA8qTaFGfVeqVEhcPp-LqZdm8kjvmFfQhFYnpLfRy004cqDeJM1GNlUFFnvHQCp91sfzqpZ7D5ArH5zL8pYYYQ7oDXT80w_n-P3-eWZGXvcSOc39FLS82aE_yqgyofZ61yWdN3RgLAiu4cZozUip9BD31LeC0oREahhR5NzPTqy0pBQkZWNV3zy6ylbiFJ_BHpfi38VIfYHPKs8Xff1PNR2r_YBXGMjaF6jIjwskbEm2BPqTaP_bTvMTp7-cThHzpwRWtAIybOw7UL3",
-];
+import { getTournamentCoverUrl } from "../../lib/tournamentImages";
 
 const teamLogoColors = ["blue", "red", "gray", "indigo", "emerald"];
 const DEFAULT_RULE_OPTIONS = ["オフサイドなし", "審判1名制"];
@@ -385,8 +381,8 @@ export default function AdminTournamentDetail() {
   const coverUrl = useMemo(() => {
     const latest = images[0]?.download_url || images[0]?.file_url;
     if (latest) return latest;
-    return coverImages[Number(tournament?.id || 0) % coverImages.length];
-  }, [images, tournament?.id]);
+    return getTournamentCoverUrl(tournament);
+  }, [images, tournament]);
   const sortedMatches = useMemo(() => {
     return [...matches].sort((a, b) => {
       const ta = new Date(a.kickoff_at || 0).getTime();

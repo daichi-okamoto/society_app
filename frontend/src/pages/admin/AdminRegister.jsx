@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthActions } from "../../hooks/useAuthActions";
 import { parseValidationError } from "../../lib/apiErrors";
+import AuthGoogleButton from "../../components/auth/AuthGoogleButton";
 
 function buildProfileFromEmail(email) {
   const localPart = (email || "admin").split("@")[0] || "admin";
@@ -18,6 +19,7 @@ function buildProfileFromEmail(email) {
 
 export default function AdminRegister() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { registerAdmin } = useAuthActions();
   const [form, setForm] = useState({
     email: "",
@@ -29,6 +31,13 @@ export default function AdminRegister() {
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
+  const oauthError = searchParams.get("oauth_error");
+  const oauthErrorMessage =
+    oauthError === "invalid_admin_invite_code"
+      ? "管理者招待コードが正しくありません"
+      : oauthError === "admin_registration_failed"
+        ? "Googleでの管理者登録に失敗しました。もう一度お試しください。"
+        : "Googleログインに失敗しました。もう一度お試しください。";
 
   const onChange = (event) => {
     const { name, value } = event.target;
@@ -39,6 +48,13 @@ export default function AdminRegister() {
       delete next[name];
       return next;
     });
+  };
+
+  const beforeGoogleRegister = () => {
+    if (form.adminInviteCode.trim()) return true;
+    setError("管理者招待コードを入力してください");
+    setFieldErrors({ adminInviteCode: "管理者招待コード：入力してください" });
+    return false;
   };
 
   const onSubmit = async (event) => {
@@ -193,12 +209,30 @@ export default function AdminRegister() {
             ) : null}
           </div>
 
-          {error ? <p className="adlogin-error">{error}</p> : null}
+          {error || oauthError ? <p className="adlogin-error">{error || oauthErrorMessage}</p> : null}
 
           <button type="submit" className="adlogin-submit">
             管理者登録
           </button>
         </form>
+
+        <div className="adlogin-divider">
+          <span>または</span>
+        </div>
+
+        <AuthGoogleButton
+          label="Googleで管理者登録"
+          className="adlogin-google-btn"
+          redirectTo="/admin"
+          failureRedirectTo="/admin/register"
+          successMessage="Googleアカウントで管理者登録しました。"
+          extraParams={{
+            role: "admin",
+            admin_intent: "register",
+            admin_invite_code: form.adminInviteCode.trim(),
+          }}
+          onBeforeRedirect={beforeGoogleRegister}
+        />
 
         <div className="adlogin-foot-links">
           <p>

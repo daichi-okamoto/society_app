@@ -31,6 +31,15 @@ export default function Payment() {
   const defaultMethod = useMemo(() => methods.find((m) => m.is_default) || methods[0] || null, [methods]);
   const hasPaymentMethod = Boolean(defaultMethod);
 
+  const goBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+
+    navigate(redirectPath || "/me");
+  };
+
   const toAddCardPage = () =>
     navigate(
       redirectPath
@@ -59,7 +68,7 @@ export default function Payment() {
   return (
     <div className="pay-root">
       <header className="pay-header">
-        <button type="button" onClick={() => window.history.back()} aria-label="お支払い情報を戻る">
+        <button type="button" onClick={goBack} aria-label="お支払い情報を戻る">
           <span className="material-symbols-outlined">arrow_back_ios_new</span>
         </button>
         <h1>お支払い情報</h1>

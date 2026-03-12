@@ -197,6 +197,14 @@
   background: rgba(5, 150, 105, 0.92);
 }
 
+.adash-chip.is-amber {
+  background: rgba(245, 158, 11, 0.92);
+}
+
+.adash-chip.is-finished {
+  background: rgba(71, 85, 105, 0.92);
+}
+
 .adash-tournament-body {
   padding: 16px;
   display: flex;
@@ -354,6 +362,8 @@
   width: 100%;
   text-align: left;
   background: #ffffff;
+  color: inherit;
+  text-decoration: none;
   padding: 16px;
   display: flex;
   align-items: center;

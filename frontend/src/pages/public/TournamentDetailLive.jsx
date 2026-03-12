@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
+import { getTournamentCoverUrl } from "../../lib/tournamentImages";
 
 function formatKickoff(dateString) {
   if (!dateString) return "--:--";
@@ -256,11 +257,20 @@ export default function TournamentDetailLive({ tournament, entryTeamId }) {
 
   return (
     <div className="tdlv-root">
-      <header className="tdlv-header">
+      <header className="tdlv-hero">
+        <img src={getTournamentCoverUrl(tournament)} alt={tournament.name} />
+        <div className="tdlv-hero-overlay" />
         <button className="tdlv-back" type="button" onClick={() => navigate(-1)} aria-label="戻る">
           <span className="material-symbols-outlined">arrow_back_ios_new</span>
         </button>
-        <h1>{tournament.name}</h1>
+        <div className="tdlv-hero-copy">
+          <span className="tdlv-hero-status">開催中</span>
+          <h1>{tournament.name}</h1>
+          <p>
+            <span className="material-symbols-outlined">location_on</span>
+            <span>{tournament.venue || "会場未定"}</span>
+          </p>
+        </div>
       </header>
 
       <main className="tdlv-main">

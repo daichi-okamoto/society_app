@@ -4,6 +4,7 @@ import { api } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
 import LoadingScreen from "../../components/LoadingScreen";
 import { isActiveEntryStatus, participationBadge } from "../../lib/entryStatus";
+import { getTournamentCoverUrl } from "../../lib/tournamentImages";
 
 function resolveHomeErrorMessage(err) {
   if (err?.code === "network_error") {
@@ -212,7 +213,10 @@ export default function AppHome() {
 
               return (
                 <article key={tournament.id} className="j7-featured-card j7-featured-card-scroll">
-                  <div className="j7-featured-bg" />
+                  <div
+                    className="j7-featured-bg"
+                    style={{ backgroundImage: `linear-gradient(135deg, rgba(15, 23, 42, 0.18), rgba(15, 23, 42, 0.02)), url("${getTournamentCoverUrl(tournament)}")` }}
+                  />
                   <div className="j7-featured-inner">
                     <div className="j7-badge-row">
                       <span className={`j7-badge j7-badge-primary ${isLiveToday ? "j7-badge-live" : ""}`}>
@@ -266,7 +270,10 @@ export default function AppHome() {
           <div className="j7-recommend-row">
             {recommended.map((tournament) => (
               <Link key={tournament.id} to={`/tournaments/${tournament.id}`} className="j7-recommend-card">
-                <div className="j7-recommend-image">
+                <div
+                  className="j7-recommend-image"
+                  style={{ backgroundImage: `linear-gradient(180deg, rgba(15, 23, 42, 0.08), rgba(15, 23, 42, 0.3)), url("${getTournamentCoverUrl(tournament)}")` }}
+                >
                   <span className="j7-recruit">募集中</span>
                 </div>
                 <div className="j7-recommend-body">

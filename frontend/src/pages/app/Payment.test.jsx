@@ -74,4 +74,60 @@ describe("Payment", () => {
       expect(screen.getByText("新しいカードの登録ページ")).toBeInTheDocument();
     });
   });
+
+  it("goes back to previous page when history exists", async () => {
+    api.get.mockResolvedValueOnce({ methods: [] });
+
+    render(
+      <MemoryRouter initialEntries={["/me", "/payments"]} initialIndex={1}>
+        <Routes>
+          <Route path="/me" element={<div>マイページ</div>} />
+          <Route path="/payments" element={<Payment />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("お支払い方法が登録されていません")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "お支払い情報を戻る" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("マイページ")).toBeInTheDocument();
+    });
+  });
+
+  it("falls back to my page when no history exists", async () => {
+    api.get.mockResolvedValueOnce({ methods: [] });
+    const originalHistoryLength = window.history.length;
+    Object.defineProperty(window.history, "length", {
+      configurable: true,
+      value: 1,
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/payments"]}>
+        <Routes>
+          <Route path="/me" element={<div>マイページ</div>} />
+          <Route path="/payments" element={<Payment />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("お支払い方法が登録されていません")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "お支払い情報を戻る" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("マイページ")).toBeInTheDocument();
+    });
+
+    Object.defineProperty(window.history, "length", {
+      configurable: true,
+      value: originalHistoryLength,
+    });
+  });
 });

@@ -46,6 +46,11 @@ function extractCourt(field = "", group = "") {
 
 function toTimeString(kickoffAt, fallback = "10:00") {
   if (!kickoffAt) return fallback;
+  const raw = String(kickoffAt);
+  const direct = raw.match(/(?:T|^)(\d{2}):(\d{2})/);
+  if (direct) {
+    return `${Number(direct[1])}:${direct[2]}`;
+  }
   const dt = new Date(kickoffAt);
   if (Number.isNaN(dt.getTime())) return fallback;
   const hh = String(dt.getHours()).padStart(2, "0");
@@ -70,6 +75,25 @@ function kickoffOptions(startTime = "10:00", endTime = "16:00") {
 function dateTimeFromEventDate(eventDate, time) {
   if (!eventDate || !time) return "";
   return `${eventDate}T${time}:00`;
+}
+
+function formatTournamentMeta(tournament) {
+  if (!tournament) return "";
+  const parts = [];
+  if (tournament.event_date) {
+    const dt = new Date(`${tournament.event_date}T00:00:00`);
+    if (!Number.isNaN(dt.getTime())) {
+      const w = ["日", "月", "火", "水", "木", "金", "土"][dt.getDay()];
+      const start = toTimeString(tournament.start_time, "");
+      const end = toTimeString(tournament.end_time, "");
+      const timeRange = start && end ? `${start} - ${end}` : "";
+      parts.push(`${dt.getMonth() + 1}/${dt.getDate()} (${w})${timeRange ? ` • ${timeRange}` : ""}`);
+    }
+  }
+  if (tournament.venue) {
+    parts.push(tournament.venue);
+  }
+  return parts.join(" / ");
 }
 
 function nextTemporaryId() {
@@ -381,7 +405,15 @@ export default function AdminMatches() {
             <button type="button" className="admch-back-btn" onClick={() => navigate(-1)}>
               <span className="material-symbols-outlined">arrow_back_ios_new</span>
             </button>
-            <h1>{hasDraft ? "対戦スケジュールの編集" : "対戦スケジュールの作成"}</h1>
+            <div className="admch-header-copy">
+              <h1>{hasDraft ? "対戦スケジュールの編集" : "対戦スケジュールの作成"}</h1>
+              {selectedTournament ? (
+                <>
+                  <p className="admch-tournament-name">{selectedTournament.name || "大会名未設定"}</p>
+                  <p className="admch-tournament-meta">{formatTournamentMeta(selectedTournament)}</p>
+                </>
+              ) : null}
+            </div>
           </div>
           {hasDraft ? (
             <button type="button" className="admch-bulk-delete" onClick={removeAllVisible}>
