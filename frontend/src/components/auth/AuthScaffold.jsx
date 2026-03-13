@@ -24,7 +24,7 @@ export default function AuthScaffold({
         <div className={`login-sp-terms ${termsClassName}`.trim()}>
           {termsLead}
           <br />
-          <Link to="/terms">利用規約</Link>と<Link to="/privacy">プライバシーポリシー</Link>に
+          <Link to="/policies?tab=terms">利用規約</Link>と<Link to="/policies?tab=privacy">プライバシーポリシー</Link>に
           <br />
           同意したことになります
         </div>

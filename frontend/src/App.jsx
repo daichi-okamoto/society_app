@@ -5,6 +5,7 @@ import AdminLayout from "./layouts/AdminLayout";
 import { RequireAdmin, RequireAuth } from "./routes/guards";
 
 import Home from "./pages/public/Home";
+import ResultsArchive from "./pages/public/ResultsArchive";
 import TournamentDetail from "./pages/public/TournamentDetail";
 import Results from "./pages/public/Results";
 import Announcements from "./pages/public/Announcements";
@@ -65,6 +66,7 @@ export default function App() {
       <Route element={<PublicLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Navigate to="/" replace />} />
+        <Route path="/results" element={<ResultsArchive />} />
         <Route path="/tournaments/:id" element={<TournamentDetail />} />
         <Route path="/tournaments/:id/results" element={<Results />} />
         <Route path="/announcements" element={<Announcements />} />
