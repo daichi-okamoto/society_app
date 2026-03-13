@@ -187,7 +187,8 @@ export default function Home() {
 
         <footer className="marketing-footer">
           <div className="marketing-footer-brand">
-            <img src="/ts-brand-logo.png" alt="高森ソサイチ" />
+            <img src="/ts-brand-logo.png" alt="society-app" />
+            <span>society-app</span>
           </div>
           <nav className="marketing-footer-links" aria-label="公開フッターリンク">
             <Link to="/policies?tab=terms">利用規約</Link>
