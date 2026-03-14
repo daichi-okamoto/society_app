@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { api } from "../../lib/api";
 import LoadingScreen from "../../components/LoadingScreen";
 import { setMemberOverride } from "../../lib/teamMembersStorage";
+import { useAuth } from "../../context/AuthContext";
 
 const POSITION_OPTIONS = ["FW", "MF", "DF", "GK"];
 
@@ -70,6 +71,7 @@ export default function TeamMemberEdit() {
   const navigate = useNavigate();
   const location = useLocation();
   const { id: teamId, memberId } = useParams();
+  const { user } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -101,11 +103,29 @@ export default function TeamMemberEdit() {
         const detail = data?.team || {};
         const manual = (detail.manual_members || []).find((m) => String(m.id) === String(memberId));
         const fromState = location.state?.member || null;
+        const invited = (detail.members || []).find((m) => String(m.id) === String(memberId));
+        const isCaptain = Number(detail?.captain_user_id) === Number(user?.id);
+        const isSelfMember = Number(invited?.user_id) === Number(user?.id);
+
+        if (manual && !isCaptain) {
+          navigate(`/teams/${teamId}/members`, {
+            replace: true,
+            state: { flash: { type: "error", message: "このメンバー編集は代表者のみ操作できます。" } },
+          });
+          return;
+        }
+
+        if (!manual && invited && !isCaptain && !isSelfMember) {
+          navigate(`/teams/${teamId}/members`, {
+            replace: true,
+            state: { flash: { type: "error", message: "他のメンバー情報は編集できません。" } },
+          });
+          return;
+        }
 
         const resolved = manual
           ? toManualMember(manual)
           : (() => {
-              const invited = (detail.members || []).find((m) => String(m.id) === String(memberId));
               return invited ? toInvitedMember(invited, fromState) : buildFallback(memberId);
             })();
 
@@ -135,7 +155,7 @@ export default function TeamMemberEdit() {
     return () => {
       active = false;
     };
-  }, [teamId, memberId, location.state?.member]);
+  }, [navigate, teamId, memberId, location.state?.member, user?.id]);
 
   const isManual = member.source === "manual";
 

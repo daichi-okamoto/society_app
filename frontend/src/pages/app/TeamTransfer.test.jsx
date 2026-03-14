@@ -18,6 +18,7 @@ vi.mock("../../lib/api", () => ({
 
 describe("TeamTransfer", () => {
   it("submits transfer", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
     const { getByText, getByLabelText } = render(
       <MemoryRouter initialEntries={["/teams/1/transfer"]}>
         <Routes>

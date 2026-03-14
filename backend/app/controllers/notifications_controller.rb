@@ -84,7 +84,9 @@ class NotificationsController < ApplicationController
   end
 
   def read
-    notification = Notification.find(params[:id])
+    notification = accessible_notification(params[:id])
+    return render json: { error: { code: "not_found" } }, status: :not_found unless notification
+
     NotificationRead.find_or_create_by!(notification: notification, user: current_user) do |r|
       r.read_at = Time.current
     end
@@ -92,7 +94,11 @@ class NotificationsController < ApplicationController
   end
 
   def stream
-    if !Rails.env.production? && ENV["ENABLE_NOTIFICATION_SSE"] != "true"
+    if Rails.env.test?
+      return head :no_content
+    end
+
+    if ENV["ENABLE_NOTIFICATION_SSE"] == "false"
       return head :no_content
     end
 
@@ -146,6 +152,7 @@ class NotificationsController < ApplicationController
       body: notification.body,
       sent_at: notification.sent_at,
       scheduled_at: notification.scheduled_at,
+      link_path: resolved_link_path(notification),
       delivery_scope: notification.delivery_scope,
       deliver_via_push: notification.deliver_via_push,
       deliver_via_email: notification.deliver_via_email
@@ -167,6 +174,10 @@ class NotificationsController < ApplicationController
           (target.tournament? && tournament_ids.include?(target.target_id))
       end
     end
+  end
+
+  def accessible_notification(id)
+    notifications_for_user(current_user).find { |notification| notification.id == id.to_i }
   end
 
   def promote_scheduled_notifications!
@@ -244,5 +255,21 @@ class NotificationsController < ApplicationController
     end
 
     User.where(id: ids.uniq)
+  end
+
+  def resolved_link_path(notification)
+    return notification.link_path if notification.link_path.present?
+    return nil unless notification.title == "新しい参加申請があります"
+
+    captain_target = notification.notification_targets.find(&:user?)
+    return nil unless captain_target
+
+    team_name = notification.body.to_s[/さんが(.+?)へ参加申請しました。/, 1]
+    return nil if team_name.blank?
+
+    team = Team.find_by(name: team_name, captain_user_id: captain_target.target_id)
+    return nil unless team
+
+    "/teams/#{team.id}/requests"
   end
 end

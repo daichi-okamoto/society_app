@@ -3,6 +3,14 @@
 require "rails_helper"
 
 RSpec.describe "Authorization", type: :request do
+  def uploaded_test_file(name:, content_type:, body:)
+    file = Tempfile.new(name)
+    file.binmode
+    file.write(body)
+    file.rewind
+    Rack::Test::UploadedFile.new(file.path, content_type, original_filename: name)
+  end
+
   it "requires admin for tournament create" do
     post "/tournaments", params: { name: "大会名" }
     expect(response).to have_http_status(:unauthorized)
@@ -97,6 +105,56 @@ RSpec.describe "Authorization", type: :request do
 
     expect(response).to have_http_status(:ok)
     expect(JSON.parse(response.body).fetch("public_url")).to include("/profile-avatars/#{user.id}/")
+  end
+
+  it "rejects disallowed profile avatar content types" do
+    user = User.create!(
+      name: "参加者",
+      name_kana: "サンカシャ",
+      birth_date: "1990-01-01",
+      phone: "090-0000-0006",
+      email: "user-auth6@example.com",
+      address: "東京都",
+      password: "password"
+    )
+
+    login_as(user)
+    stub_const("UploadsController::R2_CLIENT", instance_double(Aws::S3::Client, put_object: true))
+    stub_const("UploadsController::R2_BUCKET", "test-bucket")
+    stub_const("UploadsController::R2_PUBLIC_BASE_URL", "https://cdn.example.com")
+
+    post "/uploads/direct", params: {
+      upload_kind: "profile_avatar",
+      file: uploaded_test_file(name: "avatar.svg", content_type: "image/svg+xml", body: "<svg></svg>")
+    }
+
+    expect(response).to have_http_status(:unprocessable_entity)
+    expect(json.dig("error", "details", "content_type")).to include("is not allowed")
+  end
+
+  it "rejects oversized profile avatar uploads" do
+    user = User.create!(
+      name: "参加者",
+      name_kana: "サンカシャ",
+      birth_date: "1990-01-01",
+      phone: "090-0000-0007",
+      email: "user-auth7@example.com",
+      address: "東京都",
+      password: "password"
+    )
+
+    login_as(user)
+    stub_const("UploadsController::R2_CLIENT", instance_double(Aws::S3::Client, put_object: true))
+    stub_const("UploadsController::R2_BUCKET", "test-bucket")
+    stub_const("UploadsController::R2_PUBLIC_BASE_URL", "https://cdn.example.com")
+
+    post "/uploads/direct", params: {
+      upload_kind: "profile_avatar",
+      file: uploaded_test_file(name: "avatar.png", content_type: "image/png", body: "a" * (5.megabytes + 1))
+    }
+
+    expect(response).to have_http_status(:unprocessable_entity)
+    expect(json.dig("error", "details", "size_bytes")).to be_present
   end
 
   it "forbids tournament image upload for authenticated participant" do

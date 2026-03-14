@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../../lib/api";
 import LoadingScreen from "../../components/LoadingScreen";
-import { normalizeTeamHandle, readTeamProfileDraft, writeTeamProfileDraft } from "../../lib/teamProfileDraft";
+import { useAuth } from "../../context/AuthContext";
+import { readTeamProfileDraft, writeTeamProfileDraft } from "../../lib/teamProfileDraft";
 
 const PREFECTURES = [
   "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県", "茨城県", "栃木県", "群馬県",
@@ -35,6 +36,7 @@ function readAsDataUrl(file) {
 export default function TeamEdit() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { user } = useAuth();
   const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -42,7 +44,6 @@ export default function TeamEdit() {
 
   const [form, setForm] = useState({
     name: "",
-    handle: "",
     prefecture: PREFECTURES[12],
     city: "渋谷区",
     introduction: "",
@@ -58,18 +59,25 @@ export default function TeamEdit() {
       .then((data) => {
         if (!active) return;
         const fetched = data?.team || null;
+        if (Number(fetched?.captain_user_id) !== Number(user?.id)) {
+          navigate("/teams", {
+            replace: true,
+            state: { flash: { type: "error", message: "チーム編集は代表者のみ操作できます。" } }
+          });
+          return;
+        }
         setTeam(fetched);
 
         const draft = readTeamProfileDraft(id) || {};
-        const locationLabel = draft.locationLabel || "東京都渋谷区";
+        const locationLabel = fetched?.activity_area || draft.locationLabel || "東京都渋谷区";
         const parsedLocation = parseLocationLabel(locationLabel);
 
         setForm({
           name: fetched?.name || "",
-          handle: normalizeTeamHandle(draft.teamHandle || "", fetched?.name || ""),
           prefecture: parsedLocation.prefecture,
           city: parsedLocation.city || "",
           introduction:
+            fetched?.introduction ||
             draft.introduction ||
             "社会人を中心とした、エンジョイ志向のチームです。週末の朝を中心に活動しています。未経験者も大歓迎！",
           logoDataUrl: draft.logoDataUrl || ""
@@ -87,7 +95,7 @@ export default function TeamEdit() {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, navigate, user?.id]);
 
   const previewLogo = useMemo(() => {
     if (form.logoDataUrl) return form.logoDataUrl;
@@ -123,11 +131,12 @@ export default function TeamEdit() {
     setError("");
 
     try {
-      await api.patch(`/teams/${id}`, { name: form.name.trim() });
+      await api.patch(`/teams/${id}`, {
+        name: form.name.trim(),
+        activity_area: composeLocationLabel(form.prefecture, form.city),
+        introduction: form.introduction.trim()
+      });
       writeTeamProfileDraft(id, {
-        teamHandle: normalizeTeamHandle(form.handle, form.name),
-        locationLabel: composeLocationLabel(form.prefecture, form.city),
-        introduction: form.introduction.trim(),
         logoDataUrl: form.logoDataUrl || ""
       });
 
@@ -186,7 +195,7 @@ export default function TeamEdit() {
               チームID <span>(変更不可)</span>
             </label>
             <div className="ted-disabled-wrap">
-              <input id="team-id" type="text" value={normalizeTeamHandle(form.handle, form.name)} disabled />
+              <input id="team-id" type="text" value={String(team?.id || "")} disabled />
               <span className="material-symbols-outlined">lock</span>
             </div>
           </div>

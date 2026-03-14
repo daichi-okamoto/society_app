@@ -73,6 +73,15 @@ export default function NotificationCenter() {
     return [...unreadRows, ...readRows];
   }, [history, notifications]);
 
+  const openNotificationAction = async (notification) => {
+    if (notification?._unread) {
+      await markRead(notification.id);
+    }
+    if (notification?.link_path) {
+      navigate(notification.link_path);
+    }
+  };
+
   if (loading) return <LoadingScreen />;
   if (error && rows.length === 0) return <section>{error}</section>;
 
@@ -91,19 +100,11 @@ export default function NotificationCenter() {
             <p className="ntf-empty">お知らせはありません。</p>
           ) : (
             rows.map((n) => (
-              <button
-                type="button"
+              <div
                 key={`${n._unread ? "u" : "r"}-${n.id}`}
                 className={`ntf-row ${n._unread ? "unread" : ""}`}
-                onClick={() => (n._unread ? markRead(n.id) : undefined)}
-                disabled={markingId === n.id}
               >
                 {n._unread ? <span className="ntf-dot" /> : null}
-                <div className="ntf-icon-wrap">
-                  <span className={`material-symbols-outlined ${n._unread ? "hot" : ""}`}>
-                    {iconForNotification(n)}
-                  </span>
-                </div>
                 <div className="ntf-text">
                   <div className="ntf-title-row">
                     <h3>{n.title}</h3>
@@ -111,7 +112,18 @@ export default function NotificationCenter() {
                   </div>
                   <p>{n.body}</p>
                 </div>
-              </button>
+                {n.link_path ? (
+                  <button
+                    type="button"
+                    className="ntf-action-btn"
+                    onClick={() => openNotificationAction(n)}
+                    disabled={markingId === n.id}
+                    aria-label="詳細へ"
+                  >
+                    <span className="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+                  </button>
+                ) : null}
+              </div>
             ))
           )}
         </div>

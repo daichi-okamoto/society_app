@@ -16,13 +16,14 @@
   position: sticky;
   top: 0;
   z-index: 20;
+  min-height: 78px;
   border-bottom: 1px solid #e5e7eb;
   background: rgba(248, 250, 252, 0.8);
   backdrop-filter: blur(12px);
 }
 
 .ted-header-row {
-  padding: 16px 20px;
+  padding: 22px 20px 18px;
   display: flex;
   align-items: center;
   gap: 12px;

@@ -210,7 +210,20 @@
   color: #1e293b;
   font-size: 14px;
   font-weight: 700;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.entry-radio-content .entry-radio-title small {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.1);
+  border-radius: 999px;
+  padding: 2px 8px;
 }
 
 .entry-radio-content .entry-radio-caption {
@@ -359,4 +372,3 @@
 .entry-footer .material-symbols-outlined {
   font-size: 22px;
 }
-

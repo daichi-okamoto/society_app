@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import AnimatedOutlet from "../components/AnimatedOutlet";
@@ -6,13 +7,36 @@ import FlashMessage from "../components/FlashMessage";
 
 export default function AppLayout() {
   const { user } = useAuth();
-  const [banner, setBanner] = useState(null);
-  const timerRef = useRef(null);
+  const location = useLocation();
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+
+    let active = true;
+    api
+      .get("/notifications")
+      .then((data) => {
+        if (!active) return;
+        const unreadCount = Number(data?.unread_count || 0);
+        const unreadList = data?.notifications || [];
+        setHasUnreadNotifications(unreadCount > 0 || unreadList.length > 0);
+      })
+      .catch(() => {
+        if (!active) return;
+        setHasUnreadNotifications(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [location.pathname, user]);
 
   useEffect(() => {
     if (!user) return;
     const enableSse =
       import.meta.env.VITE_ENABLE_SSE === "true" ||
+      (import.meta.env.DEV && import.meta.env.VITE_ENABLE_SSE !== "false") ||
       (import.meta.env.PROD && import.meta.env.VITE_ENABLE_SSE !== "false");
     if (!enableSse) return;
 
@@ -21,14 +45,8 @@ export default function AppLayout() {
 
     es.addEventListener("notification", (event) => {
       try {
-        const payload = JSON.parse(event.data);
-        setBanner(payload);
-
-        if (timerRef.current) clearTimeout(timerRef.current);
-        timerRef.current = setTimeout(() => {
-          setBanner(null);
-          api.post(`/notifications/${payload.id}/read`).catch(() => {});
-        }, 10000);
+        JSON.parse(event.data);
+        setHasUnreadNotifications(true);
       } catch {
         // ignore parse errors
       }
@@ -36,18 +54,16 @@ export default function AppLayout() {
 
     return () => {
       es.close();
-      if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [user]);
 
   return (
     <>
-      {banner && (
-        <div className="notify-banner">
-          <strong>{banner.title}</strong> {banner.body}
-        </div>
-      )}
       <FlashMessage />
+      <Link to="/notifications" className="app-notify-link" aria-label="お知らせ">
+        <span className="material-symbols-outlined app-notify-link__icon">notifications</span>
+        {hasUnreadNotifications ? <span className="app-notify-link__dot" /> : null}
+      </Link>
       <div className="route-slide-host">
         <AnimatedOutlet />
       </div>

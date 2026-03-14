@@ -18,8 +18,9 @@ class TeamJoinRequestsController < ApplicationController
   def index
     team = Team.find(params[:team_id])
     authorize_team_captain!(team)
+    return if performed?
 
-    requests = team.team_join_requests.pending.order(created_at: :desc)
+    requests = team.team_join_requests.pending.includes(:user).order(created_at: :desc)
     render json: { join_requests: requests.map { |r| join_request_json(r) } }, status: :ok
   end
 
@@ -27,6 +28,7 @@ class TeamJoinRequestsController < ApplicationController
     req = TeamJoinRequest.find(params[:id])
     team = req.team
     authorize_team_captain!(team)
+    return if performed?
 
     if !req.pending?
       return render json: { error: { code: "conflict" } }, status: :conflict
@@ -63,18 +65,22 @@ class TeamJoinRequestsController < ApplicationController
       return render json: { error: { code: "conflict" } }, status: :conflict
     end
 
-    req = TeamJoinRequest.create!(
-      team: team,
-      user: current_user,
-      status: :pending,
-      requested_at: Time.current
-    )
+    req = nil
+
+    TeamJoinRequest.transaction do
+      req = TeamJoinRequest.create!(
+        team: team,
+        user: current_user,
+        status: :pending,
+        requested_at: Time.current
+      )
+      create_captain_notification!(team, req)
+    end
 
     render json: { join_request: { id: req.id, status: req.status }, team: { id: team.id, name: team.name } }, status: :created
   end
 
   def authorize_team_captain!(team)
-    return if current_user.admin?
     return if team.captain_user_id == current_user.id
 
     render json: { error: { code: "forbidden" } }, status: :forbidden
@@ -84,8 +90,35 @@ class TeamJoinRequestsController < ApplicationController
     {
       id: req.id,
       user_id: req.user_id,
+      user_name: req.user&.name,
+      user_name_kana: req.user&.name_kana,
+      user_email: req.user&.email,
+      user_phone: req.user&.phone,
+      user_address: req.user&.address,
       status: req.status,
       requested_at: req.requested_at
     }
+  end
+
+  def create_captain_notification!(team, join_request)
+    return if team.captain_user_id.blank?
+
+    notification = Notification.create!(
+      title: "新しい参加申請があります",
+      body: "#{join_request.user&.name || 'ユーザー'}さんが#{team.name}へ参加申請しました。",
+      link_path: "/teams/#{team.id}/requests",
+      scheduled_at: Time.current,
+      sent_at: Time.current,
+      created_by: current_user.id,
+      delivery_scope: "specific_users",
+      deliver_via_push: true,
+      deliver_via_email: false
+    )
+
+    NotificationTarget.create!(
+      notification: notification,
+      target_type: :user,
+      target_id: team.captain_user_id
+    )
   end
 end

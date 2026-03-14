@@ -3,24 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
 import LoadingScreen from "../../components/LoadingScreen";
-
-const ENTRY_CATEGORIES = [
-  {
-    value: "enjoy",
-    label: "エンジョイ",
-    description: "初心者中心の楽しく蹴りたいチーム向け",
-  },
-  {
-    value: "open",
-    label: "オープン",
-    description: "レベルを問わず真剣に勝負したいチーム向け",
-  },
-  {
-    value: "beginner",
-    label: "ビギナー",
-    description: "大会出場経験が少ないチーム向け",
-  },
-];
+import { parseTournamentDescriptionGroups } from "../../lib/tournamentGroups";
 
 export default function TournamentEntry() {
   const { id } = useParams();
@@ -28,29 +11,49 @@ export default function TournamentEntry() {
   const { user } = useAuth();
 
   const [teams, setTeams] = useState([]);
+  const [tournament, setTournament] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [teamId, setTeamId] = useState("");
-  const [category, setCategory] = useState("enjoy");
+  const [category, setCategory] = useState("");
   const [paymentType, setPaymentType] = useState("card");
   const [error, setError] = useState(null);
 
   useEffect(() => {
     let active = true;
 
-    api
-      .get("/teams")
-      .then((data) => {
+    Promise.all([api.get("/teams"), api.get(`/tournaments/${id}`)])
+      .then(([teamData, tournamentData]) => {
         if (!active) return;
-        const all = data?.teams || [];
+        const all = teamData?.teams || [];
         const memberTeams = all.filter((team) => team.is_member);
+        const fetchedTournament = tournamentData?.tournament || null;
+        const parsedGroups = parseTournamentDescriptionGroups(fetchedTournament?.description);
+        const dynamicCategories =
+          parsedGroups.groups.length > 0
+            ? parsedGroups.groups.map((group) => ({
+                value: group.name,
+                label: group.name,
+                description: group.label,
+                stars: group.stars,
+              }))
+            : [
+                {
+                  value: "通常エントリー",
+                  label: "通常エントリー",
+                  description: "この大会は希望グループ設定がありません。",
+                  stars: null,
+                },
+              ];
 
         setTeams(memberTeams);
+        setTournament(fetchedTournament);
         setTeamId((memberTeams[0]?.id ?? "").toString());
+        setCategory((current) => current || dynamicCategories[0]?.value || "");
       })
       .catch(() => {
         if (!active) return;
-        setLoadError("エントリーチームを取得できませんでした。");
+        setLoadError("大会情報またはエントリーチームを取得できませんでした。");
       })
       .finally(() => {
         if (!active) return;
@@ -60,7 +63,7 @@ export default function TournamentEntry() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [id]);
 
   const teamOptions = useMemo(() => {
     if (teams.length > 0) return teams;
@@ -73,6 +76,32 @@ export default function TournamentEntry() {
       },
     ];
   }, [teams, user]);
+
+  const categoryOptions = useMemo(() => {
+    const parsedGroups = parseTournamentDescriptionGroups(tournament?.description);
+    if (parsedGroups.groups.length > 0) {
+      return parsedGroups.groups.map((group) => ({
+        value: group.name,
+        label: group.name,
+        description: group.label,
+        stars: group.stars,
+      }));
+    }
+
+    return [
+      {
+        value: "通常エントリー",
+        label: "通常エントリー",
+        description: "この大会は希望グループ設定がありません。",
+        stars: null,
+      },
+    ];
+  }, [tournament?.description]);
+
+  const selectedCategory = useMemo(
+    () => categoryOptions.find((item) => item.value === category) || categoryOptions[0] || null,
+    [category, categoryOptions]
+  );
 
   const onSubmit = (e) => {
     e.preventDefault();
@@ -87,16 +116,24 @@ export default function TournamentEntry() {
       setError("このチームは未承認のため大会エントリーできません。承認後にお試しください。");
       return;
     }
+    if (!selectedCategory?.value) {
+      setError("参加カテゴリーを選択してください。");
+      return;
+    }
 
     setError(null);
     const draft = {
       team_id: Number(teamId),
       team_name: selectedTeam?.name || "",
-      category,
+      tournament_name: tournament?.name || "",
+      category: selectedCategory.value,
+      category_label: selectedCategory.label,
+      category_note: selectedCategory.description,
+      category_stars: selectedCategory.stars,
       payment_method: paymentType,
       representative_name: user?.name || "田中 健太郎",
       representative_phone: user?.phone_number || user?.phone || "090-1234-5678",
-      amount: 15000,
+      amount: Number(tournament?.entry_fee_amount || 15000),
     };
     window.sessionStorage.setItem(`entry-draft:${id}`, JSON.stringify(draft));
     navigate(`/tournaments/${id}/entry/confirm`, { state: { draft } });
@@ -162,7 +199,7 @@ export default function TournamentEntry() {
           <div className="entry-field-group">
             <label className="entry-label">参加カテゴリー</label>
             <div className="entry-radio-grid">
-              {ENTRY_CATEGORIES.map((item) => (
+              {categoryOptions.map((item) => (
                 <label key={item.value} className="entry-radio-row">
                   <input
                     type="radio"
@@ -172,7 +209,12 @@ export default function TournamentEntry() {
                     onChange={(e) => setCategory(e.target.value)}
                   />
                   <div className="entry-radio-content">
-                    <span className="entry-radio-title">{item.label}</span>
+                    <span className="entry-radio-title">
+                      {item.label}
+                      {Number.isFinite(item.stars) ? (
+                        <small>{Array.from({ length: Number(item.stars) }, () => "★").join("")}</small>
+                      ) : null}
+                    </span>
                     <span className="entry-radio-caption">{item.description}</span>
                   </div>
                 </label>
@@ -244,7 +286,7 @@ export default function TournamentEntry() {
         <div className="entry-total-row">
           <div>
             <span>合計金額（税込）</span>
-            <strong>¥15,000</strong>
+            <strong>¥{Number(tournament?.entry_fee_amount || 15000).toLocaleString("ja-JP")}</strong>
           </div>
           <span>1チームあたり</span>
         </div>

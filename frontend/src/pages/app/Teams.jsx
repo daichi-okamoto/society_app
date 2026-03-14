@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
 import LoadingScreen from "../../components/LoadingScreen";
 import { useAuth } from "../../context/AuthContext";
-import { normalizeTeamHandle, readTeamProfileDraft } from "../../lib/teamProfileDraft";
+import { readTeamProfileDraft } from "../../lib/teamProfileDraft";
 import { applyOverridesToMember, loadMemberOverrides } from "../../lib/teamMembersStorage";
 import { isActiveEntryStatus } from "../../lib/entryStatus";
 
@@ -172,7 +172,25 @@ function toMemberListItem(member, overrides = {}) {
   };
 }
 
+function formatTeamStatus(status) {
+  switch (status) {
+    case "approved":
+      return { label: "承認済み", className: "approved" };
+    case "pending":
+      return { label: "未承認", className: "pending" };
+    case "suspended":
+      return { label: "停止中", className: "suspended" };
+    default:
+      return { label: "確認中", className: "unknown" };
+  }
+}
+
 export default function Teams() {
+  const captainTransferWarnings = [
+    "今後チームメンバーの編集ができなくなります。",
+    "大会エントリーができなくなる場合があります。",
+    "チーム情報の編集や参加申請の承認は、新しい代表者が行います。",
+  ];
   const navigate = useNavigate();
   const { user } = useAuth();
   const [activeTeamId, setActiveTeamId] = useState(() => {
@@ -192,6 +210,7 @@ export default function Teams() {
   const [joinError, setJoinError] = useState(null);
   const [joining, setJoining] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [pendingJoinRequests, setPendingJoinRequests] = useState([]);
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [activePermissionId, setActivePermissionId] = useState(null);
   const [actionMessage, setActionMessage] = useState("");
@@ -423,18 +442,21 @@ export default function Teams() {
     return () => window.removeEventListener("pointerdown", onPointerDown);
   }, []);
 
-  const inviteCode = currentTeam?.join_code || "TS-000000";
-  const teamHandle = normalizeTeamHandle(
-    teamDraft?.teamHandle || (currentTeam?.slug ? `@${currentTeam.slug}` : ""),
-    currentTeam?.name || ""
-  );
+  const inviteCode = teamDetail?.join_code || currentTeam?.join_code || "TS-000000";
+  const teamStatus = formatTeamStatus(teamDetail?.status || currentTeam?.status);
+  const teamIdLabel = `ID: ${teamDetail?.id || currentTeam?.id || "-"}`;
   const teamLocation =
+    teamDetail?.activity_area ||
+    teamDetail?.area ||
+    teamDetail?.location ||
     teamDraft?.locationLabel ||
     currentTeam?.activity_area ||
     currentTeam?.area ||
     currentTeam?.location ||
     "東京都渋谷区";
   const teamDescription =
+    teamDetail?.description ||
+    teamDetail?.introduction ||
     teamDraft?.introduction ||
     currentTeam?.description ||
     currentTeam?.introduction ||
@@ -449,6 +471,30 @@ export default function Teams() {
 
   const visibleMembers = mergedMembers.slice(0, 6);
   const canManageMembers = user?.role === "admin" || Number(teamDetail?.captain_user_id) === Number(user?.id);
+  const isTeamCaptain = Number(teamDetail?.captain_user_id) === Number(user?.id);
+
+  useEffect(() => {
+    if (!currentTeam?.id || !isTeamCaptain || Number(teamDetail?.pending_join_requests_count || 0) === 0) {
+      setPendingJoinRequests([]);
+      return;
+    }
+
+    let active = true;
+    api
+      .get(`/teams/${currentTeam.id}/join-requests`)
+      .then((data) => {
+        if (!active) return;
+        setPendingJoinRequests(Array.isArray(data?.join_requests) ? data.join_requests : []);
+      })
+      .catch(() => {
+        if (!active) return;
+        setPendingJoinRequests([]);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [currentTeam?.id, isTeamCaptain, teamDetail?.pending_join_requests_count]);
 
   async function handleJoin() {
     if (!joinCode.trim() || joining) return;
@@ -557,6 +603,14 @@ export default function Teams() {
       setActionMessage("手動追加メンバーには代表権限を付与できません。");
       return;
     }
+    if (member.role === "captain") {
+      setActionMessage("このメンバーはすでに代表者です。");
+      return;
+    }
+    const accepted = window.confirm(
+      ["代表権限を移譲しますか？", "", ...captainTransferWarnings].join("\n")
+    );
+    if (!accepted) return;
 
     setBusyAction(true);
     setActionMessage("");
@@ -692,22 +746,21 @@ export default function Teams() {
           </button>
           <h1>チーム管理</h1>
         </div>
-        <button type="button" className="settings" aria-label="設定">
-          <span className="material-symbols-outlined">settings</span>
-        </button>
       </header>
 
       <main className="tm-main">
         <section className="tm-team-hero">
           <div className="bg-shape" />
-          <button
-            type="button"
-            className="hero-edit"
-            onClick={() => currentTeam && navigate(`/teams/${currentTeam.id}/edit`)}
-          >
-            <span className="material-symbols-outlined">edit</span>
-            <span>編集</span>
-          </button>
+          {isTeamCaptain ? (
+            <button
+              type="button"
+              className="hero-edit"
+              onClick={() => currentTeam && navigate(`/teams/${currentTeam.id}/edit`)}
+            >
+              <span className="material-symbols-outlined">edit</span>
+              <span>編集</span>
+            </button>
+          ) : null}
 
           <div className="content">
             <div className="logo-ring">
@@ -722,8 +775,8 @@ export default function Teams() {
 
             <h2>{currentTeam?.name || "FC 東京セブン"}</h2>
             <div className="sub-row">
-              <span>{teamHandle}</span>
-              <span className="verified">認証済み</span>
+              <span>{teamIdLabel}</span>
+              <span className={`verified status-${teamStatus.className}`}>{teamStatus.label}</span>
             </div>
 
             <div className="meta-card">
@@ -762,7 +815,7 @@ export default function Teams() {
 
         <section className="tm-invite">
           <div className="row">
-            <div>
+            <div className="tm-invite-content">
               <h3>メンバー招待</h3>
               <p>招待コードを共有してメンバーを追加しよう</p>
               <div className="code-pill">
@@ -772,20 +825,32 @@ export default function Teams() {
                 </button>
               </div>
             </div>
-            <div className="qr">
-              <span className="material-symbols-outlined">qr_code_2</span>
-            </div>
           </div>
         </section>
 
-        {canManageMembers && Number(currentTeam?.pending_join_requests_count || 0) > 0 ? (
+        {isTeamCaptain && Number(teamDetail?.pending_join_requests_count || 0) > 0 ? (
           <section className="tm-request-card">
-            <div>
+            <div className="tm-request-copy">
               <h3>参加申請</h3>
-              <p>承認待ち {currentTeam.pending_join_requests_count} 件</p>
+              <p>承認待ち {teamDetail.pending_join_requests_count} 件</p>
+              {pendingJoinRequests.length > 0 ? (
+                <ul className="tm-request-preview">
+                  {pendingJoinRequests.slice(0, 2).map((request) => (
+                    <li key={request.id}>
+                      <strong>{request.user_name || `ユーザーID: ${request.user_id}`}</strong>
+                      <span>{request.user_email || request.user_phone || "連絡先未登録"}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </div>
-            <button type="button" onClick={() => navigate(`/teams/${currentTeam.id}/requests`)}>
-              承認/拒否へ
+            <button
+              type="button"
+              className="tm-request-arrow"
+              onClick={() => navigate(`/teams/${currentTeam.id}/requests`)}
+              aria-label="参加申請の詳細へ"
+            >
+              <span className="material-symbols-outlined" aria-hidden="true">chevron_right</span>
             </button>
           </section>
         ) : null}
@@ -852,10 +917,10 @@ export default function Teams() {
                           onClick={() => transferCaptain(member)}
                           disabled={busyAction || member.isCaptain}
                         >
-                          キャプテンにする
+                          代表者にする
                         </button>
                         <button type="button" disabled>
-                          現在: {member.isCaptain ? "キャプテン" : "メンバー"}
+                          現在: {member.isCaptain ? "代表者" : "メンバー"}
                         </button>
                       </div>
                     ) : null}

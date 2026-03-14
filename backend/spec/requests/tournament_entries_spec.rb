@@ -59,10 +59,11 @@ RSpec.describe "TournamentEntries", type: :request do
     tournament_id = json["tournament"]["id"]
 
     login_as(captain)
-    post "/tournaments/#{tournament_id}/entries", params: { team_id: team_id }
+    post "/tournaments/#{tournament_id}/entries", params: { team_id: team_id, category: "エンジョイ" }
 
     expect(response).to have_http_status(:created)
     expect(json["entry"]["status"]).to eq("pending")
+    expect(TournamentEntry.last.category).to eq("エンジョイ")
   end
 
   it "rejects application when team is not approved" do

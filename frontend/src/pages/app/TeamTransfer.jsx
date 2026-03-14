@@ -4,6 +4,11 @@ import { api } from "../../lib/api";
 import LoadingScreen from "../../components/LoadingScreen";
 
 export default function TeamTransfer() {
+  const transferWarnings = [
+    "今後チームメンバーの編集ができなくなります。",
+    "大会エントリーができなくなる場合があります。",
+    "チーム情報の編集や参加申請の承認は、新しい代表者が行います。",
+  ];
   const { id } = useParams();
   const navigate = useNavigate();
   const [team, setTeam] = useState(null);
@@ -22,6 +27,10 @@ export default function TeamTransfer() {
   const onSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    const accepted = window.confirm(
+      ["代表権限を移譲しますか？", "", ...transferWarnings].join("\n")
+    );
+    if (!accepted) return;
     try {
       await api.post(`/teams/${id}/transfer_captain`, { new_captain_user_id: selected });
       navigate(`/teams/${id}`, {

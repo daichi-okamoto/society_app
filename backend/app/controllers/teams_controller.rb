@@ -40,6 +40,8 @@ class TeamsController < ApplicationController
   def create
     team = Team.new(
       name: params[:name],
+      activity_area: params[:activity_area],
+      introduction: params[:introduction],
       join_code: generate_join_code,
       captain_user_id: current_user.id,
       created_by: current_user.id,
@@ -89,7 +91,7 @@ class TeamsController < ApplicationController
     authorize_team_captain!(team)
     return if performed?
 
-    if team.update(name: params[:name])
+    if team.update(name: params[:name], activity_area: params[:activity_area], introduction: params[:introduction])
       render json: { team: team_detail(team) }, status: :ok
     else
       render json: { error: { code: "validation_error", details: team.errors } }, status: :unprocessable_entity
@@ -213,7 +215,9 @@ class TeamsController < ApplicationController
       status: status,
       created_at: team.created_at,
       is_member: is_member,
-      past_results: []
+      past_results: [],
+      activity_area: team.activity_area,
+      introduction: team.introduction
     }
   end
 
@@ -232,6 +236,8 @@ class TeamsController < ApplicationController
     {
       id: team.id,
       name: team.name,
+      activity_area: team.activity_area,
+      introduction: team.introduction,
       join_code: team.join_code,
       captain_user_id: team.captain_user_id,
       status: status,

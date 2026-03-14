@@ -28,10 +28,16 @@ RSpec.describe "Teams", type: :request do
       )
 
       login_as(user)
-      post "/teams", params: { name: "FC Example" }
+      post "/teams", params: {
+        name: "FC Example",
+        activity_area: "東京都渋谷区",
+        introduction: "社会人中心のチームです"
+      }
 
       expect(response).to have_http_status(:created)
       expect(json["team"]["name"]).to eq("FC Example")
+      expect(json["team"]["activity_area"]).to eq("東京都渋谷区")
+      expect(json["team"]["introduction"]).to eq("社会人中心のチームです")
       expect(json["team"]["join_code"]).to be_present
       expect(json["team"]["join_code"]).to match(/\ATS-\d{6}\z/)
     end
@@ -108,6 +114,44 @@ RSpec.describe "Teams", type: :request do
       expect(response).to have_http_status(:ok)
       expect(captain.reload.status).to eq("active")
       expect(json.dig("team", "status")).to eq("approved")
+    end
+  end
+
+  describe "PATCH /teams/:id" do
+    it "updates team profile fields" do
+      captain = User.create!(
+        name: "キャプテン",
+        name_kana: "キャプテン",
+        birth_date: "1990-01-01",
+        phone: "090-0000-0000",
+        email: "captain-update@example.com",
+        address: "東京都",
+        password: "password"
+      )
+      team = Team.create!(
+        name: "FC Example",
+        join_code: "TS-111111",
+        captain_user_id: captain.id,
+        created_by: captain.id,
+        approval_status: :approved,
+        activity_area: "東京都港区",
+        introduction: "旧紹介文"
+      )
+      TeamMember.create!(team: team, user: captain, role: :captain, status: :active, joined_at: Time.current)
+
+      login_as(captain)
+      patch "/teams/#{team.id}", params: {
+        name: "FC Updated",
+        activity_area: "東京都新宿区",
+        introduction: "新しい紹介文"
+      }
+
+      expect(response).to have_http_status(:ok)
+      expect(team.reload.name).to eq("FC Updated")
+      expect(team.activity_area).to eq("東京都新宿区")
+      expect(team.introduction).to eq("新しい紹介文")
+      expect(json["team"]["activity_area"]).to eq("東京都新宿区")
+      expect(json["team"]["introduction"]).to eq("新しい紹介文")
     end
   end
 end

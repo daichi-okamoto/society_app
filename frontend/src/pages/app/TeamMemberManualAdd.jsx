@@ -1,6 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../../lib/api";
+import { useAuth } from "../../context/AuthContext";
+import LoadingScreen from "../../components/LoadingScreen";
 
 const PREFECTURES = [
   "北海道",
@@ -59,6 +61,7 @@ function toDigits(value) {
 export default function TeamMemberManualAdd() {
   const navigate = useNavigate();
   const { id: teamId } = useParams();
+  const { user } = useAuth();
 
   const [form, setForm] = useState({
     name: "",
@@ -74,6 +77,35 @@ export default function TeamMemberManualAdd() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [searchingAddress, setSearchingAddress] = useState(false);
+  const [checkingAccess, setCheckingAccess] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    api
+      .get(`/teams/${teamId}`)
+      .then((data) => {
+        if (!active) return;
+        if (Number(data?.team?.captain_user_id) !== Number(user?.id)) {
+          navigate(`/teams/${teamId}/members`, {
+            replace: true,
+            state: { flash: { type: "error", message: "メンバー追加は代表者のみ操作できます。" } },
+          });
+        }
+      })
+      .catch(() => {
+        if (!active) return;
+        setError("チーム情報の取得に失敗しました。");
+      })
+      .finally(() => {
+        if (!active) return;
+        setCheckingAccess(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [navigate, teamId, user?.id]);
 
   const canSubmit = useMemo(() => {
     return (
@@ -135,7 +167,7 @@ export default function TeamMemberManualAdd() {
 
   const onSubmit = async (event) => {
     event.preventDefault();
-    if (submitting) return;
+    if (submitting || checkingAccess) return;
 
     if (!canSubmit) {
       setError("必須項目を入力してください。");
@@ -163,6 +195,8 @@ export default function TeamMemberManualAdd() {
       setSubmitting(false);
     }
   };
+
+  if (checkingAccess) return <LoadingScreen />;
 
   return (
     <div className="tmadd-root">

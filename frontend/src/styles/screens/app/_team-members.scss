@@ -16,11 +16,11 @@
   position: sticky;
   top: 0;
   z-index: 30;
-  height: 60px;
-  padding: 0 20px;
+  min-height: 76px;
+  padding: 14px 20px 10px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   background: rgba(248, 250, 252, 0.95);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid #e5e7eb;
@@ -28,7 +28,7 @@
 
 .tml-header .left {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
 }
 
@@ -48,22 +48,26 @@
   color: #1e293b;
 }
 
-.tml-header .team-pill {
-  font-size: 12px;
-  font-weight: 700;
-  color: #64748b;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  background: #fff;
-  padding: 4px 8px;
+.tml-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tml-title-block p {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  line-height: 1.4;
 }
 
 .tml-toolbar {
   position: sticky;
-  top: 60px;
+  top: 76px;
   z-index: 20;
   background: #f8fafc;
-  padding: 12px 20px;
+  padding: 14px 20px 12px;
   border-bottom: 1px solid #f1f5f9;
   display: flex;
   flex-direction: column;
@@ -222,14 +226,16 @@
   border-radius: 16px;
   border: 1px solid #f1f5f9;
   background: #fff;
-  padding: 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  min-height: 98px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(148, 163, 184, 0.14);
 }
 
 .tml-card.featured {
   position: relative;
   border-color: #fcd9a7;
-  padding-left: 16px;
+  padding-left: 20px;
+  background: linear-gradient(180deg, #ffffff 0%, #fffaf2 100%);
 }
 
 .tml-card.featured::before {
@@ -367,7 +373,7 @@
 .tml-card .name-row strong {
   font-size: 16px;
   color: #1e293b;
-  white-space: nowrap;
+  line-height: 1.35;
 }
 
 .tml-card .name-row .role-label {
@@ -582,6 +588,24 @@
   padding: 10px 12px;
 }
 
+.tml-transfer-modal .warning-box {
+  text-align: left;
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.tml-transfer-modal .warning-box ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+}
+
+.tml-transfer-modal .warning-box li {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .tml-delete-modal .actions {
   display: grid;
   gap: 10px;
@@ -607,4 +631,3 @@
   color: #64748b;
   font-weight: 500;
 }
-

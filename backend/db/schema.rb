@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_10_000002) do
+ActiveRecord::Schema[7.1].define(version: 2026_03_13_073000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -117,6 +117,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_10_000002) do
     t.string "delivery_scope", default: "everyone", null: false
     t.boolean "deliver_via_push", default: true, null: false
     t.boolean "deliver_via_email", default: false, null: false
+    t.string "link_path"
     t.index ["sent_at"], name: "index_notifications_on_sent_at"
   end
 
@@ -209,6 +210,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_10_000002) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "approval_status", default: 0, null: false
+    t.string "activity_area"
+    t.text "introduction"
     t.index ["approval_status"], name: "index_teams_on_approval_status"
     t.index ["captain_user_id"], name: "index_teams_on_captain_user_id"
     t.index ["join_code"], name: "index_teams_on_join_code", unique: true
@@ -223,6 +226,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_10_000002) do
     t.bigint "decided_by"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "category"
     t.index ["team_id"], name: "index_tournament_entries_on_team_id"
     t.index ["tournament_id", "team_id"], name: "index_tournament_entries_on_tournament_id_and_team_id", unique: true
     t.index ["tournament_id"], name: "index_tournament_entries_on_tournament_id"

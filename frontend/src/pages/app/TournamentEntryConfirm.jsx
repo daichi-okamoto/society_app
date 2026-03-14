@@ -8,6 +8,21 @@ const CATEGORY_LABELS = {
   beginner: { code: "BEGINNER", label: "ビギナー" },
 };
 
+function resolveCategoryMeta(draft) {
+  if (draft?.category_label) {
+    return {
+      code: Number.isFinite(Number(draft?.category_stars))
+        ? `${"★".repeat(Number(draft.category_stars))}`
+        : "GROUP",
+      label: draft.category_label,
+      note: draft.category_note || "",
+    };
+  }
+
+  const legacy = CATEGORY_LABELS[draft?.category] || CATEGORY_LABELS.enjoy;
+  return { ...legacy, note: "" };
+}
+
 function loadDraftFromStorage(id) {
   const raw = window.sessionStorage.getItem(`entry-draft:${id}`);
   if (!raw) return null;
@@ -50,7 +65,7 @@ export default function TournamentEntryConfirm() {
   }, [id, location.state]);
   const previousResult = useMemo(() => loadResultFromStorage(id), [id]);
 
-  const categoryMeta = CATEGORY_LABELS[draft?.category] || CATEGORY_LABELS.enjoy;
+  const categoryMeta = resolveCategoryMeta(draft);
   const paymentLabel = draft?.payment_method === "cash" ? "当日払い" : "クレジットカード";
   const paymentIcon = draft?.payment_method === "cash" ? "payments" : "credit_card";
   const amountText = `¥${Number(draft?.amount || 15000).toLocaleString("ja-JP")}`;
@@ -195,7 +210,10 @@ export default function TournamentEntryConfirm() {
               <label>参加カテゴリー</label>
               <div className="entry-confirm-inline">
                 <span>{categoryMeta.code}</span>
-                <p>{categoryMeta.label}</p>
+                <div>
+                  <p>{categoryMeta.label}</p>
+                  {categoryMeta.note ? <small>{categoryMeta.note}</small> : null}
+                </div>
               </div>
             </div>
             <hr />

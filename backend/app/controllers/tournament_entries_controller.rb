@@ -27,6 +27,7 @@ class TournamentEntriesController < ApplicationController
     entry = TournamentEntry.new(
       tournament: tournament,
       team: team,
+      category: params[:category].presence,
       status: :pending,
       applied_at: Time.current
     )
@@ -147,6 +148,7 @@ class TournamentEntriesController < ApplicationController
       id: entry.id,
       tournament_id: entry.tournament_id,
       team_id: entry.team_id,
+      category: entry.category,
       status: entry.status
     }
   end

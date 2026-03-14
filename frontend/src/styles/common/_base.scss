@@ -24,6 +24,14 @@ body {
   font-family: "LINE Seed JP", system-ui, sans-serif;
 }
 
+@media (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 .app-shell {
   min-height: 100vh;
   display: flex;
@@ -115,6 +123,38 @@ body {
   color: #1c2b5a;
   padding: 12px 24px;
   font-size: 14px;
+}
+
+.app-notify-link {
+  position: fixed;
+  top: 24px;
+  right: max(18px, calc((100vw - 448px) / 2 + 18px));
+  z-index: 110;
+  width: 42px;
+  height: 42px;
+  text-decoration: none;
+  border-radius: 999px;
+  border: 1px solid #f1f5f9;
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.app-notify-link__icon {
+  color: #475569;
+  font-size: 24px;
+}
+
+.app-notify-link__dot {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #ef4444;
+  border: 2px solid #fff;
+  top: 9px;
+  right: 9px;
 }
 
 .flash-message {

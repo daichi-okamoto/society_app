@@ -30,6 +30,7 @@ function toMemberRow(member, overrides) {
     id: member.id,
     user_id: member.user_id,
     team_member_id: member.id,
+    role: member.role,
     name: member.name || "メンバー",
     furigana: "",
     roleLabel: member.role === "captain" ? "キャプテン" : undefined,
@@ -47,6 +48,11 @@ function toMemberRow(member, overrides) {
 }
 
 export default function TeamMembers() {
+  const captainTransferWarnings = [
+    "今後チームメンバーの編集ができなくなります。",
+    "大会エントリーができなくなる場合があります。",
+    "チーム情報の編集や参加申請の承認は、新しい代表者が行います。",
+  ];
   const navigate = useNavigate();
   const { id: teamId } = useParams();
   const { user } = useAuth();
@@ -58,6 +64,7 @@ export default function TeamMembers() {
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [permissionMenuId, setPermissionMenuId] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [captainTransferTarget, setCaptainTransferTarget] = useState(null);
   const [canDeleteMembers, setCanDeleteMembers] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
@@ -76,6 +83,7 @@ export default function TeamMembers() {
           id: m.id,
           user_id: null,
           team_member_id: null,
+          role: "member",
           name: m.name || "メンバー",
           furigana: m.name_kana || "",
           roleLabel: undefined,
@@ -160,13 +168,13 @@ export default function TeamMembers() {
         setMessage("手動追加メンバーには代表権限を付与できません。");
         return;
       }
-      try {
-        await api.post(`/teams/${teamId}/transfer_captain`, { new_captain_user_id: target.user_id });
-        await loadTeamMembers();
-        setMessage("代表権限を更新しました。");
-      } catch {
-        setMessage("権限更新に失敗しました。");
+      if (target.role === "captain") {
+        setMessage("このメンバーはすでに代表者です。");
+        setPermissionMenuId(null);
+        setActiveMenuId(null);
+        return;
       }
+      setCaptainTransferTarget(target);
       setPermissionMenuId(null);
       setActiveMenuId(null);
       return;
@@ -175,9 +183,6 @@ export default function TeamMembers() {
     setMembers((prev) =>
       prev.map((m) => {
         if (`${m.source}-${m.id}` !== memberKey) return m;
-        if (role === "vice") {
-          return { ...m, roleLabel: undefined, roleBadge: "副", featured: false };
-        }
         return { ...m, roleLabel: undefined, roleBadge: undefined, featured: false };
       })
     );
@@ -236,6 +241,20 @@ export default function TeamMembers() {
     setActiveMenuId(null);
   };
 
+  async function confirmCaptainTransfer() {
+    if (!captainTransferTarget) return;
+
+    try {
+      await api.post(`/teams/${teamId}/transfer_captain`, { new_captain_user_id: captainTransferTarget.user_id });
+      await loadTeamMembers();
+      setMessage("代表権限を更新しました。");
+    } catch {
+      setMessage("権限更新に失敗しました。");
+    } finally {
+      setCaptainTransferTarget(null);
+    }
+  }
+
   return (
     <div className="tml-root">
       <header className="tml-header">
@@ -243,9 +262,11 @@ export default function TeamMembers() {
           <button type="button" onClick={() => navigate(-1)}>
             <span className="material-symbols-outlined">arrow_back_ios_new</span>
           </button>
-          <h1>メンバー一覧</h1>
+          <div className="tml-title-block">
+            <h1>メンバー一覧</h1>
+            <p>{teamName}</p>
+          </div>
         </div>
-        <div className="team-pill">{teamName}</div>
       </header>
 
       <section className="tml-toolbar">
@@ -259,10 +280,12 @@ export default function TeamMembers() {
           />
         </div>
 
-        <button type="button" className="add-btn" onClick={() => navigate(`/teams/${teamId}/members/manual-add`)}>
-          <span className="material-symbols-outlined">person_add</span>
-          <span>メンバーを追加する</span>
-        </button>
+        {canDeleteMembers ? (
+          <button type="button" className="add-btn" onClick={() => navigate(`/teams/${teamId}/members/manual-add`)}>
+            <span className="material-symbols-outlined">person_add</span>
+            <span>メンバーを追加する</span>
+          </button>
+        ) : null}
       </section>
 
       <main className="tml-main">
@@ -300,6 +323,8 @@ export default function TeamMembers() {
           {rows.map((m, index) => {
             const memberKey = `${m.source}-${m.id}`;
             const isSelf = Number(m.user_id) === Number(user?.id);
+            const canEditMember = canDeleteMembers || isSelf;
+            const canManageMember = canDeleteMembers && !isSelf;
             const shouldOpenUp = rows.length > 3 && index >= rows.length - 2;
             return (
             <article key={`${m.source}-${m.id}`} className={`tml-card ${m.featured ? "featured" : ""}`}>
@@ -329,60 +354,62 @@ export default function TeamMembers() {
               </div>
 
               <div className="tml-card-actions">
-                <button
-                  type="button"
-                  className="more-btn"
-                  aria-label={`${m.name}の操作メニュー`}
-                  onClick={() => {
-                    setMessage("");
-                    setActiveMenuId((prev) => (prev === memberKey ? null : memberKey));
-                    setPermissionMenuId(null);
-                  }}
-                >
-                  <span className="material-symbols-outlined">more_horiz</span>
-                </button>
-                {activeMenuId === memberKey ? (
+                {canEditMember || canManageMember ? (
+                  <button
+                    type="button"
+                    className="more-btn"
+                    aria-label={`${m.name}の操作メニュー`}
+                    onClick={() => {
+                      setMessage("");
+                      setActiveMenuId((prev) => (prev === memberKey ? null : memberKey));
+                      setPermissionMenuId(null);
+                    }}
+                  >
+                    <span className="material-symbols-outlined">more_horiz</span>
+                  </button>
+                ) : null}
+                {activeMenuId === memberKey && (canEditMember || canManageMember) ? (
                   <div className={`tml-action-menu ${shouldOpenUp ? "up" : ""}`}>
-                    <button
-                      type="button"
-                      className="edit"
-                      onClick={() => {
-                        if (isSelf) {
-                          navigate("/me/edit");
-                        } else {
-                          navigate(`/teams/${teamId}/members/${encodeURIComponent(String(m.id))}/edit`, {
-                            state: { member: m },
-                          });
-                        }
-                        setActiveMenuId(null);
-                      }}
-                    >
-                      <span className="material-symbols-outlined">edit</span>
-                      編集
-                    </button>
-                    {!isSelf ? (
+                    {canEditMember ? (
+                      <button
+                        type="button"
+                        className="edit"
+                        onClick={() => {
+                          if (isSelf) {
+                            navigate("/me/edit");
+                          } else {
+                            navigate(`/teams/${teamId}/members/${encodeURIComponent(String(m.id))}/edit`, {
+                              state: { member: m },
+                            });
+                          }
+                          setActiveMenuId(null);
+                        }}
+                      >
+                        <span className="material-symbols-outlined">edit</span>
+                        編集
+                      </button>
+                    ) : null}
+                    {canManageMember ? (
                       <button type="button" className="danger" onClick={() => openDeleteDialog(m)}>
                         <span className="material-symbols-outlined">delete</span>
                         削除
                       </button>
                     ) : null}
-                    <button
-                      type="button"
-                      className="permission"
-                      onClick={() => setPermissionMenuId((prev) => (prev === memberKey ? null : memberKey))}
-                    >
-                      <span className="material-symbols-outlined">admin_panel_settings</span>
-                      権限
-                    </button>
-                    {permissionMenuId === memberKey ? (
+                    {canManageMember ? (
+                      <button
+                        type="button"
+                        className="permission"
+                        onClick={() => setPermissionMenuId((prev) => (prev === memberKey ? null : memberKey))}
+                      >
+                        <span className="material-symbols-outlined">admin_panel_settings</span>
+                        権限
+                      </button>
+                    ) : null}
+                    {permissionMenuId === memberKey && canManageMember ? (
                       <div className="tml-permission-menu">
                         <button type="button" onClick={() => setRole(memberKey, "captain")}>
                           <span className="material-symbols-outlined">workspace_premium</span>
-                          キャプテン
-                        </button>
-                        <button type="button" onClick={() => setRole(memberKey, "vice")}>
-                          <span className="material-symbols-outlined">verified</span>
-                          副キャプテン
+                          代表者
                         </button>
                         <button type="button" onClick={() => setRole(memberKey, "member")}>
                           <span className="material-symbols-outlined">person</span>
@@ -455,6 +482,43 @@ export default function TeamMembers() {
                 削除する
               </button>
               <button type="button" className="cancel" onClick={() => setDeleteTarget(null)}>
+                キャンセル
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {captainTransferTarget ? (
+        <div className="tml-delete-overlay">
+          <div className="tml-delete-modal tml-transfer-modal">
+            <h2>代表権限を移譲しますか？</h2>
+
+            <div className="member-preview">
+              <div className="avatar-wrap">
+                {captainTransferTarget.avatar ? (
+                  <img src={captainTransferTarget.avatar} alt={captainTransferTarget.name} />
+                ) : (
+                  <div className={`fallback ${toneClass(captainTransferTarget.tone)}`}>{captainTransferTarget.initial}</div>
+                )}
+              </div>
+              <p className="name">{captainTransferTarget.name}</p>
+              <p className="number">このメンバーを新しい代表者に設定します。</p>
+            </div>
+
+            <div className="warning-box">
+              <ul>
+                {captainTransferWarnings.map((warning) => (
+                  <li key={warning}>{warning}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="actions">
+              <button type="button" className="danger" onClick={confirmCaptainTransfer}>
+                それでも移譲する
+              </button>
+              <button type="button" className="cancel" onClick={() => setCaptainTransferTarget(null)}>
                 キャンセル
               </button>
             </div>

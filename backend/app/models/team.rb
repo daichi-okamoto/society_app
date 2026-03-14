@@ -13,4 +13,6 @@ class Team < ApplicationRecord
 
   validates :name, presence: true, length: { maximum: 50 }
   validates :join_code, presence: true, uniqueness: true, length: { in: 6..12 }
+  validates :activity_area, length: { maximum: 100 }, allow_blank: true
+  validates :introduction, length: { maximum: 500 }, allow_blank: true
 end

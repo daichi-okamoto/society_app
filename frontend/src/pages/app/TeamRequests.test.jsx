@@ -6,7 +6,20 @@ import { api } from "../../lib/api";
 
 vi.mock("../../lib/api", () => ({
   api: {
-    get: vi.fn().mockResolvedValue({ join_requests: [{ id: 1, user_id: 2, status: "pending" }] }),
+    get: vi.fn().mockResolvedValue({
+      join_requests: [
+        {
+          id: 1,
+          user_id: 2,
+          user_name: "申請者A",
+          user_email: "requester@example.com",
+          user_phone: "090-0000-0001",
+          user_address: "長野県",
+          status: "pending",
+          requested_at: "2026-03-13T04:00:00Z",
+        },
+      ],
+    }),
     patch: vi.fn().mockResolvedValue({})
   }
 }));
@@ -21,7 +34,8 @@ describe("TeamRequests", () => {
       </MemoryRouter>
     );
 
-    await waitFor(() => expect(getByText("2 / pending")).toBeTruthy());
+    await waitFor(() => expect(getByText("申請者A")).toBeTruthy());
+    expect(getByText("requester@example.com")).toBeTruthy();
     fireEvent.click(getByText("承認"));
 
     expect(api.patch).toHaveBeenCalled();

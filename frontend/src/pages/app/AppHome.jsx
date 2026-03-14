@@ -72,7 +72,6 @@ export default function AppHome() {
   const [tournaments, setTournaments] = useState([]);
   const [entryStatusByTournament, setEntryStatusByTournament] = useState({});
   const [entriesReady, setEntriesReady] = useState(false);
-  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -142,26 +141,6 @@ export default function AppHome() {
     };
   }, [tournaments, user]);
 
-  useEffect(() => {
-    let active = true;
-    api
-      .get("/notifications")
-      .then((data) => {
-        if (!active) return;
-        const unreadCount = Number(data?.unread_count || 0);
-        const unreadList = data?.notifications || [];
-        setHasUnreadNotifications(unreadCount > 0 || unreadList.length > 0);
-      })
-      .catch(() => {
-        if (!active) return;
-        setHasUnreadNotifications(false);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
   const grouped = useMemo(() => splitTournamentsByDate(tournaments), [tournaments]);
   const participating = useMemo(() => {
     const currentAndFuture = [...grouped.current, ...grouped.future];
@@ -184,10 +163,6 @@ export default function AppHome() {
           <p className="j7-greeting">こんにちは、</p>
           <h1 className="j7-name">{user?.name || "ゲスト"}さん</h1>
         </div>
-        <Link to="/notifications" className="j7-bell" aria-label="通知">
-          <span className="material-symbols-outlined j7-bell-icon">notifications</span>
-          {hasUnreadNotifications ? <span className="j7-bell-dot" /> : null}
-        </Link>
       </header>
 
       <main className="j7-main">

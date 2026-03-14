@@ -11,7 +11,7 @@ vi.mock("../../lib/api", () => ({
 describe("NotificationCenter", () => {
   it("renders notifications and marks read", async () => {
     api.get.mockResolvedValueOnce({
-      notifications: [{ id: 1, title: "通知", body: "本文" }]
+      notifications: [{ id: 1, title: "通知", body: "本文", link_path: "/teams/1/requests" }]
     });
     api.get.mockResolvedValueOnce({
       notifications: [{ id: 2, title: "既読通知", body: "既読本文", read_at: "2026-01-01T00:00:00Z" }]
@@ -25,7 +25,7 @@ describe("NotificationCenter", () => {
     );
 
     await waitFor(() => expect(screen.getByRole("heading", { name: "お知らせ" })).toBeInTheDocument());
-    fireEvent.click(screen.getByText("通知").closest("button"));
+    fireEvent.click(screen.getByLabelText("詳細へ"));
     await waitFor(() => expect(api.post).toHaveBeenCalled());
   });
 });
