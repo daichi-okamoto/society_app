@@ -33,6 +33,17 @@ export default function AppLayout() {
   }, [location.pathname, user]);
 
   useEffect(() => {
+    const handleUnreadChanged = (event) => {
+      setHasUnreadNotifications(Boolean(event.detail?.hasUnread));
+    };
+
+    window.addEventListener("notifications:unread-changed", handleUnreadChanged);
+    return () => {
+      window.removeEventListener("notifications:unread-changed", handleUnreadChanged);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!user) return;
     const enableSse =
       import.meta.env.VITE_ENABLE_SSE === "true" ||

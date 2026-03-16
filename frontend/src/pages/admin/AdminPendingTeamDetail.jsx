@@ -16,6 +16,7 @@ export default function AdminPendingTeamDetail() {
   const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
+  const [showAllMembers, setShowAllMembers] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -25,6 +26,7 @@ export default function AdminPendingTeamDetail() {
       .then((res) => {
         if (!active) return;
         setTeam(res?.team || null);
+        setShowAllMembers(false);
       })
       .catch(() => {
         if (!active) return;
@@ -41,6 +43,10 @@ export default function AdminPendingTeamDetail() {
 
   const members = useMemo(() => team?.members || [], [team]);
   const captain = team?.captain || members.find((m) => m.role === "captain") || null;
+  const visibleMembers = useMemo(
+    () => (showAllMembers ? members : members.slice(0, 3)),
+    [members, showAllMembers]
+  );
 
   const onModerate = async (decision) => {
     if (!team || working) return;
@@ -71,9 +77,7 @@ export default function AdminPendingTeamDetail() {
             <span className="material-symbols-outlined">chevron_left</span>
           </Link>
           <h1>チーム詳細</h1>
-          <button type="button" className="adpdetail-edit">
-            編集
-          </button>
+          <div className="adpdetail-header-spacer" aria-hidden="true" />
         </div>
       </header>
 
@@ -145,7 +149,7 @@ export default function AdminPendingTeamDetail() {
                 </h3>
               </div>
               <div className="adpdetail-member-list">
-                {members.slice(0, 3).map((member) => (
+                {visibleMembers.map((member) => (
                   <div key={member.id} className="adpdetail-member-item">
                     <div className="left">
                       <div className="icon">
@@ -156,12 +160,14 @@ export default function AdminPendingTeamDetail() {
                         <span>{member.email || "メール未設定"}</span>
                       </div>
                     </div>
-                    <span className={`tag ${member.role === "captain" ? "captain" : ""}`}>
-                      {member.role === "captain" ? "代表者・主将" : "一般"}
-                    </span>
+                    <span className={`tag ${member.role === "captain" ? "captain" : ""}`}>{member.role === "captain" ? "代表者" : "メンバー"}</span>
                   </div>
                 ))}
-                {members.length > 3 ? <button type="button">全メンバーを表示</button> : null}
+                {members.length > 3 ? (
+                  <button type="button" onClick={() => setShowAllMembers((prev) => !prev)}>
+                    {showAllMembers ? "一部のみ表示" : "全メンバーを表示"}
+                  </button>
+                ) : null}
               </div>
             </section>
           </>

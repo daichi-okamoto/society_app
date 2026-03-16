@@ -24,6 +24,11 @@
   justify-content: space-between;
 }
 
+.adntf-header-spacer {
+  width: 40px;
+  height: 40px;
+}
+
 .adntf-header-row h1 {
   margin: 0;
   font-size: 22px;
@@ -297,6 +302,11 @@
   place-items: center;
   background: transparent;
   color: #0f49bd;
+}
+
+.adntfc-icon-spacer {
+  width: 40px;
+  height: 40px;
 }
 
 .adntfc-main {
@@ -588,6 +598,247 @@
   border: 1px solid #d1d5db;
   background: transparent;
   color: #4b5563;
+}
+
+.adexp-root,
+.admsg-root {
+  max-width: 448px;
+  margin: 0 auto;
+  min-height: max(884px, 100dvh);
+  background: #f8f9fa;
+  color: #0f172a;
+  padding-bottom: 96px;
+}
+
+.adexp-header,
+.admsg-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(248, 249, 250, 0.96);
+  backdrop-filter: blur(7px);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.adexp-header-row,
+.admsg-header-row {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.adexp-header-row h1,
+.admsg-header-row h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.adexp-icon-btn,
+.admsg-icon-btn {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: #0f49bd;
+}
+
+.adexp-header-spacer,
+.admsg-header-spacer {
+  width: 40px;
+  height: 40px;
+}
+
+.adexp-main,
+.admsg-main {
+  padding: 16px;
+}
+
+.adexp-panel,
+.admsg-card {
+  background: #fff;
+  border: 1px solid #eef2f7;
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.adexp-panel {
+  padding: 16px;
+}
+
+.admsg-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admsg-card {
+  padding: 16px;
+}
+
+.adexp-panel-head,
+.admsg-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.adexp-panel-head .material-symbols-outlined,
+.admsg-card-head .material-symbols-outlined {
+  color: #0f49bd;
+  font-size: 22px;
+}
+
+.adexp-panel-head h2,
+.admsg-card-head h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.adexp-panel-head p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.adexp-label,
+.admsg-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #111318;
+}
+
+.adexp-select-wrap,
+.admsg-select-wrap,
+.admsg-card input,
+.admsg-card textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: #fff;
+  color: #111827;
+  font-size: 16px;
+}
+
+.adexp-select-wrap,
+.admsg-select-wrap {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.adexp-select-wrap select,
+.admsg-select-wrap select,
+.admsg-card input,
+.admsg-card textarea {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 12px 14px;
+}
+
+.adexp-select-wrap select,
+.admsg-select-wrap select {
+  appearance: none;
+  padding-right: 42px;
+}
+
+.adexp-select-wrap .material-symbols-outlined,
+.admsg-select-wrap .material-symbols-outlined {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  color: #6b7280;
+  pointer-events: none;
+}
+
+.adexp-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.adexp-summary > div,
+.admsg-recipient {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 12px;
+}
+
+.adexp-summary span,
+.admsg-recipient span {
+  display: block;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.adexp-summary strong,
+.admsg-recipient strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.admsg-recipient small {
+  display: block;
+  margin-top: 6px;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.adexp-error,
+.admsg-feedback {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.adexp-error,
+.admsg-feedback.is-error {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.admsg-feedback.is-success {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.adexp-download-btn,
+.admsg-submit {
+  width: 100%;
+  border-radius: 14px;
+  min-height: 52px;
+  font-size: 16px;
+  font-weight: 700;
+  border: 0;
+  background: #0f49bd;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 10px 24px rgba(15, 73, 189, 0.18);
+}
+
+.admsg-counter {
+  margin-top: 8px;
+  text-align: right;
+  font-size: 12px;
+  color: #9ca3af;
 }
 
 /* Admin Tournament List (latest design) */

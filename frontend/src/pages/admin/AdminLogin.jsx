@@ -109,7 +109,7 @@ export default function AdminLogin() {
         />
 
         <div className="adlogin-foot-links">
-          <button type="button">パスワードを忘れた場合</button>
+          <p className="adlogin-support-note">パスワード再設定は運営サポートへご連絡ください。</p>
           <p>
             <span>アカウントをお持ちでないですか？</span>
             <Link to="/admin/register">管理者登録はこちら</Link>

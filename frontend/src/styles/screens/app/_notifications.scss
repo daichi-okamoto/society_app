@@ -65,6 +65,10 @@
   border-bottom: 1px solid #f3f4f6;
 }
 
+.ntf-row.is-actionable {
+  cursor: pointer;
+}
+
 .ntf-row:last-child {
   border-bottom: 0;
 }
@@ -135,6 +139,10 @@
   place-items: center;
   flex-shrink: 0;
   margin-top: 10px;
+}
+
+.ntf-read-btn {
+  color: #2563eb;
 }
 
 .ntf-action-btn .material-symbols-outlined {

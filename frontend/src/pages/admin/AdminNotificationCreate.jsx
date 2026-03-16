@@ -114,9 +114,7 @@ export default function AdminNotificationCreate() {
           <span className="material-symbols-outlined">arrow_back_ios_new</span>
         </button>
         <h1>通知の作成</h1>
-        <button type="button" className="adntfc-icon-btn" aria-label="settings">
-          <span className="material-symbols-outlined">settings</span>
-        </button>
+        <div className="adntfc-icon-spacer" aria-hidden="true" />
       </header>
 
       <main className="adntfc-main">

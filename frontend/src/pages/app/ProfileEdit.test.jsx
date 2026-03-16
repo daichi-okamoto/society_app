@@ -76,4 +76,12 @@ describe("ProfileEdit", () => {
       expect(screen.getByText("ログイン状態の有効期限が切れました。再度ログインしてください。")).toBeInTheDocument();
     });
   });
+
+  it("uses date input for birth date", async () => {
+    renderPage();
+
+    const birthDateInput = screen.getByLabelText("生年月日");
+    expect(birthDateInput).toHaveAttribute("type", "date");
+    expect(birthDateInput).toHaveValue("1997-10-05");
+  });
 });

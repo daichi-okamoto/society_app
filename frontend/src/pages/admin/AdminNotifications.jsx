@@ -82,9 +82,7 @@ export default function AdminNotifications() {
       <header className="adntf-header">
         <div className="adntf-header-row">
           <h1>通知一覧</h1>
-          <button type="button" className="adntf-settings-btn" aria-label="settings">
-            <span className="material-symbols-outlined">settings</span>
-          </button>
+          <div className="adntf-header-spacer" aria-hidden="true" />
         </div>
         <div className="adntf-tabs">
           <button type="button" className={tab === "sent" ? "active" : ""} onClick={() => setTab("sent")}>

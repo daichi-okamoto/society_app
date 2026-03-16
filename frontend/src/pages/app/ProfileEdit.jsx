@@ -14,12 +14,12 @@ const PREFECTURES = [
 
 function formatBirthDate(value) {
   if (!value) return "";
-  if (value.includes("/")) return value;
-  return value.replaceAll("-", "/");
+  if (value.includes("/")) return value.replaceAll("/", "-");
+  return value;
 }
 
 function normalizeBirthDate(value) {
-  return value.trim().replaceAll("/", "-");
+  return value.trim();
 }
 
 function toDigits(value) {
@@ -263,9 +263,10 @@ export default function ProfileEdit() {
             <label htmlFor="birthday">生年月日</label>
             <input
               id="birthday"
+              type="date"
               value={form.birth_date}
               onChange={(e) => setField("birth_date", e.target.value)}
-              placeholder="YYYY/MM/DD"
+              max={new Date().toISOString().slice(0, 10)}
             />
           </div>
 

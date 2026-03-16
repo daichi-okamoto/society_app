@@ -101,9 +101,7 @@ export default function AdminTeamDetail() {
             <span className="material-symbols-outlined">chevron_left</span>
           </Link>
           <h1>チーム詳細</h1>
-          <button type="button" className="adpdetail-edit">
-            編集
-          </button>
+          <div className="adpdetail-header-spacer" aria-hidden="true" />
         </div>
       </header>
 
@@ -200,9 +198,7 @@ export default function AdminTeamDetail() {
                         <span>{member.email || "メール未設定"}</span>
                       </div>
                     </div>
-                    <span className={`tag ${member.role === "captain" ? "captain" : ""}`}>
-                      {member.role === "captain" ? "代表者・主将" : "一般"}
-                    </span>
+                    <span className={`tag ${member.role === "captain" ? "captain" : ""}`}>{member.role === "captain" ? "代表者" : "メンバー"}</span>
                   </div>
                 ))}
                 {members.length > 3 ? (

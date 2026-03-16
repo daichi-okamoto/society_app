@@ -50,6 +50,7 @@
   align-items: center;
   justify-content: center;
   color: #0f172a;
+  text-decoration: none;
 }
 
 .adash-settings:active {
@@ -58,39 +59,6 @@
 
 .adash-settings .material-symbols-outlined {
   font-size: 26px;
-}
-
-.adash-search-wrap {
-  margin: 0 16px 16px;
-  position: relative;
-}
-
-.adash-search-wrap .material-symbols-outlined {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #64748b;
-  font-size: 20px;
-}
-
-.adash-search-wrap input {
-  width: 100%;
-  border: 0;
-  border-radius: 999px;
-  background: #ffffff;
-  color: #0f172a;
-  padding: 12px 14px 12px 40px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
-  outline: none;
-}
-
-.adash-search-wrap input::placeholder {
-  color: #64748b;
-}
-
-.adash-search-wrap input:focus {
-  box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.32);
 }
 
 .adash-main {

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../../lib/api";
 import AdminTeamsBottomNav from "../../components/admin/teams/AdminTeamsBottomNav";
 import TeamListCard from "../../components/admin/teams/TeamListCard";
@@ -16,13 +16,21 @@ function sortToParam(sort) {
 
 export default function AdminTeams() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("q") || "");
   const [sort, setSort] = useState("latest");
   const [totalCount, setTotalCount] = useState(0);
   const [summary, setSummary] = useState({ total_teams: 0, pending_teams: 0 });
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    if (search.trim()) params.set("q", search.trim());
+    else params.delete("q");
+    setSearchParams(params, { replace: true });
+  }, [search, setSearchParams]);
 
   useEffect(() => {
     let active = true;
@@ -91,9 +99,7 @@ export default function AdminTeams() {
             <p>Admin Management</p>
             <h1>チーム管理</h1>
           </div>
-          <button type="button" className="adteam-settings-btn" aria-label="settings">
-            <span className="material-symbols-outlined">settings</span>
-          </button>
+          <div className="adteam-header-spacer" aria-hidden="true" />
         </div>
 
         <div className="adteam-search-row">
@@ -106,9 +112,6 @@ export default function AdminTeams() {
               placeholder="チーム名、代表者、地域で検索..."
             />
           </div>
-          <button type="button" className="adteam-add-btn" aria-label="create team">
-            <span className="material-symbols-outlined">add</span>
-          </button>
         </div>
       </header>
 

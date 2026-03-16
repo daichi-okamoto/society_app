@@ -26,6 +26,11 @@
   justify-content: space-between;
 }
 
+.adpdetail-header-spacer {
+  width: 48px;
+  height: 36px;
+}
+
 .adpending-header-row h1,
 .adpdetail-header-row h1 {
   margin: 0;
@@ -122,14 +127,6 @@
 
 .adpending-card > .material-symbols-outlined {
   color: #cbd5e1;
-}
-
-.adpdetail-edit {
-  border: 0;
-  background: transparent;
-  color: #1e3a8a;
-  font-size: 14px;
-  font-weight: 800;
 }
 
 .adpdetail-hero {

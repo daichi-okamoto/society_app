@@ -115,13 +115,9 @@ export default function AdminDashboard() {
             <p className="adash-welcome">こんにちは、管理者さん</p>
             <h1 className="adash-title">管理者ダッシュボード</h1>
           </div>
-          <button type="button" className="adash-settings" aria-label="settings">
-            <span className="material-symbols-outlined">settings</span>
-          </button>
-        </div>
-        <div className="adash-search-wrap">
-          <span className="material-symbols-outlined">search</span>
-          <input type="text" placeholder="大会、チーム、選手を検索" />
+          <Link to="/admin/notifications" className="adash-settings" aria-label="notifications">
+            <span className="material-symbols-outlined">notifications</span>
+          </Link>
         </div>
       </header>
 

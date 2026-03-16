@@ -3,12 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../../lib/api";
 import LoadingScreen from "../../components/LoadingScreen";
 
-function iconForNotification(notification) {
-  const source = `${notification?.title || ""} ${notification?.body || ""}`;
-  if (/招待|加入/.test(source)) return "person_add";
-  if (/大会|エントリー/.test(source)) return "emoji_events";
-  if (/運営|メンテ/.test(source)) return "campaign";
-  return "sports_soccer";
+function emitUnreadState(hasUnread) {
+  window.dispatchEvent(new CustomEvent("notifications:unread-changed", { detail: { hasUnread } }));
 }
 
 function formatRelativeTime(notification) {
@@ -41,8 +37,10 @@ export default function NotificationCenter() {
     setError(null);
     Promise.all([api.get("/notifications"), api.get("/notifications/history")])
       .then(([unreadRes, historyRes]) => {
-        setNotifications(unreadRes?.notifications || []);
+        const unreadItems = unreadRes?.notifications || [];
+        setNotifications(unreadItems);
         setHistory(historyRes?.notifications || []);
+        emitUnreadState(unreadItems.length > 0 || Number(unreadRes?.unread_count || 0) > 0);
       })
       .catch(() => setError("通知の取得に失敗しました"))
       .finally(() => setLoading(false));
@@ -58,7 +56,11 @@ export default function NotificationCenter() {
     setMarkingId(id);
     try {
       await api.post(`/notifications/${id}/read`);
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
+      setNotifications((prev) => {
+        const next = prev.filter((n) => n.id !== id);
+        emitUnreadState(next.length > 0);
+        return next;
+      });
       setHistory((prev) => [{ ...target, read_at: new Date().toISOString() }, ...prev]);
     } catch {
       setError("既読にできませんでした");
@@ -76,6 +78,16 @@ export default function NotificationCenter() {
   const openNotificationAction = async (notification) => {
     if (notification?._unread) {
       await markRead(notification.id);
+    }
+    if (notification?.link_path) {
+      navigate(notification.link_path);
+    }
+  };
+
+  const handleNotificationPress = async (notification) => {
+    if (notification?._unread) {
+      await openNotificationAction(notification);
+      return;
     }
     if (notification?.link_path) {
       navigate(notification.link_path);
@@ -102,7 +114,20 @@ export default function NotificationCenter() {
             rows.map((n) => (
               <div
                 key={`${n._unread ? "u" : "r"}-${n.id}`}
-                className={`ntf-row ${n._unread ? "unread" : ""}`}
+                className={`ntf-row ${n._unread ? "unread is-actionable" : n.link_path ? "is-actionable" : ""}`}
+                role={n._unread || n.link_path ? "button" : undefined}
+                tabIndex={n._unread || n.link_path ? 0 : undefined}
+                onClick={n._unread || n.link_path ? () => handleNotificationPress(n) : undefined}
+                onKeyDown={
+                  n._unread || n.link_path
+                    ? (event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          handleNotificationPress(n);
+                        }
+                      }
+                    : undefined
+                }
               >
                 {n._unread ? <span className="ntf-dot" /> : null}
                 <div className="ntf-text">
@@ -116,11 +141,27 @@ export default function NotificationCenter() {
                   <button
                     type="button"
                     className="ntf-action-btn"
-                    onClick={() => openNotificationAction(n)}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      openNotificationAction(n);
+                    }}
                     disabled={markingId === n.id}
                     aria-label="詳細へ"
                   >
                     <span className="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+                  </button>
+                ) : n._unread ? (
+                  <button
+                    type="button"
+                    className="ntf-action-btn ntf-read-btn"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      markRead(n.id);
+                    }}
+                    disabled={markingId === n.id}
+                    aria-label="既読にする"
+                  >
+                    <span className="material-symbols-outlined" aria-hidden="true">done</span>
                   </button>
                 ) : null}
               </div>

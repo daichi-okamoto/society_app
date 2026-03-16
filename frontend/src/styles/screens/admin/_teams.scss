@@ -23,6 +23,11 @@
   justify-content: space-between;
 }
 
+.adteam-header-spacer {
+  width: 44px;
+  height: 44px;
+}
+
 .adteam-header-row p {
   margin: 0 0 4px;
   font-size: 10px;
@@ -34,19 +39,10 @@
 
 .adteam-header-row h1 {
   margin: 0;
-  font-size: 44px;
-  line-height: 1.08;
-  letter-spacing: -0.02em;
-  font-weight: 800;
-  color: #0f172a;
-}
-
-.adteam-settings-btn {
-  width: 44px;
-  height: 44px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
+  font-size: 22px;
+  line-height: 1.2;
+  letter-spacing: 0;
+  font-weight: 700;
   color: #0f172a;
 }
 
@@ -83,16 +79,6 @@
 
 .adteam-search-wrap input:focus {
   outline: 2px solid rgba(30, 58, 138, 0.18);
-}
-
-.adteam-add-btn {
-  width: 46px;
-  height: 46px;
-  border: 0;
-  border-radius: 12px;
-  background: #1e3a8a;
-  color: #fff;
-  box-shadow: 0 14px 30px rgba(30, 58, 138, 0.24);
 }
 
 .adteam-main {

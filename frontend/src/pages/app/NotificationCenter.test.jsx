@@ -28,4 +28,22 @@ describe("NotificationCenter", () => {
     fireEvent.click(screen.getByLabelText("詳細へ"));
     await waitFor(() => expect(api.post).toHaveBeenCalled());
   });
+
+  it("marks plain unread notification as read", async () => {
+    api.get.mockResolvedValueOnce({
+      notifications: [{ id: 3, title: "通常通知", body: "本文" }]
+    });
+    api.get.mockResolvedValueOnce({ notifications: [] });
+    api.post.mockResolvedValueOnce({ read: true });
+
+    render(
+      <MemoryRouter>
+        <NotificationCenter />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => expect(screen.getByText("通常通知")).toBeInTheDocument());
+    fireEvent.click(screen.getByLabelText("既読にする"));
+    await waitFor(() => expect(api.post).toHaveBeenCalledWith("/notifications/3/read"));
+  });
 });

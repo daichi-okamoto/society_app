@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../../lib/api";
 import AdminBottomNav from "../../components/admin/AdminBottomNav";
 import { getTournamentCoverUrl } from "../../lib/tournamentImages";
@@ -25,10 +25,18 @@ function formatDateLabel(eventDate) {
 
 export default function AdminTournaments() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("q") || "");
   const [filter, setFilter] = useState("all");
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    if (search.trim()) params.set("q", search.trim());
+    else params.delete("q");
+    setSearchParams(params, { replace: true });
+  }, [search, setSearchParams]);
 
   useEffect(() => {
     let active = true;
